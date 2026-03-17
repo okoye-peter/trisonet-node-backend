@@ -16,7 +16,7 @@ export const getVtuData = asyncHandler(async (req: Request, res: Response) => {
         }
     })
     const { networks, data_bundles } = await vtuService.getVtuDataBundles();
-    const { packages, providers } = await vtuService.getVtuCableOffers();
+    const { packages, providers } = (await vtuService.getVtuCableOffers()) as any;
     res.json({
         networks,
         data_bundles,

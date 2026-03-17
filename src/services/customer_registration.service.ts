@@ -6,7 +6,7 @@ import { handleReferral } from "./referral.service";
 import WalletService from "./wallet.service";
 import { WalletType } from "../generated/prisma/enums";
 import { AccountActivationService } from "./account_activation.service";
-import { User } from "@prisma/client";
+import { User } from "../generated/prisma";
 
 interface UserRequestData {
     name: string;

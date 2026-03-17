@@ -70,7 +70,7 @@ export class VtuService {
 
     private emptyCableResponse() {
         return {
-            cable_offers: {},
+            packages: {},
             providers: [],
             status: false
         };
