@@ -5,7 +5,7 @@ import { sendSuccess } from "../utils/responseWrapper";
 
 export const getBanksList = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const result = await (new PagaService()).getBanks();
-
+    return sendSuccess(res, 200, 'service currently not available', result);
     if(!result.success){
         return sendSuccess(res, 200, 'service currently not available', []);
     }
