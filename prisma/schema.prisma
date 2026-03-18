@@ -51,6 +51,7 @@ model User {
     canWithdrawGkwth                Boolean                     @default(true) @map("can_withdraw_gkwth")
     lastSeen                        DateTime?                   @map("last_seen") @db.Timestamp(0)
     activatedAt                     DateTime?                   @map("activated_at") @db.Timestamp(0)
+    upgradeToAdultAt                DateTime?                   @map("upgrade_to_adult_at") @db.Timestamp(0)
     isOnline                        Boolean                     @default(false) @map("is_online")
     sponsorshipAcceptedAt           DateTime?                   @map("sponsorship_accepted_at") @db.Timestamp(0)
     sponsorAgreement                Boolean?                    @map("sponsor_agreement")
