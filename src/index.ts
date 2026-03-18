@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -30,11 +30,11 @@ app.use(helmet({
 }));
 
 app.use(cors({
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         const rawOrigins = process.env.ALLOWED_ORIGINS || '';
         const allowedLinks = rawOrigins
             .split(',')
-            .map(link => link.replace(/['"]/g, '').trim()) // Remove any extra quotes
+            .map((link: string) => link.replace(/['"]/g, '').trim()) // Remove any extra quotes
             .filter(Boolean);
 
         console.log(`[CORS] Incoming origin: ${origin}`);
@@ -60,7 +60,7 @@ app.use(cookieParser());
 app.use(morganMiddleware);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
     res.status(200).json({ status: 'success', message: 'Backend is running' });
 });
 
@@ -75,7 +75,7 @@ app.use('/api/banks', bankRouter);
 app.use('/api/vtu', vtuRouter);
 app.use('/api/pim_cards', pimCardRouter);
 
-app.all('/{*splat}', (req, res, next) => {
+app.all('/{*splat}', (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({
         status: 'fail',
         message: `Can't find ${req.originalUrl} on this server!`,
