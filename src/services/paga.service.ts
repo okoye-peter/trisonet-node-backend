@@ -45,12 +45,12 @@ export class PagaService {
      * Get list of banks
      */
     async getBanks(): Promise<PagaResponse> {
-        return await getOrSetCache('paga_banks', 86400, async () => {
+        // return await getOrSetCache('paga_banks', 86400, async () => {
             const referenceNumber = this.generateReference('BNK');
-            const hash = this.generateHash([referenceNumber, this.businessPublicId]);
+            const hash = this.generateHash([referenceNumber]); // ← just referenceNumber, no businessPublicId
 
             return await this.callApi('getBanks', { referenceNumber }, hash, true);
-        });
+        // });
     }
 
     /**
@@ -186,7 +186,7 @@ export class PagaService {
      */
     async getAccountBalance(): Promise<PagaResponse> {
         const referenceNumber = this.generateReference('BAL');
-        const hash = this.generateHash([referenceNumber, this.businessPublicId]);
+        const hash = this.generateHash([referenceNumber]); // ← same
 
         return await this.callApi('accountBalance', { referenceNumber }, hash, true);
     }
@@ -573,15 +573,18 @@ export class PagaService {
     }
 
     /**
-     * Generate unique reference
-     */
+     * Generate unique reference — mirrors Laravel's implementation
+    */
     generateReference(prefix: string = 'PAGA'): string {
-        const timestamp = Math.floor(Date.now() / 1000).toString(16);
+        const timestamp = Math.floor(Date.now() / 1000).toString(16).toUpperCase();
         const neededRandom = 12 - prefix.length - timestamp.length;
         let random = '';
 
         if (neededRandom > 0) {
-            random = crypto.randomBytes(neededRandom / 2).toString('hex').toUpperCase();
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            for (let i = 0; i < neededRandom; i++) {
+                random += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
         }
 
         return (prefix + timestamp + random).toUpperCase();
