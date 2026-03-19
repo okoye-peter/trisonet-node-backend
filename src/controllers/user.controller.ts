@@ -1,12 +1,14 @@
+import { PagaService } from './../services/paga.service';
 import { asyncHandler } from "../middlewares/asyncHandler"
 import { prisma } from "../config/prisma"
 import { sendSuccess } from '../utils/responseWrapper'
 import { NextFunction, Request, Response } from "express"
 import { paginate } from "../utils/pagination"
-import { MAX_ASSET_DEPOT } from "../config/constants"
+import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, ROLES } from "../config/constants"
 import bcrypt from "bcryptjs"
 import { AppError } from "../utils/AppError"
 import { differenceInMinutes } from "date-fns"
+import { getOrSetCache } from '../utils/cache';
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -100,12 +102,12 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
 export const sendProfileUpdateOtp = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     await prisma.user.update({
         where: { id: user.id },
-        data: { 
-            passwordResetOtp: otp, 
-            passwordResetOtpSentAt: new Date() 
+        data: {
+            passwordResetOtp: otp,
+            passwordResetOtpSentAt: new Date()
         }
     });
 
@@ -173,3 +175,207 @@ export const updatePassword = asyncHandler(async (req: Request, res: Response, n
     });
     sendSuccess(res, 200, 'User password updated successfully');
 })
+
+export const getUserWards = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { search } = req.query;
+    const whereClause: any = {
+        guardianId: user.id,
+        isInfant: true,
+        role: ROLES.CUSTOMER
+    }
+
+    if (search) {
+        whereClause.OR = [
+            { name: { contains: String(search) } },
+            { username: { contains: String(search) } }
+        ];
+    }
+
+    const wards = await paginate(
+        prisma.user,
+        {
+            where: whereClause,
+            orderBy: { createdAt: 'desc' }
+        },
+        {
+            page: Number(req.query.page),
+            limit: Number(req.query.limit)
+        }
+    )
+
+    return sendSuccess(res, 200, 'User wards fetched successfully', wards);
+})
+
+export const getUserWardStats = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id: userId } = req.user;
+
+    const [
+        unlimitedWardSlot,
+        unlimitedWardPriceValue,
+        limitedWardPricePerSlotValue,
+        availableSlot,
+        slotUsed
+    ] = await Promise.all([
+        prisma.guardianWardSlotPurchase.findFirst({
+            where: {
+                type: 'unlimited',
+                userId,
+                status: 'success',
+                unlimitedRevokedAt: null
+            }
+        }),
+        getOrSetCache<string>(
+            'setting:unlimited_parent_ward_slot',
+            3600, // 1 hour
+            async () => {
+                const s = await prisma.setting.findFirst({
+                    where: { key: 'unlimited_parent_ward_slot' },
+                    select: { value: true }
+                });
+                return s?.value ?? '0';
+            }
+        ),
+        getOrSetCache<string>(
+            'setting:ward_slot_purchase_price',
+            3600, // 1 hour
+            async () => {
+                const s = await prisma.setting.findFirst({
+                    where: { key: 'ward_slot_purchase_price' },
+                    select: { value: true }
+                });
+                return s?.value ?? '0';
+            }
+        ),
+        prisma.guardianWardSlotPurchase.aggregate({
+            _sum: { quantityPurchased: true },
+            where: {
+                userId,
+                status: 'success',
+                type: 'limited'
+            }
+        }),
+        prisma.user.count({
+            where: {
+                guardianId: userId,
+                isInfant: true,
+                role: ROLES.CUSTOMER
+            }
+        })
+    ]);
+
+    const paga = new PagaService();
+
+    const wardSlotRemaining: string | number = unlimitedWardSlot
+        ? 'unlimited'
+        : GUARDIAN_MAX_WARDS + (availableSlot._sum.quantityPurchased ?? 0) - slotUsed;
+
+    const rawSlotPrice = Number(limitedWardPricePerSlotValue);
+    const rawUnlimitedPrice = Number(unlimitedWardPriceValue);
+
+    const pricePerSlot = rawSlotPrice + paga.calculateCharge(rawSlotPrice);
+    const unlimitedSlotPrice = rawUnlimitedPrice + paga.calculateCharge(rawUnlimitedPrice);
+
+    sendSuccess(res, 200, 'User ward stats fetched successfully', {
+        wardSlotRemaining,
+        pricePerSlot,
+        unlimitedSlotPrice
+    });
+});
+
+export const getWardsSchoolFees = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id: userId } = req.user;
+    const { page, limit, username } = req.query;
+
+    const wardWhereClause: any = {
+        guardianId: userId,
+        isInfant: true,
+        role: ROLES.CUSTOMER
+    };
+
+    if (username) {
+        wardWhereClause.username = { contains: String(username) };
+    }
+
+    const wards = await prisma.user.findMany({
+        where: wardWhereClause,
+        select: { id: true }
+    });
+
+    const wardIds = wards.map(w => w.id);
+
+    const paginatedFees = await paginate(
+        prisma.infantSchoolFee,
+        {
+            where: {
+                userId: { in: wardIds },
+                infantSchoolFeeGroupId: { not: null }
+            },
+            include: {
+                schoolTermRef: {
+                    select: { id: true, name: true }
+                },
+                schoolLevel: {
+                    select: { id: true, name: true }
+                },
+                infantSchoolFeeGroup: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                schoolUser: {
+                                    select: { id: true, name: true }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: {
+                    select: { id: true, name: true, username: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        },
+        {
+            page: Number(page),
+            limit: Number(limit)
+        }
+    );
+
+    sendSuccess(res, 200, 'User wards school fees fetched successfully', paginatedFees);
+});
+
+export const getUserByTransferId = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const transferId = req.params.transferId as string;
+    if(!transferId) return next(new AppError('Invalid transfer ID', 400));
+    if(req.user.transferId === transferId) return next(new AppError('You cannot transfer to yourself', 400));
+
+    const user = await prisma.user.findFirst({
+        where: { 
+            transferId,
+            status: true,
+            accountState: 1, // Assuming 1 is true/active in this schema's context
+            isInfant: false
+        },
+        select: {
+            id: true,
+            name: true,
+            transferId: true,
+            status: true,
+            accountState: true,
+            username: true // Keeping username for the UI display
+        }
+    });
+
+    if (!user) {
+        return next(new AppError('Invalid transfer ID or user inactive', 400));
+    }
+
+    sendSuccess(res, 200, 'User found successfully', {
+        ...user,
+        id: user.id.toString()
+    });
+});
+

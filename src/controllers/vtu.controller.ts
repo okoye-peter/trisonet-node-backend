@@ -13,6 +13,9 @@ export const getVtuData = asyncHandler(async (req: Request, res: Response) => {
     const wallets = await prisma.wallet.findMany({
         where: {
             userId: (req as any).user.id
+        },
+        orderBy: {
+            createdAt: 'desc'
         }
     })
     const { networks, data_bundles } = await vtuService.getVtuDataBundles();

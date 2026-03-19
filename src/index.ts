@@ -16,6 +16,9 @@ import userRouter from './routes/user.route';
 import vtuRouter from './routes/vtu.routes';
 import bankRouter from './routes/bank.route';
 import pimCardRouter from './routes/pim_card.route';
+import walletRouter from './routes/wallet.route';
+import withdrawalRouter from './routes/withdrawal.route';
+import paymentRouter from './routes/payment.route';
 
 // Initialize background workers
 import './queue';
@@ -74,6 +77,9 @@ app.use('/api/users', userRouter);
 app.use('/api/banks', bankRouter);
 app.use('/api/vtu', vtuRouter);
 app.use('/api/pim_cards', pimCardRouter);
+app.use('/api/wallet', walletRouter);
+app.use('/api/withdrawal', withdrawalRouter);
+app.use('/api/payment', paymentRouter);
 
 app.all('/{*splat}', (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({

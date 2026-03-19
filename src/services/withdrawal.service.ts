@@ -1,0 +1,295 @@
+import { prisma } from "../config/prisma";
+import { ROLES } from "../config/constants";
+import { differenceInHours } from "date-fns";
+import { AppError } from "../utils/AppError";
+import bcrypt from "bcryptjs";
+import { InitiateTransferInput } from "../validations/withdrawal.validation";
+
+export class WithdrawalService {
+    /**
+     * Calculate withdrawal charges based on amount tiers
+     */
+    static getWithdrawalCharges(amount: number): number {
+        if (amount <= 5000) return 100;
+        if (amount <= 50000) return 200;
+        if (amount <= 100000) return 300;
+        if (amount <= 200000) return 500;
+        return 1000;
+    }
+
+    /**
+     * Check if a user is eligible to withdraw based on their status and referrals
+     */
+    static async checkUserStatusToWithdraw(user: any): Promise<{ status: boolean; error?: string }> {
+        // 1 hour bypass check
+        if (user.withdrawalBypassAt && differenceInHours(new Date(), user.withdrawalBypassAt) < 1) {
+            return { status: true };
+        }
+
+        if (user.role === ROLES.CUSTOMER) {
+            const activeReferralsCount = await prisma.user.count({
+                where: {
+                    referralId: user.id,
+                    status: true
+                }
+            });
+
+            if (activeReferralsCount < 6) {
+                return { status: false, error: "you can't withdraw until you distribute up to 6 units" };
+            }
+
+            const lastWithdrawal = await prisma.withDrawal.findFirst({
+                where: {
+                    userId: user.id,
+                    NOT: { 
+                        accountNumber: { in: ['direct wallet', 'indirect wallet'] }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (lastWithdrawal) {
+                const recentRefs = await prisma.user.count({
+                    where: {
+                        referralId: user.id,
+                        status: true,
+                        createdAt: { gte: lastWithdrawal.createdAt! }
+                    }
+                });
+
+                if (recentRefs < 6) {
+                    const remaining = 6 - (recentRefs % 6);
+                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units` };
+                }
+            }
+        } else if (user.role === ROLES.INFLUENCER) {
+            const lastWithdrawal = await prisma.withDrawal.findFirst({
+                where: {
+                    userId: user.id,
+                    NOT: { 
+                        accountNumber: { in: ['direct wallet', 'indirect wallet'] }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (lastWithdrawal) {
+                const recentInfluenced = await prisma.user.count({
+                    where: {
+                        influencerId: user.id,
+                        status: true,
+                        createdAt: { gte: lastWithdrawal.createdAt! }
+                    }
+                });
+
+                if (recentInfluenced < 6) {
+                    const remaining = 6 - (recentInfluenced % 6);
+                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units` };
+                }
+            }
+        }
+
+        return { status: true };
+    }
+
+    /**
+     * Initiate a transfer request
+     */
+    static async initiateTransfer(user: any, input: InitiateTransferInput, type?: string) {
+        // Optimization: Fetch all needed settings at once
+        const settingsKeys = ['lock_withdrawal', 'lock_direct_withdrawal', 'lock_indirect_withdrawal', 'gkwth_purchase_price'];
+        const settings = await prisma.setting.findMany({
+            where: { key: { in: settingsKeys } }
+        });
+
+        const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
+
+        // 1. Global Lock Check
+        if (settingsMap['lock_withdrawal'] === '1') {
+            throw new AppError('Withdrawal currently not available, try again later', 400);
+        }
+
+        // 2. User Permission & Details Check
+        if (user.role !== ROLES.PATRON && !user.canWithdraw) {
+            throw new AppError('Withdrawal currently not available for this account, contact admin for assistance', 400);
+        }
+
+        if (user.role !== ROLES.PATRON && (!user.bank || !user.accountNumber)) {
+            throw new AppError('Please update your bank details first', 400);
+        }
+
+        const rolesRequiringPin = [ROLES.CUSTOMER, ROLES.SCHOOL, ROLES.INFLUENCER];
+        if (rolesRequiringPin.includes(user.role) && !user.withdrawalPin) {
+            throw new AppError('Please update your transaction pin first', 400);
+        }
+
+        if (type === 'opt-out') {
+            return { success: true, message: 'Opt-out handled (logic placeholder)' };
+        }
+
+        const walletId = BigInt(input.wallet);
+
+        if (!user.status) {
+            throw new AppError("Your account isn't activated, activate your account first", 400);
+        }
+
+        if (user.isInfant) {
+            throw new AppError("Infants aren't allowed to withdraw until account has been upgraded to adult account", 400);
+        }
+
+        // 4. Wallet Check
+        const wallet = await prisma.wallet.findFirst({
+            where: { id: walletId, userId: user.id }
+        });
+
+        if (!wallet) {
+            throw new AppError('Invalid wallet selected', 400);
+        }
+
+        if (wallet.type === 'indirect' && !user.canWithdrawGkwth) {
+            throw new AppError('Your account has been restricted from withdrawing GKWTH', 400);
+        }
+
+        if (wallet.amount < input.amount) {
+            throw new AppError('Insufficient balance', 400);
+        }
+
+        // 5. PIN Verification
+        if (user.role !== ROLES.PATRON) {
+            if (!input.withdrawal_pin) {
+                throw new AppError('Withdrawal PIN is required', 400);
+            }
+            const isPinValid = await bcrypt.compare(input.withdrawal_pin, user.withdrawalPin!);
+            if (!isPinValid) {
+                throw new AppError('Invalid withdrawal pin', 400);
+            }
+        }
+
+        // 6. OTP Verification for Patrons
+        if (user.role === ROLES.PATRON) {
+            if (!input.withdrawal_otp || Number(input.withdrawal_otp) !== user.sponsorWithdrawalOtp) {
+                throw new AppError('Invalid withdrawal OTP', 400);
+            }
+        }
+
+        // 7. Pending Request Check
+        const pendingRequestCount = await prisma.withdrawalRequest.count({
+            where: {
+                OR: [
+                    { userEmail: user.username || user.email || '' },
+                    { walletId: wallet.id }
+                ],
+                status: 'pending'
+            }
+        });
+
+        if (pendingRequestCount > 0) {
+            throw new AppError('You already have a pending withdrawal request that hasn\'t been resolved', 400);
+        }
+
+        // 8. User Eligibility Check
+        if (user.role !== ROLES.PATRON) {
+            const eligibility = await this.checkUserStatusToWithdraw(user);
+            if (!eligibility.status) {
+                throw new AppError(eligibility.error || 'Withdrawal restricted', 400);
+            }
+        }
+
+        let amountCalculated = 0;
+        let priceValue: number | null = null;
+
+        // 9. Wallet Specific Locks & Amount Calculation
+        if (wallet.type === 'direct') {
+            if (settingsMap['lock_direct_withdrawal'] === '1') {
+                throw new AppError('Cash withdrawal currently not available. Try again later.', 400);
+            }
+            amountCalculated = input.amount;
+        } else if (wallet.type === 'indirect') {
+            if (settingsMap['lock_indirect_withdrawal'] === '1') {
+                throw new AppError('Attention!, Asset Buyers Are Not Available At the Moment, Please Try Again Later', 400);
+            }
+
+            if (wallet.amount - input.amount < 1) {
+                throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
+            }
+
+            priceValue = Number(settingsMap['gkwth_purchase_price'] || 0);
+            amountCalculated = user.country === "Nigeria" ? input.amount * priceValue : input.amount * 10;
+        }
+
+        // 10. Transaction
+        return await prisma.$transaction(async (tx) => {
+            const currentWallet = await tx.wallet.findUnique({ where: { id: walletId! } });
+            if (!currentWallet || currentWallet.amount < input.amount) {
+                throw new AppError('Insufficient balance', 400);
+            }
+
+            const newBalance = currentWallet.amount - input.amount;
+            if (wallet.type === 'indirect' && newBalance < 1) {
+                throw new AppError('Insufficient balance (GKWTH must remain above 1)', 400);
+            }
+
+            const oldBalanceStr = wallet.type === 'indirect' ? `${currentWallet.amount}gkwth` : `${currentWallet.amount}`;
+            const newBalanceStr = wallet.type === 'indirect' ? `${newBalance}gkwth` : `${newBalance}`;
+
+            // Decrement wallet
+            await tx.wallet.update({
+                where: { id: wallet.id },
+                data: { amount: { decrement: input.amount } }
+            });
+
+            // Increment Central Treasury if indirect
+            if (wallet.type === 'indirect') {
+                const centralTreasury = await tx.wallet.findFirst({ where: { type: 'central_treasury' } });
+                if (centralTreasury) {
+                    await tx.wallet.update({
+                        where: { id: centralTreasury.id },
+                        data: { amount: { increment: input.amount } }
+                    });
+
+                    // Log Central Treasury Transaction
+                    await tx.centralTreasuryLog.create({
+                        data: {
+                            transactionType: 'purchase',
+                            walletId: wallet.id,
+                            performedBy: user.id,
+                            amount: input.amount
+                        }
+                    });
+                }
+            }
+
+            const charges = this.getWithdrawalCharges(amountCalculated);
+            const amountToTransfer = amountCalculated - charges;
+            const email = user.email || user.username || '';
+
+            const userTypeMap: Record<number, string> = {
+                [ROLES.SPONSOR]: 'sponsor',
+                [ROLES.CUSTOMER]: 'customer',
+                [ROLES.INFLUENCER]: 'influencer',
+                [ROLES.PATRON]: 'patron'
+            };
+            const userType = userTypeMap[user.role as number] || 'user';
+
+            const request = await tx.withdrawalRequest.create({
+                data: {
+                    amountRequested: amountCalculated,
+                    amountToTransfer: amountToTransfer,
+                    walletId: wallet.id,
+                    bankName: input.bank_name,
+                    bankCode: input.bank_code,
+                    accountNumber: input.account_number,
+                    gkwthValue: priceValue,
+                    gkwthAmount: wallet.type === 'indirect' ? input.amount : null,
+                    userEmail: email,
+                    userType: userType as any,
+                    oldBalance: oldBalanceStr,
+                    newBalance: newBalanceStr,
+                    status: 'pending'
+                }
+            });
+
+            return request;
+        });
+    }
+}
