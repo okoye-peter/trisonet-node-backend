@@ -48,18 +48,18 @@ export class PagaService {
         const referenceNumber = this.generateReference('BNK');
         const hash = this.generateHash([referenceNumber]);
 
-        pagaLogger.info('PAGA DEBUG', {
-            hashKey: this.hashKey,
-            businessPublicId: this.businessPublicId,
-            businessPassword: this.businessPassword,
-            referenceNumber,
-            hash,
-            testMode: this.testMode
-        });
-
-        // return await getOrSetCache('paga_banks', 86400, async () => {
-            return await this.callApi('getBanks', { referenceNumber }, hash, true);
+        // pagaLogger.info('PAGA DEBUG', {
+        //     hashKey: this.hashKey,
+        //     businessPublicId: this.businessPublicId,
+        //     businessPassword: this.businessPassword,
+        //     referenceNumber,
+        //     hash,
+        //     testMode: this.testMode
         // });
+
+        return await getOrSetCache('paga__banks', 86400, async () => {
+            return await this.callApi('getBanks', { referenceNumber }, hash, true);
+        });
     }
 
     /**
