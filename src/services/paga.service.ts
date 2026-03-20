@@ -45,12 +45,20 @@ export class PagaService {
      * Get list of banks
      */
     async getBanks(): Promise<PagaResponse> {
-        // return await getOrSetCache('paga_banks', 86400, async () => {
+        return await getOrSetCache('paga_banks', 86400, async () => {
             const referenceNumber = this.generateReference('BNK');
-            const hash = this.generateHash([referenceNumber]); // ← just referenceNumber, no businessPublicId
+            const hash = this.generateHash([referenceNumber]);
+
+            pagaLogger.info('PAGA DEBUG', {
+                hashKey: this.hashKey,
+                businessPublicId: this.businessPublicId,
+                businessPassword: this.businessPassword,
+                referenceNumber,
+                testMode: this.testMode
+            });
 
             return await this.callApi('getBanks', { referenceNumber }, hash, true);
-        // });
+        });
     }
 
     /**
@@ -91,7 +99,7 @@ export class PagaService {
         options: any = {}
     ): Promise<PagaResponse> {
         const refNumber = referenceNumber || this.generateReference('VR');
-
+        
         // Expiry handling
         let expiry = options.expiryDateTimeUTC;
         if (!expiry) {
@@ -186,7 +194,7 @@ export class PagaService {
      */
     async getAccountBalance(): Promise<PagaResponse> {
         const referenceNumber = this.generateReference('BAL');
-        const hash = this.generateHash([referenceNumber]); // ← same
+        const hash = this.generateHash([referenceNumber]);
 
         return await this.callApi('accountBalance', { referenceNumber }, hash, true);
     }
@@ -280,10 +288,10 @@ export class PagaService {
         const isValid = statusCode === 0 || statusCode === '0';
 
         if (!isValid) {
-            pagaLogger.error(`Paga resolveBankDetails Failure`, {
-                accountNumber,
-                bankUUID,
-                response: apiData
+            pagaLogger.error(`Paga resolveBankDetails Failure`, { 
+                accountNumber, 
+                bankUUID, 
+                response: apiData 
             });
             return {
                 success: false,
@@ -374,10 +382,10 @@ export class PagaService {
         const isSuccess = statusCode === 0 || statusCode === '0';
 
         if (!isSuccess) {
-            pagaLogger.error(`Paga withdraw Failure`, {
-                destinationAccount,
-                amount,
-                response: data
+            pagaLogger.error(`Paga withdraw Failure`, { 
+                destinationAccount, 
+                amount, 
+                response: data 
             });
         }
 
@@ -435,11 +443,11 @@ export class PagaService {
         const isSuccess = statusCode === 0 || statusCode === '0';
 
         if (!isSuccess) {
-            pagaLogger.error(`Paga withdrawToBank Failure`, {
-                destinationBankAccountNumber,
-                destinationBankUUID,
-                amount,
-                response: data
+            pagaLogger.error(`Paga withdrawToBank Failure`, { 
+                destinationBankAccountNumber, 
+                destinationBankUUID, 
+                amount, 
+                response: data 
             });
         }
 
@@ -573,18 +581,15 @@ export class PagaService {
     }
 
     /**
-     * Generate unique reference — mirrors Laravel's implementation
-    */
+     * Generate unique reference
+     */
     generateReference(prefix: string = 'PAGA'): string {
-        const timestamp = Math.floor(Date.now() / 1000).toString(16).toUpperCase();
+        const timestamp = Math.floor(Date.now() / 1000).toString(16);
         const neededRandom = 12 - prefix.length - timestamp.length;
         let random = '';
-
+        
         if (neededRandom > 0) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            for (let i = 0; i < neededRandom; i++) {
-                random += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            random = crypto.randomBytes(neededRandom / 2).toString('hex').toUpperCase();
         }
 
         return (prefix + timestamp + random).toUpperCase();
