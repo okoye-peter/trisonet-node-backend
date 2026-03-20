@@ -10,6 +10,7 @@ const logDir = path.join(__dirname, '../../logs');
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir);
 }
+console.log('LOG DIR RESOLVED:', logDir);
 
 const customFormat = winston.format.printf(({ level, message, timestamp, ...meta }) => {
     return `${timestamp} [${level.toUpperCase()}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''

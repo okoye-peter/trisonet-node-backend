@@ -45,18 +45,20 @@ export class PagaService {
      * Get list of banks
      */
     async getBanks(): Promise<PagaResponse> {
+        console.log('GET BANKS CALLED');
+        const referenceNumber = this.generateReference('BNK');
+        const hash = this.generateHash([referenceNumber]);
+
+        pagaLogger.info('PAGA DEBUG', {
+            hashKey: this.hashKey,
+            businessPublicId: this.businessPublicId,
+            businessPassword: this.businessPassword,
+            referenceNumber,
+            hash,
+            testMode: this.testMode
+        });
+
         return await getOrSetCache('paga_banks', 86400, async () => {
-            const referenceNumber = this.generateReference('BNK');
-            const hash = this.generateHash([referenceNumber]);
-
-            pagaLogger.info('PAGA DEBUG', {
-                hashKey: this.hashKey,
-                businessPublicId: this.businessPublicId,
-                businessPassword: this.businessPassword,
-                referenceNumber,
-                testMode: this.testMode
-            });
-
             return await this.callApi('getBanks', { referenceNumber }, hash, true);
         });
     }

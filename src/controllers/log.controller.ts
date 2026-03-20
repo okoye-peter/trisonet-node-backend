@@ -10,23 +10,42 @@ const logDir = path.join(__dirname, '../../logs');
 
 const readLogs = (res: Response, prefix: string) => {
     if (!fs.existsSync(logDir)) {
-        return sendSuccess(res, 200, 'Logs retrieved successfully', { logs: [] });
+        return sendSuccess(res, 200, 'Log directory not found', { logs: [], availableFiles: [] });
     }
 
     const files = fs.readdirSync(logDir);
-    const logFiles = files.filter(f => f.startsWith(prefix) && f.endsWith('.log'));
+    const logFiles = files.filter(f => f.startsWith(prefix) && f.endsWith('.log')).sort().reverse();
 
     if (logFiles.length === 0) {
-        return sendSuccess(res, 200, 'Logs retrieved successfully', { logs: [] });
+        return sendSuccess(res, 200, 'No log files found', { logs: [], availableFiles: [] });
     }
 
     // Pick the most recent log file
-    const latestLog = logFiles.sort().reverse()[0] as string;
+    const latestLog = logFiles[0] as string;
     const logContent = fs.readFileSync(path.join(logDir, latestLog), 'utf-8');
+    const lines = logContent.split('\n').filter(line => line.trim() !== '');
+
+    // If the latest log is empty, try to find the last non-empty one
+    let currentLog = latestLog;
+    let currentLines = lines;
+
+    if (currentLines.length === 0 && logFiles.length > 1) {
+        for (let i = 1; i < logFiles.length; i++) {
+            const content = fs.readFileSync(path.join(logDir, logFiles[i] as string), 'utf-8');
+            const l = content.split('\n').filter(line => line.trim() !== '');
+            if (l.length > 0) {
+                currentLog = logFiles[i] as string;
+                currentLines = l;
+                break;
+            }
+        }
+    }
 
     sendSuccess(res, 200, 'Logs retrieved successfully', {
-        filename: latestLog,
-        content: logContent.split('\n').filter(line => line.trim() !== '')
+        filename: currentLog,
+        latestFilename: latestLog,
+        availableFiles: logFiles,
+        content: currentLines
     });
 };
 
