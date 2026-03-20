@@ -57,9 +57,9 @@ export class PagaService {
             testMode: this.testMode
         });
 
-        return await getOrSetCache('paga_banks', 86400, async () => {
+        // return await getOrSetCache('paga_banks', 86400, async () => {
             return await this.callApi('getBanks', { referenceNumber }, hash, true);
-        });
+        // });
     }
 
     /**
