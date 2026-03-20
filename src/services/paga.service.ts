@@ -45,7 +45,6 @@ export class PagaService {
      * Get list of banks
      */
     async getBanks(): Promise<PagaResponse> {
-        console.log('GET BANKS CALLED');
         const referenceNumber = this.generateReference('BNK');
         const hash = this.generateHash([referenceNumber]);
 
