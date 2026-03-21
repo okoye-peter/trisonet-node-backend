@@ -168,6 +168,11 @@ export type Loan = Prisma.LoanModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model NotificationUser
+ * The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+ */
+export type NotificationUser = Prisma.NotificationUserModel
+/**
  * Model PublicNotice
  * 
  */

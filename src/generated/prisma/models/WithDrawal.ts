@@ -60,6 +60,7 @@ export type WithDrawalMinAggregateOutputType = {
   sponsorInvestmentReturnsId: bigint | null
   requestedAt: Date | null
   reference: string | null
+  accountName: string | null
 }
 
 export type WithDrawalMaxAggregateOutputType = {
@@ -80,6 +81,7 @@ export type WithDrawalMaxAggregateOutputType = {
   sponsorInvestmentReturnsId: bigint | null
   requestedAt: Date | null
   reference: string | null
+  accountName: string | null
 }
 
 export type WithDrawalCountAggregateOutputType = {
@@ -100,6 +102,7 @@ export type WithDrawalCountAggregateOutputType = {
   sponsorInvestmentReturnsId: number
   requestedAt: number
   reference: number
+  accountName: number
   _all: number
 }
 
@@ -138,6 +141,7 @@ export type WithDrawalMinAggregateInputType = {
   sponsorInvestmentReturnsId?: true
   requestedAt?: true
   reference?: true
+  accountName?: true
 }
 
 export type WithDrawalMaxAggregateInputType = {
@@ -158,6 +162,7 @@ export type WithDrawalMaxAggregateInputType = {
   sponsorInvestmentReturnsId?: true
   requestedAt?: true
   reference?: true
+  accountName?: true
 }
 
 export type WithDrawalCountAggregateInputType = {
@@ -178,6 +183,7 @@ export type WithDrawalCountAggregateInputType = {
   sponsorInvestmentReturnsId?: true
   requestedAt?: true
   reference?: true
+  accountName?: true
   _all?: true
 }
 
@@ -285,6 +291,7 @@ export type WithDrawalGroupByOutputType = {
   sponsorInvestmentReturnsId: bigint | null
   requestedAt: Date | null
   reference: string | null
+  accountName: string | null
   _count: WithDrawalCountAggregateOutputType | null
   _avg: WithDrawalAvgAggregateOutputType | null
   _sum: WithDrawalSumAggregateOutputType | null
@@ -328,6 +335,7 @@ export type WithDrawalWhereInput = {
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableFilter<"WithDrawal"> | bigint | number | null
   requestedAt?: Prisma.DateTimeNullableFilter<"WithDrawal"> | Date | string | null
   reference?: Prisma.StringNullableFilter<"WithDrawal"> | string | null
+  accountName?: Prisma.StringNullableFilter<"WithDrawal"> | string | null
   sponsorInvestmentReturn?: Prisma.XOR<Prisma.SponsorInvestmentReturnNullableScalarRelationFilter, Prisma.SponsorInvestmentReturnWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -350,6 +358,7 @@ export type WithDrawalOrderByWithRelationInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reference?: Prisma.SortOrderInput | Prisma.SortOrder
+  accountName?: Prisma.SortOrderInput | Prisma.SortOrder
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.WithDrawalOrderByRelevanceInput
@@ -376,6 +385,7 @@ export type WithDrawalWhereUniqueInput = Prisma.AtLeast<{
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableFilter<"WithDrawal"> | bigint | number | null
   requestedAt?: Prisma.DateTimeNullableFilter<"WithDrawal"> | Date | string | null
   reference?: Prisma.StringNullableFilter<"WithDrawal"> | string | null
+  accountName?: Prisma.StringNullableFilter<"WithDrawal"> | string | null
   sponsorInvestmentReturn?: Prisma.XOR<Prisma.SponsorInvestmentReturnNullableScalarRelationFilter, Prisma.SponsorInvestmentReturnWhereInput> | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
@@ -398,6 +408,7 @@ export type WithDrawalOrderByWithAggregationInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reference?: Prisma.SortOrderInput | Prisma.SortOrder
+  accountName?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WithDrawalCountOrderByAggregateInput
   _avg?: Prisma.WithDrawalAvgOrderByAggregateInput
   _max?: Prisma.WithDrawalMaxOrderByAggregateInput
@@ -426,6 +437,7 @@ export type WithDrawalScalarWhereWithAggregatesInput = {
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableWithAggregatesFilter<"WithDrawal"> | bigint | number | null
   requestedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"WithDrawal"> | Date | string | null
   reference?: Prisma.StringNullableWithAggregatesFilter<"WithDrawal"> | string | null
+  accountName?: Prisma.StringNullableWithAggregatesFilter<"WithDrawal"> | string | null
 }
 
 export type WithDrawalCreateInput = {
@@ -444,6 +456,7 @@ export type WithDrawalCreateInput = {
   userEmail?: string | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnCreateNestedOneWithoutWithDrawalsInput
   user?: Prisma.UserCreateNestedOneWithoutWithDrawalsInput
 }
@@ -466,6 +479,7 @@ export type WithDrawalUncheckedCreateInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithDrawalUpdateInput = {
@@ -484,6 +498,7 @@ export type WithDrawalUpdateInput = {
   userEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnUpdateOneWithoutWithDrawalsNestedInput
   user?: Prisma.UserUpdateOneWithoutWithDrawalsNestedInput
 }
@@ -506,6 +521,7 @@ export type WithDrawalUncheckedUpdateInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithDrawalCreateManyInput = {
@@ -526,6 +542,7 @@ export type WithDrawalCreateManyInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithDrawalUpdateManyMutationInput = {
@@ -544,6 +561,7 @@ export type WithDrawalUpdateManyMutationInput = {
   userEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithDrawalUncheckedUpdateManyInput = {
@@ -564,6 +582,7 @@ export type WithDrawalUncheckedUpdateManyInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithDrawalListRelationFilter = {
@@ -600,6 +619,7 @@ export type WithDrawalCountOrderByAggregateInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrder
   requestedAt?: Prisma.SortOrder
   reference?: Prisma.SortOrder
+  accountName?: Prisma.SortOrder
 }
 
 export type WithDrawalAvgOrderByAggregateInput = {
@@ -628,6 +648,7 @@ export type WithDrawalMaxOrderByAggregateInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrder
   requestedAt?: Prisma.SortOrder
   reference?: Prisma.SortOrder
+  accountName?: Prisma.SortOrder
 }
 
 export type WithDrawalMinOrderByAggregateInput = {
@@ -648,6 +669,7 @@ export type WithDrawalMinOrderByAggregateInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrder
   requestedAt?: Prisma.SortOrder
   reference?: Prisma.SortOrder
+  accountName?: Prisma.SortOrder
 }
 
 export type WithDrawalSumOrderByAggregateInput = {
@@ -762,6 +784,7 @@ export type WithDrawalCreateWithoutUserInput = {
   userEmail?: string | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnCreateNestedOneWithoutWithDrawalsInput
 }
 
@@ -782,6 +805,7 @@ export type WithDrawalUncheckedCreateWithoutUserInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithDrawalCreateOrConnectWithoutUserInput = {
@@ -831,6 +855,7 @@ export type WithDrawalScalarWhereInput = {
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableFilter<"WithDrawal"> | bigint | number | null
   requestedAt?: Prisma.DateTimeNullableFilter<"WithDrawal"> | Date | string | null
   reference?: Prisma.StringNullableFilter<"WithDrawal"> | string | null
+  accountName?: Prisma.StringNullableFilter<"WithDrawal"> | string | null
 }
 
 export type WithDrawalCreateWithoutSponsorInvestmentReturnInput = {
@@ -849,6 +874,7 @@ export type WithDrawalCreateWithoutSponsorInvestmentReturnInput = {
   userEmail?: string | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
   user?: Prisma.UserCreateNestedOneWithoutWithDrawalsInput
 }
 
@@ -869,6 +895,7 @@ export type WithDrawalUncheckedCreateWithoutSponsorInvestmentReturnInput = {
   userEmail?: string | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithDrawalCreateOrConnectWithoutSponsorInvestmentReturnInput = {
@@ -914,6 +941,7 @@ export type WithDrawalCreateManyUserInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithDrawalUpdateWithoutUserInput = {
@@ -932,6 +960,7 @@ export type WithDrawalUpdateWithoutUserInput = {
   userEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnUpdateOneWithoutWithDrawalsNestedInput
 }
 
@@ -952,6 +981,7 @@ export type WithDrawalUncheckedUpdateWithoutUserInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithDrawalUncheckedUpdateManyWithoutUserInput = {
@@ -971,6 +1001,7 @@ export type WithDrawalUncheckedUpdateManyWithoutUserInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithDrawalCreateManySponsorInvestmentReturnInput = {
@@ -990,6 +1021,7 @@ export type WithDrawalCreateManySponsorInvestmentReturnInput = {
   userEmail?: string | null
   requestedAt?: Date | string | null
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithDrawalUpdateWithoutSponsorInvestmentReturnInput = {
@@ -1008,6 +1040,7 @@ export type WithDrawalUpdateWithoutSponsorInvestmentReturnInput = {
   userEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user?: Prisma.UserUpdateOneWithoutWithDrawalsNestedInput
 }
 
@@ -1028,6 +1061,7 @@ export type WithDrawalUncheckedUpdateWithoutSponsorInvestmentReturnInput = {
   userEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithDrawalUncheckedUpdateManyWithoutSponsorInvestmentReturnInput = {
@@ -1047,6 +1081,7 @@ export type WithDrawalUncheckedUpdateManyWithoutSponsorInvestmentReturnInput = {
   userEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1069,6 +1104,7 @@ export type WithDrawalSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   sponsorInvestmentReturnsId?: boolean
   requestedAt?: boolean
   reference?: boolean
+  accountName?: boolean
   sponsorInvestmentReturn?: boolean | Prisma.WithDrawal$sponsorInvestmentReturnArgs<ExtArgs>
   user?: boolean | Prisma.WithDrawal$userArgs<ExtArgs>
 }, ExtArgs["result"]["withDrawal"]>
@@ -1093,9 +1129,10 @@ export type WithDrawalSelectScalar = {
   sponsorInvestmentReturnsId?: boolean
   requestedAt?: boolean
   reference?: boolean
+  accountName?: boolean
 }
 
-export type WithDrawalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "amount" | "bankName" | "accountNumber" | "isPaid" | "createdAt" | "updatedAt" | "oldBalance" | "newBalance" | "gkwthPrice" | "paystackRef" | "userType" | "userEmail" | "sponsorInvestmentReturnsId" | "requestedAt" | "reference", ExtArgs["result"]["withDrawal"]>
+export type WithDrawalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "amount" | "bankName" | "accountNumber" | "isPaid" | "createdAt" | "updatedAt" | "oldBalance" | "newBalance" | "gkwthPrice" | "paystackRef" | "userType" | "userEmail" | "sponsorInvestmentReturnsId" | "requestedAt" | "reference" | "accountName", ExtArgs["result"]["withDrawal"]>
 export type WithDrawalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sponsorInvestmentReturn?: boolean | Prisma.WithDrawal$sponsorInvestmentReturnArgs<ExtArgs>
   user?: boolean | Prisma.WithDrawal$userArgs<ExtArgs>
@@ -1125,6 +1162,7 @@ export type $WithDrawalPayload<ExtArgs extends runtime.Types.Extensions.Internal
     sponsorInvestmentReturnsId: bigint | null
     requestedAt: Date | null
     reference: string | null
+    accountName: string | null
   }, ExtArgs["result"]["withDrawal"]>
   composites: {}
 }
@@ -1513,6 +1551,7 @@ export interface WithDrawalFieldRefs {
   readonly sponsorInvestmentReturnsId: Prisma.FieldRef<"WithDrawal", 'BigInt'>
   readonly requestedAt: Prisma.FieldRef<"WithDrawal", 'DateTime'>
   readonly reference: Prisma.FieldRef<"WithDrawal", 'String'>
+  readonly accountName: Prisma.FieldRef<"WithDrawal", 'String'>
 }
     
 

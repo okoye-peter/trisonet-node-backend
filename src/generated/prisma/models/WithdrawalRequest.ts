@@ -65,6 +65,7 @@ export type WithdrawalRequestMinAggregateOutputType = {
   sponsorInvestmentReturnsId: bigint | null
   status: $Enums.WithdrawalRequestStatus | null
   reference: string | null
+  accountName: string | null
 }
 
 export type WithdrawalRequestMaxAggregateOutputType = {
@@ -86,6 +87,7 @@ export type WithdrawalRequestMaxAggregateOutputType = {
   sponsorInvestmentReturnsId: bigint | null
   status: $Enums.WithdrawalRequestStatus | null
   reference: string | null
+  accountName: string | null
 }
 
 export type WithdrawalRequestCountAggregateOutputType = {
@@ -107,6 +109,7 @@ export type WithdrawalRequestCountAggregateOutputType = {
   sponsorInvestmentReturnsId: number
   status: number
   reference: number
+  accountName: number
   _all: number
 }
 
@@ -150,6 +153,7 @@ export type WithdrawalRequestMinAggregateInputType = {
   sponsorInvestmentReturnsId?: true
   status?: true
   reference?: true
+  accountName?: true
 }
 
 export type WithdrawalRequestMaxAggregateInputType = {
@@ -171,6 +175,7 @@ export type WithdrawalRequestMaxAggregateInputType = {
   sponsorInvestmentReturnsId?: true
   status?: true
   reference?: true
+  accountName?: true
 }
 
 export type WithdrawalRequestCountAggregateInputType = {
@@ -192,6 +197,7 @@ export type WithdrawalRequestCountAggregateInputType = {
   sponsorInvestmentReturnsId?: true
   status?: true
   reference?: true
+  accountName?: true
   _all?: true
 }
 
@@ -300,6 +306,7 @@ export type WithdrawalRequestGroupByOutputType = {
   sponsorInvestmentReturnsId: bigint | null
   status: $Enums.WithdrawalRequestStatus
   reference: string | null
+  accountName: string | null
   _count: WithdrawalRequestCountAggregateOutputType | null
   _avg: WithdrawalRequestAvgAggregateOutputType | null
   _sum: WithdrawalRequestSumAggregateOutputType | null
@@ -344,6 +351,7 @@ export type WithdrawalRequestWhereInput = {
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableFilter<"WithdrawalRequest"> | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFilter<"WithdrawalRequest"> | $Enums.WithdrawalRequestStatus
   reference?: Prisma.StringNullableFilter<"WithdrawalRequest"> | string | null
+  accountName?: Prisma.StringNullableFilter<"WithdrawalRequest"> | string | null
   sponsorInvestmentReturn?: Prisma.XOR<Prisma.SponsorInvestmentReturnNullableScalarRelationFilter, Prisma.SponsorInvestmentReturnWhereInput> | null
   wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
 }
@@ -367,6 +375,7 @@ export type WithdrawalRequestOrderByWithRelationInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   reference?: Prisma.SortOrderInput | Prisma.SortOrder
+  accountName?: Prisma.SortOrderInput | Prisma.SortOrder
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnOrderByWithRelationInput
   wallet?: Prisma.WalletOrderByWithRelationInput
   _relevance?: Prisma.WithdrawalRequestOrderByRelevanceInput
@@ -394,6 +403,7 @@ export type WithdrawalRequestWhereUniqueInput = Prisma.AtLeast<{
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableFilter<"WithdrawalRequest"> | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFilter<"WithdrawalRequest"> | $Enums.WithdrawalRequestStatus
   reference?: Prisma.StringNullableFilter<"WithdrawalRequest"> | string | null
+  accountName?: Prisma.StringNullableFilter<"WithdrawalRequest"> | string | null
   sponsorInvestmentReturn?: Prisma.XOR<Prisma.SponsorInvestmentReturnNullableScalarRelationFilter, Prisma.SponsorInvestmentReturnWhereInput> | null
   wallet?: Prisma.XOR<Prisma.WalletNullableScalarRelationFilter, Prisma.WalletWhereInput> | null
 }, "id">
@@ -417,6 +427,7 @@ export type WithdrawalRequestOrderByWithAggregationInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   reference?: Prisma.SortOrderInput | Prisma.SortOrder
+  accountName?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WithdrawalRequestCountOrderByAggregateInput
   _avg?: Prisma.WithdrawalRequestAvgOrderByAggregateInput
   _max?: Prisma.WithdrawalRequestMaxOrderByAggregateInput
@@ -446,6 +457,7 @@ export type WithdrawalRequestScalarWhereWithAggregatesInput = {
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableWithAggregatesFilter<"WithdrawalRequest"> | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusWithAggregatesFilter<"WithdrawalRequest"> | $Enums.WithdrawalRequestStatus
   reference?: Prisma.StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
+  accountName?: Prisma.StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
 }
 
 export type WithdrawalRequestCreateInput = {
@@ -465,6 +477,7 @@ export type WithdrawalRequestCreateInput = {
   updatedAt?: Date | string | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnCreateNestedOneWithoutWithdrawalRequestsInput
   wallet?: Prisma.WalletCreateNestedOneWithoutWithdrawalRequestsInput
 }
@@ -488,6 +501,7 @@ export type WithdrawalRequestUncheckedCreateInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithdrawalRequestUpdateInput = {
@@ -507,6 +521,7 @@ export type WithdrawalRequestUpdateInput = {
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnUpdateOneWithoutWithdrawalRequestsNestedInput
   wallet?: Prisma.WalletUpdateOneWithoutWithdrawalRequestsNestedInput
 }
@@ -530,6 +545,7 @@ export type WithdrawalRequestUncheckedUpdateInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithdrawalRequestCreateManyInput = {
@@ -551,6 +567,7 @@ export type WithdrawalRequestCreateManyInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithdrawalRequestUpdateManyMutationInput = {
@@ -570,6 +587,7 @@ export type WithdrawalRequestUpdateManyMutationInput = {
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithdrawalRequestUncheckedUpdateManyInput = {
@@ -591,6 +609,7 @@ export type WithdrawalRequestUncheckedUpdateManyInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithdrawalRequestListRelationFilter = {
@@ -628,6 +647,7 @@ export type WithdrawalRequestCountOrderByAggregateInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reference?: Prisma.SortOrder
+  accountName?: Prisma.SortOrder
 }
 
 export type WithdrawalRequestAvgOrderByAggregateInput = {
@@ -659,6 +679,7 @@ export type WithdrawalRequestMaxOrderByAggregateInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reference?: Prisma.SortOrder
+  accountName?: Prisma.SortOrder
 }
 
 export type WithdrawalRequestMinOrderByAggregateInput = {
@@ -680,6 +701,7 @@ export type WithdrawalRequestMinOrderByAggregateInput = {
   sponsorInvestmentReturnsId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reference?: Prisma.SortOrder
+  accountName?: Prisma.SortOrder
 }
 
 export type WithdrawalRequestSumOrderByAggregateInput = {
@@ -801,6 +823,7 @@ export type WithdrawalRequestCreateWithoutWalletInput = {
   updatedAt?: Date | string | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnCreateNestedOneWithoutWithdrawalRequestsInput
 }
 
@@ -822,6 +845,7 @@ export type WithdrawalRequestUncheckedCreateWithoutWalletInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithdrawalRequestCreateOrConnectWithoutWalletInput = {
@@ -872,6 +896,7 @@ export type WithdrawalRequestScalarWhereInput = {
   sponsorInvestmentReturnsId?: Prisma.BigIntNullableFilter<"WithdrawalRequest"> | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFilter<"WithdrawalRequest"> | $Enums.WithdrawalRequestStatus
   reference?: Prisma.StringNullableFilter<"WithdrawalRequest"> | string | null
+  accountName?: Prisma.StringNullableFilter<"WithdrawalRequest"> | string | null
 }
 
 export type WithdrawalRequestCreateWithoutSponsorInvestmentReturnInput = {
@@ -891,6 +916,7 @@ export type WithdrawalRequestCreateWithoutSponsorInvestmentReturnInput = {
   updatedAt?: Date | string | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
   wallet?: Prisma.WalletCreateNestedOneWithoutWithdrawalRequestsInput
 }
 
@@ -912,6 +938,7 @@ export type WithdrawalRequestUncheckedCreateWithoutSponsorInvestmentReturnInput 
   updatedAt?: Date | string | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithdrawalRequestCreateOrConnectWithoutSponsorInvestmentReturnInput = {
@@ -958,6 +985,7 @@ export type WithdrawalRequestCreateManyWalletInput = {
   sponsorInvestmentReturnsId?: bigint | number | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithdrawalRequestUpdateWithoutWalletInput = {
@@ -977,6 +1005,7 @@ export type WithdrawalRequestUpdateWithoutWalletInput = {
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sponsorInvestmentReturn?: Prisma.SponsorInvestmentReturnUpdateOneWithoutWithdrawalRequestsNestedInput
 }
 
@@ -998,6 +1027,7 @@ export type WithdrawalRequestUncheckedUpdateWithoutWalletInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithdrawalRequestUncheckedUpdateManyWithoutWalletInput = {
@@ -1018,6 +1048,7 @@ export type WithdrawalRequestUncheckedUpdateManyWithoutWalletInput = {
   sponsorInvestmentReturnsId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithdrawalRequestCreateManySponsorInvestmentReturnInput = {
@@ -1038,6 +1069,7 @@ export type WithdrawalRequestCreateManySponsorInvestmentReturnInput = {
   updatedAt?: Date | string | null
   status?: $Enums.WithdrawalRequestStatus
   reference?: string | null
+  accountName?: string | null
 }
 
 export type WithdrawalRequestUpdateWithoutSponsorInvestmentReturnInput = {
@@ -1057,6 +1089,7 @@ export type WithdrawalRequestUpdateWithoutSponsorInvestmentReturnInput = {
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   wallet?: Prisma.WalletUpdateOneWithoutWithdrawalRequestsNestedInput
 }
 
@@ -1078,6 +1111,7 @@ export type WithdrawalRequestUncheckedUpdateWithoutSponsorInvestmentReturnInput 
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type WithdrawalRequestUncheckedUpdateManyWithoutSponsorInvestmentReturnInput = {
@@ -1098,6 +1132,7 @@ export type WithdrawalRequestUncheckedUpdateManyWithoutSponsorInvestmentReturnIn
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumWithdrawalRequestStatusFieldUpdateOperationsInput | $Enums.WithdrawalRequestStatus
   reference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1121,6 +1156,7 @@ export type WithdrawalRequestSelect<ExtArgs extends runtime.Types.Extensions.Int
   sponsorInvestmentReturnsId?: boolean
   status?: boolean
   reference?: boolean
+  accountName?: boolean
   sponsorInvestmentReturn?: boolean | Prisma.WithdrawalRequest$sponsorInvestmentReturnArgs<ExtArgs>
   wallet?: boolean | Prisma.WithdrawalRequest$walletArgs<ExtArgs>
 }, ExtArgs["result"]["withdrawalRequest"]>
@@ -1146,9 +1182,10 @@ export type WithdrawalRequestSelectScalar = {
   sponsorInvestmentReturnsId?: boolean
   status?: boolean
   reference?: boolean
+  accountName?: boolean
 }
 
-export type WithdrawalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amountRequested" | "amountToTransfer" | "walletId" | "oldBalance" | "newBalance" | "userType" | "bankName" | "bankCode" | "accountNumber" | "gkwthAmount" | "gkwthValue" | "userEmail" | "createdAt" | "updatedAt" | "sponsorInvestmentReturnsId" | "status" | "reference", ExtArgs["result"]["withdrawalRequest"]>
+export type WithdrawalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amountRequested" | "amountToTransfer" | "walletId" | "oldBalance" | "newBalance" | "userType" | "bankName" | "bankCode" | "accountNumber" | "gkwthAmount" | "gkwthValue" | "userEmail" | "createdAt" | "updatedAt" | "sponsorInvestmentReturnsId" | "status" | "reference" | "accountName", ExtArgs["result"]["withdrawalRequest"]>
 export type WithdrawalRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sponsorInvestmentReturn?: boolean | Prisma.WithdrawalRequest$sponsorInvestmentReturnArgs<ExtArgs>
   wallet?: boolean | Prisma.WithdrawalRequest$walletArgs<ExtArgs>
@@ -1179,6 +1216,7 @@ export type $WithdrawalRequestPayload<ExtArgs extends runtime.Types.Extensions.I
     sponsorInvestmentReturnsId: bigint | null
     status: $Enums.WithdrawalRequestStatus
     reference: string | null
+    accountName: string | null
   }, ExtArgs["result"]["withdrawalRequest"]>
   composites: {}
 }
@@ -1568,6 +1606,7 @@ export interface WithdrawalRequestFieldRefs {
   readonly sponsorInvestmentReturnsId: Prisma.FieldRef<"WithdrawalRequest", 'BigInt'>
   readonly status: Prisma.FieldRef<"WithdrawalRequest", 'WithdrawalRequestStatus'>
   readonly reference: Prisma.FieldRef<"WithdrawalRequest", 'String'>
+  readonly accountName: Prisma.FieldRef<"WithdrawalRequest", 'String'>
 }
     
 

@@ -1,6 +1,7 @@
 import { prisma } from "../config/prisma";
 import { ROLES } from "../config/constants";
 import { WalletType } from "../generated/prisma/enums";
+import NotificationService from "./notification.service";
 import bcrypt from "bcryptjs";
 
 class WalletService {
@@ -18,18 +19,23 @@ class WalletService {
     }
 
     static async transferFunds(senderId: bigint, receiverTransferId: string, senderWalletId: bigint, amount: number, pin: string) {
-        return await prisma.$transaction(async (tx) => {
+        let receiverData: any;
+        let senderData: any;
+
+        const result = await prisma.$transaction(async (tx) => {
             // 1. Verify Sender
             const sender = await tx.user.findUnique({
                 where: { id: senderId },
                 select: { 
                     id: true,
+                    name: true, // Added
                     withdrawalPin: true,
                     status: true,
                     accountState: true,
                     isInfant: true
                 }
             });
+            senderData = sender;
 
             if (!sender || !sender.status || sender.accountState !== 1) {
                 throw new Error('Sender account is inactive or restricted');
@@ -62,6 +68,7 @@ class WalletService {
                 },
                 include: { wallets: true }
             });
+            receiverData = receiver;
 
             if (!receiver) {
                 throw new Error('Invalid transfer ID or receiver inactive');
@@ -115,6 +122,27 @@ class WalletService {
 
             return transfer;
         });
+
+        // Trigger Notifications
+        try {
+            // Notify Sender
+            await NotificationService.createNotification(
+                [senderId],
+                'Funds Transferred',
+                `You have successfully transferred ₦${amount.toLocaleString()} to ${receiverTransferId}. Reference: ${result.reference}`
+            );
+
+            // Notify Receiver
+            await NotificationService.createNotification(
+                [receiverData.id],
+                'Funds Received',
+                `You have received ₦${amount.toLocaleString()} from ${senderData.name || 'a user'}. Reference: ${result.reference}`
+            );
+        } catch (error) {
+            console.error('Failed to trigger transfer notifications:', error);
+        }
+
+        return result;
     }
 }
 

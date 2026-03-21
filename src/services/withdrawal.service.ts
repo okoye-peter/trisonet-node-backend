@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma";
 import { ROLES } from "../config/constants";
+import NotificationService from "./notification.service";
 import { differenceInHours } from "date-fns";
 import { AppError } from "../utils/AppError";
 import bcrypt from "bcryptjs";
@@ -218,7 +219,7 @@ export class WithdrawalService {
         }
 
         // 10. Transaction
-        return await prisma.$transaction(async (tx) => {
+        const request = await prisma.$transaction(async (tx) => {
             const currentWallet = await tx.wallet.findUnique({ where: { id: walletId! } });
             if (!currentWallet || currentWallet.amount < input.amount) {
                 throw new AppError('Insufficient balance', 400);
@@ -271,7 +272,7 @@ export class WithdrawalService {
             };
             const userType = userTypeMap[user.role as number] || 'user';
 
-            const request = await tx.withdrawalRequest.create({
+            return await tx.withdrawalRequest.create({
                 data: {
                     amountRequested: amountCalculated,
                     amountToTransfer: amountToTransfer,
@@ -279,6 +280,7 @@ export class WithdrawalService {
                     bankName: input.bank_name,
                     bankCode: input.bank_code,
                     accountNumber: input.account_number,
+                    accountName: input.account_name,
                     gkwthValue: priceValue,
                     gkwthAmount: wallet.type === 'indirect' ? input.amount : null,
                     userEmail: email,
@@ -288,8 +290,20 @@ export class WithdrawalService {
                     status: 'pending'
                 }
             });
-
-            return request;
         });
+
+        // Trigger Notification
+        try {
+            await NotificationService.createNotification(
+                [user.id],
+                'Withdrawal Initiated',
+                `Your withdrawal request of ₦${amountCalculated.toLocaleString()} has been received and is pending approval.`
+            );
+        } catch (error) {
+            console.error('Failed to create withdrawal notification:', error);
+            // Don't throw error here to avoid failing the whole process
+        }
+
+        return request;
     }
 }

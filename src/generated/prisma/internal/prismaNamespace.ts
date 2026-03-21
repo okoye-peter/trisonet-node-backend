@@ -420,6 +420,7 @@ export const ModelName = {
   OrderTransaction: 'OrderTransaction',
   Loan: 'Loan',
   Notification: 'Notification',
+  NotificationUser: 'NotificationUser',
   PublicNotice: 'PublicNotice',
   Setting: 'Setting',
   DeletedUser: 'DeletedUser',
@@ -477,7 +478,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "region" | "state" | "lGA" | "wallet" | "adminLog" | "centralTreasuryLog" | "walletTransfer" | "manuallyFunding" | "ad" | "advert" | "attemptLogin" | "blog" | "blogComment" | "tweet" | "retweet" | "comment" | "like" | "follow" | "message" | "chatGroup" | "category" | "product" | "cart" | "wishlist" | "orderGroup" | "orderItem" | "orderTransaction" | "loan" | "notification" | "publicNotice" | "setting" | "deletedUser" | "schoolLevel" | "schoolTerm" | "schoolFee" | "infantSchoolFeeGroup" | "infantSchoolFee" | "infantUpkeepRequest" | "infantYearlyTopup" | "infantFormFee" | "influencerPromoPeriod" | "influencerYearlyTopup" | "sponsorInvestmentReturn" | "schoolCompensation" | "unblockingPayment" | "userActivationRequest" | "accountActivationConfirmation" | "activationCard" | "activationCardTransaction" | "guardianWardSlotPurchase" | "patronGroup" | "patronGroupTransaction" | "withDrawal" | "withdrawalRequest" | "permission" | "role" | "roleHasPermission" | "modelHasPermission" | "modelHasRole" | "personalAccessToken" | "quiz" | "quizPhase" | "quizQuestion" | "quizQuestionOption" | "quizUser" | "quizPhaseUser" | "prize" | "reel" | "laravelMigration" | "audit" | "failed_jobs"
+    modelProps: "user" | "region" | "state" | "lGA" | "wallet" | "adminLog" | "centralTreasuryLog" | "walletTransfer" | "manuallyFunding" | "ad" | "advert" | "attemptLogin" | "blog" | "blogComment" | "tweet" | "retweet" | "comment" | "like" | "follow" | "message" | "chatGroup" | "category" | "product" | "cart" | "wishlist" | "orderGroup" | "orderItem" | "orderTransaction" | "loan" | "notification" | "notificationUser" | "publicNotice" | "setting" | "deletedUser" | "schoolLevel" | "schoolTerm" | "schoolFee" | "infantSchoolFeeGroup" | "infantSchoolFee" | "infantUpkeepRequest" | "infantYearlyTopup" | "infantFormFee" | "influencerPromoPeriod" | "influencerYearlyTopup" | "sponsorInvestmentReturn" | "schoolCompensation" | "unblockingPayment" | "userActivationRequest" | "accountActivationConfirmation" | "activationCard" | "activationCardTransaction" | "guardianWardSlotPurchase" | "patronGroup" | "patronGroupTransaction" | "withDrawal" | "withdrawalRequest" | "permission" | "role" | "roleHasPermission" | "modelHasPermission" | "modelHasRole" | "personalAccessToken" | "quiz" | "quizPhase" | "quizQuestion" | "quizQuestionOption" | "quizUser" | "quizPhaseUser" | "prize" | "reel" | "laravelMigration" | "audit" | "failed_jobs"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2458,6 +2459,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.NotificationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.NotificationCountAggregateOutputType> | number
+        }
+      }
+    }
+    NotificationUser: {
+      payload: Prisma.$NotificationUserPayload<ExtArgs>
+      fields: Prisma.NotificationUserFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NotificationUserFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NotificationUserFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>
+        }
+        findFirst: {
+          args: Prisma.NotificationUserFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NotificationUserFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>
+        }
+        findMany: {
+          args: Prisma.NotificationUserFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>[]
+        }
+        create: {
+          args: Prisma.NotificationUserCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>
+        }
+        createMany: {
+          args: Prisma.NotificationUserCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.NotificationUserDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>
+        }
+        update: {
+          args: Prisma.NotificationUserUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>
+        }
+        deleteMany: {
+          args: Prisma.NotificationUserDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NotificationUserUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.NotificationUserUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationUserPayload>
+        }
+        aggregate: {
+          args: Prisma.NotificationUserAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotificationUser>
+        }
+        groupBy: {
+          args: Prisma.NotificationUserGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationUserGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NotificationUserCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationUserCountAggregateOutputType> | number
         }
       }
     }
@@ -5315,6 +5382,7 @@ export const UserScalarFieldEnum = {
   canWithdrawGkwth: 'canWithdrawGkwth',
   lastSeen: 'lastSeen',
   activatedAt: 'activatedAt',
+  upgradeToAdultAt: 'upgradeToAdultAt',
   isOnline: 'isOnline',
   sponsorshipAcceptedAt: 'sponsorshipAcceptedAt',
   sponsorAgreement: 'sponsorAgreement',
@@ -5733,6 +5801,16 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const NotificationUserScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  userId: 'userId',
+  notificationId: 'notificationId'
+} as const
+
+export type NotificationUserScalarFieldEnum = (typeof NotificationUserScalarFieldEnum)[keyof typeof NotificationUserScalarFieldEnum]
+
+
 export const PublicNoticeScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -6082,7 +6160,8 @@ export const WithDrawalScalarFieldEnum = {
   userEmail: 'userEmail',
   sponsorInvestmentReturnsId: 'sponsorInvestmentReturnsId',
   requestedAt: 'requestedAt',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithDrawalScalarFieldEnum = (typeof WithDrawalScalarFieldEnum)[keyof typeof WithDrawalScalarFieldEnum]
@@ -6106,7 +6185,8 @@ export const WithdrawalRequestScalarFieldEnum = {
   updatedAt: 'updatedAt',
   sponsorInvestmentReturnsId: 'sponsorInvestmentReturnsId',
   status: 'status',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithdrawalRequestScalarFieldEnum = (typeof WithdrawalRequestScalarFieldEnum)[keyof typeof WithdrawalRequestScalarFieldEnum]
@@ -6749,7 +6829,8 @@ export const WithDrawalOrderByRelevanceFieldEnum = {
   newBalance: 'newBalance',
   paystackRef: 'paystackRef',
   userEmail: 'userEmail',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithDrawalOrderByRelevanceFieldEnum = (typeof WithDrawalOrderByRelevanceFieldEnum)[keyof typeof WithDrawalOrderByRelevanceFieldEnum]
@@ -6762,7 +6843,8 @@ export const WithdrawalRequestOrderByRelevanceFieldEnum = {
   bankCode: 'bankCode',
   accountNumber: 'accountNumber',
   userEmail: 'userEmail',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithdrawalRequestOrderByRelevanceFieldEnum = (typeof WithdrawalRequestOrderByRelevanceFieldEnum)[keyof typeof WithdrawalRequestOrderByRelevanceFieldEnum]
@@ -7192,6 +7274,7 @@ export type GlobalOmitConfig = {
   orderTransaction?: Prisma.OrderTransactionOmit
   loan?: Prisma.LoanOmit
   notification?: Prisma.NotificationOmit
+  notificationUser?: Prisma.NotificationUserOmit
   publicNotice?: Prisma.PublicNoticeOmit
   setting?: Prisma.SettingOmit
   deletedUser?: Prisma.DeletedUserOmit

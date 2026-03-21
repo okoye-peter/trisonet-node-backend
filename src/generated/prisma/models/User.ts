@@ -111,6 +111,7 @@ export type UserMinAggregateOutputType = {
   canWithdrawGkwth: boolean | null
   lastSeen: Date | null
   activatedAt: Date | null
+  upgradeToAdultAt: Date | null
   isOnline: boolean | null
   sponsorshipAcceptedAt: Date | null
   sponsorAgreement: boolean | null
@@ -186,6 +187,7 @@ export type UserMaxAggregateOutputType = {
   canWithdrawGkwth: boolean | null
   lastSeen: Date | null
   activatedAt: Date | null
+  upgradeToAdultAt: Date | null
   isOnline: boolean | null
   sponsorshipAcceptedAt: Date | null
   sponsorAgreement: boolean | null
@@ -261,6 +263,7 @@ export type UserCountAggregateOutputType = {
   canWithdrawGkwth: number
   lastSeen: number
   activatedAt: number
+  upgradeToAdultAt: number
   isOnline: number
   sponsorshipAcceptedAt: number
   sponsorAgreement: number
@@ -381,6 +384,7 @@ export type UserMinAggregateInputType = {
   canWithdrawGkwth?: true
   lastSeen?: true
   activatedAt?: true
+  upgradeToAdultAt?: true
   isOnline?: true
   sponsorshipAcceptedAt?: true
   sponsorAgreement?: true
@@ -456,6 +460,7 @@ export type UserMaxAggregateInputType = {
   canWithdrawGkwth?: true
   lastSeen?: true
   activatedAt?: true
+  upgradeToAdultAt?: true
   isOnline?: true
   sponsorshipAcceptedAt?: true
   sponsorAgreement?: true
@@ -531,6 +536,7 @@ export type UserCountAggregateInputType = {
   canWithdrawGkwth?: true
   lastSeen?: true
   activatedAt?: true
+  upgradeToAdultAt?: true
   isOnline?: true
   sponsorshipAcceptedAt?: true
   sponsorAgreement?: true
@@ -694,6 +700,7 @@ export type UserGroupByOutputType = {
   canWithdrawGkwth: boolean
   lastSeen: Date | null
   activatedAt: Date | null
+  upgradeToAdultAt: Date | null
   isOnline: boolean
   sponsorshipAcceptedAt: Date | null
   sponsorAgreement: boolean | null
@@ -793,6 +800,7 @@ export type UserWhereInput = {
   canWithdrawGkwth?: Prisma.BoolFilter<"User"> | boolean
   lastSeen?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  upgradeToAdultAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   isOnline?: Prisma.BoolFilter<"User"> | boolean
   sponsorshipAcceptedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sponsorAgreement?: Prisma.BoolNullableFilter<"User"> | boolean | null
@@ -837,6 +845,7 @@ export type UserWhereInput = {
   followsAsFollower?: Prisma.FollowListRelationFilter
   followsAsFollowing?: Prisma.FollowListRelationFilter
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseListRelationFilter
+  notifications?: Prisma.NotificationUserListRelationFilter
   infantFormFees?: Prisma.InfantFormFeeListRelationFilter
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupListRelationFilter
   infantSchoolFees?: Prisma.InfantSchoolFeeListRelationFilter
@@ -930,6 +939,7 @@ export type UserOrderByWithRelationInput = {
   canWithdrawGkwth?: Prisma.SortOrder
   lastSeen?: Prisma.SortOrderInput | Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  upgradeToAdultAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isOnline?: Prisma.SortOrder
   sponsorshipAcceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sponsorAgreement?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -974,6 +984,7 @@ export type UserOrderByWithRelationInput = {
   followsAsFollower?: Prisma.FollowOrderByRelationAggregateInput
   followsAsFollowing?: Prisma.FollowOrderByRelationAggregateInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationUserOrderByRelationAggregateInput
   infantFormFees?: Prisma.InfantFormFeeOrderByRelationAggregateInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupOrderByRelationAggregateInput
   infantSchoolFees?: Prisma.InfantSchoolFeeOrderByRelationAggregateInput
@@ -1073,6 +1084,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   canWithdrawGkwth?: Prisma.BoolFilter<"User"> | boolean
   lastSeen?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  upgradeToAdultAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   isOnline?: Prisma.BoolFilter<"User"> | boolean
   sponsorshipAcceptedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sponsorAgreement?: Prisma.BoolNullableFilter<"User"> | boolean | null
@@ -1115,6 +1127,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   followsAsFollower?: Prisma.FollowListRelationFilter
   followsAsFollowing?: Prisma.FollowListRelationFilter
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseListRelationFilter
+  notifications?: Prisma.NotificationUserListRelationFilter
   infantFormFees?: Prisma.InfantFormFeeListRelationFilter
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupListRelationFilter
   infantSchoolFees?: Prisma.InfantSchoolFeeListRelationFilter
@@ -1208,6 +1221,7 @@ export type UserOrderByWithAggregationInput = {
   canWithdrawGkwth?: Prisma.SortOrder
   lastSeen?: Prisma.SortOrderInput | Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  upgradeToAdultAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isOnline?: Prisma.SortOrder
   sponsorshipAcceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sponsorAgreement?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -1292,6 +1306,7 @@ export type UserScalarWhereWithAggregatesInput = {
   canWithdrawGkwth?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   lastSeen?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  upgradeToAdultAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   isOnline?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   sponsorshipAcceptedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   sponsorAgreement?: Prisma.BoolNullableWithAggregatesFilter<"User"> | boolean | null
@@ -1364,6 +1379,7 @@ export type UserCreateInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -1400,6 +1416,7 @@ export type UserCreateInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -1493,6 +1510,7 @@ export type UserUncheckedCreateInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -1537,6 +1555,7 @@ export type UserUncheckedCreateInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -1614,6 +1633,7 @@ export type UserUpdateInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1650,6 +1670,7 @@ export type UserUpdateInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -1743,6 +1764,7 @@ export type UserUncheckedUpdateInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1787,6 +1809,7 @@ export type UserUncheckedUpdateInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -1868,6 +1891,7 @@ export type UserCreateManyInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -1940,6 +1964,7 @@ export type UserUpdateManyMutationInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -2008,6 +2033,7 @@ export type UserUncheckedUpdateManyInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -2105,6 +2131,7 @@ export type UserCountOrderByAggregateInput = {
   canWithdrawGkwth?: Prisma.SortOrder
   lastSeen?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
+  upgradeToAdultAt?: Prisma.SortOrder
   isOnline?: Prisma.SortOrder
   sponsorshipAcceptedAt?: Prisma.SortOrder
   sponsorAgreement?: Prisma.SortOrder
@@ -2202,6 +2229,7 @@ export type UserMaxOrderByAggregateInput = {
   canWithdrawGkwth?: Prisma.SortOrder
   lastSeen?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
+  upgradeToAdultAt?: Prisma.SortOrder
   isOnline?: Prisma.SortOrder
   sponsorshipAcceptedAt?: Prisma.SortOrder
   sponsorAgreement?: Prisma.SortOrder
@@ -2277,6 +2305,7 @@ export type UserMinOrderByAggregateInput = {
   canWithdrawGkwth?: Prisma.SortOrder
   lastSeen?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
+  upgradeToAdultAt?: Prisma.SortOrder
   isOnline?: Prisma.SortOrder
   sponsorshipAcceptedAt?: Prisma.SortOrder
   sponsorAgreement?: Prisma.SortOrder
@@ -3121,6 +3150,20 @@ export type UserUpdateOneRequiredWithoutLoansAsUserNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLoansAsUserInput, Prisma.UserUpdateWithoutLoansAsUserInput>, Prisma.UserUncheckedUpdateWithoutLoansAsUserInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type UserCreateNestedOneWithoutSchoolFeesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSchoolFeesInput, Prisma.UserUncheckedCreateWithoutSchoolFeesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSchoolFeesInput
@@ -3672,6 +3715,7 @@ export type UserCreateWithoutGuardianWardsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -3708,6 +3752,7 @@ export type UserCreateWithoutGuardianWardsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -3800,6 +3845,7 @@ export type UserUncheckedCreateWithoutGuardianWardsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -3844,6 +3890,7 @@ export type UserUncheckedCreateWithoutGuardianWardsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -3925,6 +3972,7 @@ export type UserCreateWithoutGuardianUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -3961,6 +4009,7 @@ export type UserCreateWithoutGuardianUserInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -4053,6 +4102,7 @@ export type UserUncheckedCreateWithoutGuardianUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4096,6 +4146,7 @@ export type UserUncheckedCreateWithoutGuardianUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -4183,6 +4234,7 @@ export type UserCreateWithoutInfantGroupMembersInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4219,6 +4271,7 @@ export type UserCreateWithoutInfantGroupMembersInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -4311,6 +4364,7 @@ export type UserUncheckedCreateWithoutInfantGroupMembersInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4355,6 +4409,7 @@ export type UserUncheckedCreateWithoutInfantGroupMembersInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -4436,6 +4491,7 @@ export type UserCreateWithoutInfantGroupInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4472,6 +4528,7 @@ export type UserCreateWithoutInfantGroupInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -4563,6 +4620,7 @@ export type UserUncheckedCreateWithoutInfantGroupInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4607,6 +4665,7 @@ export type UserUncheckedCreateWithoutInfantGroupInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -4694,6 +4753,7 @@ export type UserCreateWithoutInfluenceesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4730,6 +4790,7 @@ export type UserCreateWithoutInfluenceesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -4822,6 +4883,7 @@ export type UserUncheckedCreateWithoutInfluenceesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4866,6 +4928,7 @@ export type UserUncheckedCreateWithoutInfluenceesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -4947,6 +5010,7 @@ export type UserCreateWithoutInfluencerUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -4983,6 +5047,7 @@ export type UserCreateWithoutInfluencerUserInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -5075,6 +5140,7 @@ export type UserUncheckedCreateWithoutInfluencerUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5118,6 +5184,7 @@ export type UserUncheckedCreateWithoutInfluencerUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -5205,6 +5272,7 @@ export type UserCreateWithoutPatroneesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5241,6 +5309,7 @@ export type UserCreateWithoutPatroneesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -5333,6 +5402,7 @@ export type UserUncheckedCreateWithoutPatroneesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5377,6 +5447,7 @@ export type UserUncheckedCreateWithoutPatroneesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -5458,6 +5529,7 @@ export type UserCreateWithoutPatronInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5494,6 +5566,7 @@ export type UserCreateWithoutPatronInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -5585,6 +5658,7 @@ export type UserUncheckedCreateWithoutPatronInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5629,6 +5703,7 @@ export type UserUncheckedCreateWithoutPatronInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -5716,6 +5791,7 @@ export type UserCreateWithoutReferralsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5752,6 +5828,7 @@ export type UserCreateWithoutReferralsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -5844,6 +5921,7 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -5888,6 +5966,7 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -5969,6 +6048,7 @@ export type UserCreateWithoutReferralInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6005,6 +6085,7 @@ export type UserCreateWithoutReferralInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -6096,6 +6177,7 @@ export type UserUncheckedCreateWithoutReferralInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6140,6 +6222,7 @@ export type UserUncheckedCreateWithoutReferralInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -6227,6 +6310,7 @@ export type UserCreateWithoutSchoolStudentsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6263,6 +6347,7 @@ export type UserCreateWithoutSchoolStudentsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -6355,6 +6440,7 @@ export type UserUncheckedCreateWithoutSchoolStudentsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6399,6 +6485,7 @@ export type UserUncheckedCreateWithoutSchoolStudentsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -6480,6 +6567,7 @@ export type UserCreateWithoutSchoolUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6516,6 +6604,7 @@ export type UserCreateWithoutSchoolUserInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -6608,6 +6697,7 @@ export type UserUncheckedCreateWithoutSchoolUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6651,6 +6741,7 @@ export type UserUncheckedCreateWithoutSchoolUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -6738,6 +6829,7 @@ export type UserCreateWithoutSponsoreesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6774,6 +6866,7 @@ export type UserCreateWithoutSponsoreesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -6866,6 +6959,7 @@ export type UserUncheckedCreateWithoutSponsoreesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -6910,6 +7004,7 @@ export type UserUncheckedCreateWithoutSponsoreesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -6991,6 +7086,7 @@ export type UserCreateWithoutSponsorUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -7027,6 +7123,7 @@ export type UserCreateWithoutSponsorUserInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -7119,6 +7216,7 @@ export type UserUncheckedCreateWithoutSponsorUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -7162,6 +7260,7 @@ export type UserUncheckedCreateWithoutSponsorUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -7260,6 +7359,7 @@ export type UserUpdateWithoutGuardianWardsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -7296,6 +7396,7 @@ export type UserUpdateWithoutGuardianWardsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -7388,6 +7489,7 @@ export type UserUncheckedUpdateWithoutGuardianWardsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -7432,6 +7534,7 @@ export type UserUncheckedUpdateWithoutGuardianWardsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -7531,6 +7634,7 @@ export type UserScalarWhereInput = {
   canWithdrawGkwth?: Prisma.BoolFilter<"User"> | boolean
   lastSeen?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  upgradeToAdultAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   isOnline?: Prisma.BoolFilter<"User"> | boolean
   sponsorshipAcceptedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sponsorAgreement?: Prisma.BoolNullableFilter<"User"> | boolean | null
@@ -7614,6 +7718,7 @@ export type UserUpdateWithoutInfantGroupMembersInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -7650,6 +7755,7 @@ export type UserUpdateWithoutInfantGroupMembersInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -7742,6 +7848,7 @@ export type UserUncheckedUpdateWithoutInfantGroupMembersInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -7786,6 +7893,7 @@ export type UserUncheckedUpdateWithoutInfantGroupMembersInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -7889,6 +7997,7 @@ export type UserUpdateWithoutInfluenceesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -7925,6 +8034,7 @@ export type UserUpdateWithoutInfluenceesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -8017,6 +8127,7 @@ export type UserUncheckedUpdateWithoutInfluenceesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8061,6 +8172,7 @@ export type UserUncheckedUpdateWithoutInfluenceesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -8164,6 +8276,7 @@ export type UserUpdateWithoutPatroneesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8200,6 +8313,7 @@ export type UserUpdateWithoutPatroneesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -8292,6 +8406,7 @@ export type UserUncheckedUpdateWithoutPatroneesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8336,6 +8451,7 @@ export type UserUncheckedUpdateWithoutPatroneesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -8439,6 +8555,7 @@ export type UserUpdateWithoutReferralsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8475,6 +8592,7 @@ export type UserUpdateWithoutReferralsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -8567,6 +8685,7 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8611,6 +8730,7 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -8714,6 +8834,7 @@ export type UserUpdateWithoutSchoolStudentsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8750,6 +8871,7 @@ export type UserUpdateWithoutSchoolStudentsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -8842,6 +8964,7 @@ export type UserUncheckedUpdateWithoutSchoolStudentsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -8886,6 +9009,7 @@ export type UserUncheckedUpdateWithoutSchoolStudentsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -8989,6 +9113,7 @@ export type UserUpdateWithoutSponsoreesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -9025,6 +9150,7 @@ export type UserUpdateWithoutSponsoreesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -9117,6 +9243,7 @@ export type UserUncheckedUpdateWithoutSponsoreesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -9161,6 +9288,7 @@ export type UserUncheckedUpdateWithoutSponsoreesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -9253,6 +9381,7 @@ export type UserCreateWithoutRegionInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -9289,6 +9418,7 @@ export type UserCreateWithoutRegionInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -9380,6 +9510,7 @@ export type UserUncheckedCreateWithoutRegionInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -9424,6 +9555,7 @@ export type UserUncheckedCreateWithoutRegionInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -9527,6 +9659,7 @@ export type UserCreateWithoutWalletsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -9563,6 +9696,7 @@ export type UserCreateWithoutWalletsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -9655,6 +9789,7 @@ export type UserUncheckedCreateWithoutWalletsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -9699,6 +9834,7 @@ export type UserUncheckedCreateWithoutWalletsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -9791,6 +9927,7 @@ export type UserUpdateWithoutWalletsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -9827,6 +9964,7 @@ export type UserUpdateWithoutWalletsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -9919,6 +10057,7 @@ export type UserUncheckedUpdateWithoutWalletsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -9963,6 +10102,7 @@ export type UserUncheckedUpdateWithoutWalletsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -10039,6 +10179,7 @@ export type UserCreateWithoutAdminLogsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -10074,6 +10215,7 @@ export type UserCreateWithoutAdminLogsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -10167,6 +10309,7 @@ export type UserUncheckedCreateWithoutAdminLogsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -10210,6 +10353,7 @@ export type UserUncheckedCreateWithoutAdminLogsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -10303,6 +10447,7 @@ export type UserUpdateWithoutAdminLogsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -10338,6 +10483,7 @@ export type UserUpdateWithoutAdminLogsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -10431,6 +10577,7 @@ export type UserUncheckedUpdateWithoutAdminLogsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -10474,6 +10621,7 @@ export type UserUncheckedUpdateWithoutAdminLogsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -10551,6 +10699,7 @@ export type UserCreateWithoutCentralTreasuryLogsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -10586,6 +10735,7 @@ export type UserCreateWithoutCentralTreasuryLogsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -10679,6 +10829,7 @@ export type UserUncheckedCreateWithoutCentralTreasuryLogsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -10722,6 +10873,7 @@ export type UserUncheckedCreateWithoutCentralTreasuryLogsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -10815,6 +10967,7 @@ export type UserUpdateWithoutCentralTreasuryLogsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -10850,6 +11003,7 @@ export type UserUpdateWithoutCentralTreasuryLogsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -10943,6 +11097,7 @@ export type UserUncheckedUpdateWithoutCentralTreasuryLogsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -10986,6 +11141,7 @@ export type UserUncheckedUpdateWithoutCentralTreasuryLogsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -11063,6 +11219,7 @@ export type UserCreateWithoutAttemptLoginsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -11098,6 +11255,7 @@ export type UserCreateWithoutAttemptLoginsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -11191,6 +11349,7 @@ export type UserUncheckedCreateWithoutAttemptLoginsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -11234,6 +11393,7 @@ export type UserUncheckedCreateWithoutAttemptLoginsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -11327,6 +11487,7 @@ export type UserUpdateWithoutAttemptLoginsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -11362,6 +11523,7 @@ export type UserUpdateWithoutAttemptLoginsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -11455,6 +11617,7 @@ export type UserUncheckedUpdateWithoutAttemptLoginsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -11498,6 +11661,7 @@ export type UserUncheckedUpdateWithoutAttemptLoginsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -11575,6 +11739,7 @@ export type UserCreateWithoutBlogsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -11610,6 +11775,7 @@ export type UserCreateWithoutBlogsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -11703,6 +11869,7 @@ export type UserUncheckedCreateWithoutBlogsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -11746,6 +11913,7 @@ export type UserUncheckedCreateWithoutBlogsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -11839,6 +12007,7 @@ export type UserUpdateWithoutBlogsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -11874,6 +12043,7 @@ export type UserUpdateWithoutBlogsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -11967,6 +12137,7 @@ export type UserUncheckedUpdateWithoutBlogsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -12010,6 +12181,7 @@ export type UserUncheckedUpdateWithoutBlogsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -12087,6 +12259,7 @@ export type UserCreateWithoutTweetsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -12123,6 +12296,7 @@ export type UserCreateWithoutTweetsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -12215,6 +12389,7 @@ export type UserUncheckedCreateWithoutTweetsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -12259,6 +12434,7 @@ export type UserUncheckedCreateWithoutTweetsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -12351,6 +12527,7 @@ export type UserUpdateWithoutTweetsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -12387,6 +12564,7 @@ export type UserUpdateWithoutTweetsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -12479,6 +12657,7 @@ export type UserUncheckedUpdateWithoutTweetsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -12523,6 +12702,7 @@ export type UserUncheckedUpdateWithoutTweetsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -12599,6 +12779,7 @@ export type UserCreateWithoutRetweetsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -12635,6 +12816,7 @@ export type UserCreateWithoutRetweetsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -12727,6 +12909,7 @@ export type UserUncheckedCreateWithoutRetweetsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -12771,6 +12954,7 @@ export type UserUncheckedCreateWithoutRetweetsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -12863,6 +13047,7 @@ export type UserUpdateWithoutRetweetsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -12899,6 +13084,7 @@ export type UserUpdateWithoutRetweetsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -12991,6 +13177,7 @@ export type UserUncheckedUpdateWithoutRetweetsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -13035,6 +13222,7 @@ export type UserUncheckedUpdateWithoutRetweetsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -13111,6 +13299,7 @@ export type UserCreateWithoutCommentsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -13146,6 +13335,7 @@ export type UserCreateWithoutCommentsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -13239,6 +13429,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -13282,6 +13473,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -13375,6 +13567,7 @@ export type UserUpdateWithoutCommentsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -13410,6 +13603,7 @@ export type UserUpdateWithoutCommentsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -13503,6 +13697,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -13546,6 +13741,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -13623,6 +13819,7 @@ export type UserCreateWithoutLikesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -13659,6 +13856,7 @@ export type UserCreateWithoutLikesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -13751,6 +13949,7 @@ export type UserUncheckedCreateWithoutLikesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -13795,6 +13994,7 @@ export type UserUncheckedCreateWithoutLikesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -13887,6 +14087,7 @@ export type UserUpdateWithoutLikesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -13923,6 +14124,7 @@ export type UserUpdateWithoutLikesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -14015,6 +14217,7 @@ export type UserUncheckedUpdateWithoutLikesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -14059,6 +14262,7 @@ export type UserUncheckedUpdateWithoutLikesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -14135,6 +14339,7 @@ export type UserCreateWithoutFollowsAsFollowerInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -14170,6 +14375,7 @@ export type UserCreateWithoutFollowsAsFollowerInput = {
   comments?: Prisma.CommentCreateNestedManyWithoutUserInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -14263,6 +14469,7 @@ export type UserUncheckedCreateWithoutFollowsAsFollowerInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -14306,6 +14513,7 @@ export type UserUncheckedCreateWithoutFollowsAsFollowerInput = {
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutUserInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -14388,6 +14596,7 @@ export type UserCreateWithoutFollowsAsFollowingInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -14423,6 +14632,7 @@ export type UserCreateWithoutFollowsAsFollowingInput = {
   comments?: Prisma.CommentCreateNestedManyWithoutUserInput
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -14516,6 +14726,7 @@ export type UserUncheckedCreateWithoutFollowsAsFollowingInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -14559,6 +14770,7 @@ export type UserUncheckedCreateWithoutFollowsAsFollowingInput = {
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutUserInput
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -14652,6 +14864,7 @@ export type UserUpdateWithoutFollowsAsFollowerInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -14687,6 +14900,7 @@ export type UserUpdateWithoutFollowsAsFollowerInput = {
   comments?: Prisma.CommentUpdateManyWithoutUserNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -14780,6 +14994,7 @@ export type UserUncheckedUpdateWithoutFollowsAsFollowerInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -14823,6 +15038,7 @@ export type UserUncheckedUpdateWithoutFollowsAsFollowerInput = {
   comments?: Prisma.CommentUncheckedUpdateManyWithoutUserNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -14911,6 +15127,7 @@ export type UserUpdateWithoutFollowsAsFollowingInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -14946,6 +15163,7 @@ export type UserUpdateWithoutFollowsAsFollowingInput = {
   comments?: Prisma.CommentUpdateManyWithoutUserNestedInput
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -15039,6 +15257,7 @@ export type UserUncheckedUpdateWithoutFollowsAsFollowingInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -15082,6 +15301,7 @@ export type UserUncheckedUpdateWithoutFollowsAsFollowingInput = {
   comments?: Prisma.CommentUncheckedUpdateManyWithoutUserNestedInput
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -15159,6 +15379,7 @@ export type UserCreateWithoutReceivedMessagesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -15195,6 +15416,7 @@ export type UserCreateWithoutReceivedMessagesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -15287,6 +15509,7 @@ export type UserUncheckedCreateWithoutReceivedMessagesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -15331,6 +15554,7 @@ export type UserUncheckedCreateWithoutReceivedMessagesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -15412,6 +15636,7 @@ export type UserCreateWithoutSentMessagesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -15448,6 +15673,7 @@ export type UserCreateWithoutSentMessagesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -15540,6 +15766,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -15584,6 +15811,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -15676,6 +15904,7 @@ export type UserUpdateWithoutReceivedMessagesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -15712,6 +15941,7 @@ export type UserUpdateWithoutReceivedMessagesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -15804,6 +16034,7 @@ export type UserUncheckedUpdateWithoutReceivedMessagesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -15848,6 +16079,7 @@ export type UserUncheckedUpdateWithoutReceivedMessagesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -15935,6 +16167,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -15971,6 +16204,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -16063,6 +16297,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -16107,6 +16342,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -16183,6 +16419,7 @@ export type UserCreateWithoutChatGroupsCreatedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -16218,6 +16455,7 @@ export type UserCreateWithoutChatGroupsCreatedInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -16311,6 +16549,7 @@ export type UserUncheckedCreateWithoutChatGroupsCreatedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -16354,6 +16593,7 @@ export type UserUncheckedCreateWithoutChatGroupsCreatedInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -16447,6 +16687,7 @@ export type UserUpdateWithoutChatGroupsCreatedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -16482,6 +16723,7 @@ export type UserUpdateWithoutChatGroupsCreatedInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -16575,6 +16817,7 @@ export type UserUncheckedUpdateWithoutChatGroupsCreatedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -16618,6 +16861,7 @@ export type UserUncheckedUpdateWithoutChatGroupsCreatedInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -16695,6 +16939,7 @@ export type UserCreateWithoutCartsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -16730,6 +16975,7 @@ export type UserCreateWithoutCartsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -16823,6 +17069,7 @@ export type UserUncheckedCreateWithoutCartsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -16866,6 +17113,7 @@ export type UserUncheckedCreateWithoutCartsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -16959,6 +17207,7 @@ export type UserUpdateWithoutCartsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -16994,6 +17243,7 @@ export type UserUpdateWithoutCartsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -17087,6 +17337,7 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -17130,6 +17381,7 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -17207,6 +17459,7 @@ export type UserCreateWithoutWishlistsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -17243,6 +17496,7 @@ export type UserCreateWithoutWishlistsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -17335,6 +17589,7 @@ export type UserUncheckedCreateWithoutWishlistsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -17379,6 +17634,7 @@ export type UserUncheckedCreateWithoutWishlistsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -17471,6 +17727,7 @@ export type UserUpdateWithoutWishlistsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -17507,6 +17764,7 @@ export type UserUpdateWithoutWishlistsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -17599,6 +17857,7 @@ export type UserUncheckedUpdateWithoutWishlistsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -17643,6 +17902,7 @@ export type UserUncheckedUpdateWithoutWishlistsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -17719,6 +17979,7 @@ export type UserCreateWithoutOrderGroupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -17755,6 +18016,7 @@ export type UserCreateWithoutOrderGroupsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -17847,6 +18109,7 @@ export type UserUncheckedCreateWithoutOrderGroupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -17891,6 +18154,7 @@ export type UserUncheckedCreateWithoutOrderGroupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -17983,6 +18247,7 @@ export type UserUpdateWithoutOrderGroupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -18019,6 +18284,7 @@ export type UserUpdateWithoutOrderGroupsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -18111,6 +18377,7 @@ export type UserUncheckedUpdateWithoutOrderGroupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -18155,6 +18422,7 @@ export type UserUncheckedUpdateWithoutOrderGroupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -18231,6 +18499,7 @@ export type UserCreateWithoutLoansAsResolverInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -18267,6 +18536,7 @@ export type UserCreateWithoutLoansAsResolverInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -18359,6 +18629,7 @@ export type UserUncheckedCreateWithoutLoansAsResolverInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -18403,6 +18674,7 @@ export type UserUncheckedCreateWithoutLoansAsResolverInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -18484,6 +18756,7 @@ export type UserCreateWithoutLoansAsUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -18520,6 +18793,7 @@ export type UserCreateWithoutLoansAsUserInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -18612,6 +18886,7 @@ export type UserUncheckedCreateWithoutLoansAsUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -18656,6 +18931,7 @@ export type UserUncheckedCreateWithoutLoansAsUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -18748,6 +19024,7 @@ export type UserUpdateWithoutLoansAsResolverInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -18784,6 +19061,7 @@ export type UserUpdateWithoutLoansAsResolverInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -18876,6 +19154,7 @@ export type UserUncheckedUpdateWithoutLoansAsResolverInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -18920,6 +19199,7 @@ export type UserUncheckedUpdateWithoutLoansAsResolverInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -19007,6 +19287,7 @@ export type UserUpdateWithoutLoansAsUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -19043,6 +19324,7 @@ export type UserUpdateWithoutLoansAsUserInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -19135,6 +19417,527 @@ export type UserUncheckedUpdateWithoutLoansAsUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  sponsorshipStatus?: Prisma.NullableEnumSponsorshipStatusFieldUpdateOperationsInput | $Enums.SponsorshipStatus | null
+  sponsorLoginOtp?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sponsorLoginOtpCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isSponsorAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  influencerId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  accountActivationAcknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sponsorWithdrawalOtp?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sponsorWithdrawalOtpSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeactivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sponsorId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  sponsorSlot?: Prisma.IntFieldUpdateOperationsInput | number
+  loginYearlyCount?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  schoolFeesPermittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawalBypassAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isUnitLeader?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  schoolId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sponsorClass?: Prisma.NullableEnumSponsorClassFieldUpdateOperationsInput | $Enums.SponsorClass | null
+  transferId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unblockingCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  influencerPromoPeriodId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  guardianId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  guardianWardSlotId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  pimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  patronGroupId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  activationCardId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  refreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationCardTransactions?: Prisma.ActivationCardTransactionUncheckedUpdateManyWithoutUserNestedInput
+  activationCardsApproved?: Prisma.ActivationCardUncheckedUpdateManyWithoutApproverNestedInput
+  activationCardsOwned?: Prisma.ActivationCardUncheckedUpdateManyWithoutOwnerNestedInput
+  adminLogs?: Prisma.AdminLogUncheckedUpdateManyWithoutAdminNestedInput
+  attemptLogins?: Prisma.AttemptLoginUncheckedUpdateManyWithoutUserNestedInput
+  blogs?: Prisma.BlogUncheckedUpdateManyWithoutUserNestedInput
+  carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
+  centralTreasuryLogs?: Prisma.CentralTreasuryLogUncheckedUpdateManyWithoutPerformerNestedInput
+  chatGroupsCreated?: Prisma.ChatGroupUncheckedUpdateManyWithoutCreatorNestedInput
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutUserNestedInput
+  followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
+  followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
+  guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
+  infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
+  infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
+  infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
+  infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedUpdateManyWithoutUserNestedInput
+  infantYearlyTopups?: Prisma.InfantYearlyTopupUncheckedUpdateManyWithoutUserNestedInput
+  influencerYearlyTopupsApproved?: Prisma.InfluencerYearlyTopupUncheckedUpdateManyWithoutApproverNestedInput
+  influencerYearlyTopups?: Prisma.InfluencerYearlyTopupUncheckedUpdateManyWithoutUserNestedInput
+  likes?: Prisma.LikeUncheckedUpdateManyWithoutUserNestedInput
+  loansAsResolver?: Prisma.LoanUncheckedUpdateManyWithoutResolverNestedInput
+  receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutReceiverNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  orderGroups?: Prisma.OrderGroupUncheckedUpdateManyWithoutUserNestedInput
+  patronGroupTransactions?: Prisma.PatronGroupTransactionUncheckedUpdateManyWithoutUserNestedInput
+  patronGroupsOwned?: Prisma.PatronGroupUncheckedUpdateManyWithoutOwnerNestedInput
+  quizPhaseUsers?: Prisma.QuizPhaseUserUncheckedUpdateManyWithoutUserNestedInput
+  quizUsers?: Prisma.QuizUserUncheckedUpdateManyWithoutUserNestedInput
+  retweets?: Prisma.RetweetUncheckedUpdateManyWithoutUserNestedInput
+  schoolCompensationAsInfant?: Prisma.SchoolCompensationUncheckedUpdateManyWithoutInfantNestedInput
+  schoolCompensationAsSchool?: Prisma.SchoolCompensationUncheckedUpdateManyWithoutSchoolNestedInput
+  schoolFees?: Prisma.SchoolFeeUncheckedUpdateManyWithoutUserNestedInput
+  sponsorInvestmentReturnsSponsor?: Prisma.SponsorInvestmentReturnUncheckedUpdateManyWithoutSponsorNestedInput
+  sponsorInvestmentReturns?: Prisma.SponsorInvestmentReturnUncheckedUpdateManyWithoutUserNestedInput
+  tweets?: Prisma.TweetUncheckedUpdateManyWithoutUserNestedInput
+  unblockingPayments?: Prisma.UnblockingPaymentUncheckedUpdateManyWithoutUserNestedInput
+  userActivationRequests?: Prisma.UserActivationRequestUncheckedUpdateManyWithoutUserNestedInput
+  guardianWards?: Prisma.UserUncheckedUpdateManyWithoutGuardianUserNestedInput
+  infantGroupMembers?: Prisma.UserUncheckedUpdateManyWithoutInfantGroupNestedInput
+  influencees?: Prisma.UserUncheckedUpdateManyWithoutInfluencerUserNestedInput
+  patronees?: Prisma.UserUncheckedUpdateManyWithoutPatronNestedInput
+  referrals?: Prisma.UserUncheckedUpdateManyWithoutReferralNestedInput
+  schoolStudents?: Prisma.UserUncheckedUpdateManyWithoutSchoolUserNestedInput
+  sponsorees?: Prisma.UserUncheckedUpdateManyWithoutSponsorUserNestedInput
+  wallets?: Prisma.WalletUncheckedUpdateManyWithoutUserNestedInput
+  wishlists?: Prisma.WishlistUncheckedUpdateManyWithoutUserNestedInput
+  withDrawals?: Prisma.WithDrawalUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  id?: bigint | number
+  name: string
+  username?: string | null
+  email?: string | null
+  phone?: string | null
+  pictureUrl?: string | null
+  cloudinaryPublicId?: string | null
+  role?: number
+  accountState?: number
+  country?: string | null
+  emailVerificationCode?: string | null
+  emailVerificationCodeSentAt?: Date | string | null
+  emailVerifiedAt?: Date | string | null
+  password: string
+  passwordResetOtp?: string | null
+  passwordResetOtpSentAt?: Date | string | null
+  rememberToken?: string | null
+  createdAt?: Date | string | null
+  updatedAt?: Date | string | null
+  status?: boolean
+  withdrawalPin?: string | null
+  withdrawalPinResetOtp?: string | null
+  withdrawalPinResetOtpSentAt?: Date | string | null
+  referralActivateAt?: Date | string | null
+  bank?: string | null
+  accountNumber?: string | null
+  isInfant?: boolean
+  birthDate?: Date | string | null
+  birthPlace?: string | null
+  birthCertificate?: string | null
+  canWithdraw?: boolean
+  canUseVtu?: boolean
+  deletedAt?: Date | string | null
+  canEarn?: boolean
+  canOptOut?: boolean
+  canWithdrawGkwth?: boolean
+  lastSeen?: Date | string | null
+  activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
+  isOnline?: boolean
+  sponsorshipAcceptedAt?: Date | string | null
+  sponsorAgreement?: boolean | null
+  sponsorshipStatus?: $Enums.SponsorshipStatus | null
+  sponsorLoginOtp?: number | null
+  sponsorLoginOtpCreatedAt?: Date | string | null
+  isSponsorAccount?: string | null
+  accountActivationAcknowledgedAt?: Date | string | null
+  sponsorWithdrawalOtp?: number | null
+  sponsorWithdrawalOtpSentAt?: Date | string | null
+  isDeactivated?: boolean
+  sponsorSlot?: number
+  loginYearlyCount?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  schoolFeesPermittedAt?: Date | string | null
+  withdrawalBypassAt?: Date | string | null
+  isUnitLeader?: boolean
+  address?: string | null
+  sponsorClass?: $Enums.SponsorClass | null
+  transferId?: string | null
+  unblockingCode?: string | null
+  blockedAt?: Date | string | null
+  pimId?: string | null
+  refreshToken?: string | null
+  activationCardTransactions?: Prisma.ActivationCardTransactionCreateNestedManyWithoutUserInput
+  activationCardsApproved?: Prisma.ActivationCardCreateNestedManyWithoutApproverInput
+  activationCardsOwned?: Prisma.ActivationCardCreateNestedManyWithoutOwnerInput
+  adminLogs?: Prisma.AdminLogCreateNestedManyWithoutAdminInput
+  attemptLogins?: Prisma.AttemptLoginCreateNestedManyWithoutUserInput
+  blogs?: Prisma.BlogCreateNestedManyWithoutUserInput
+  carts?: Prisma.CartCreateNestedManyWithoutUserInput
+  centralTreasuryLogs?: Prisma.CentralTreasuryLogCreateNestedManyWithoutPerformerInput
+  chatGroupsCreated?: Prisma.ChatGroupCreateNestedManyWithoutCreatorInput
+  comments?: Prisma.CommentCreateNestedManyWithoutUserInput
+  followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
+  followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
+  guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
+  infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
+  infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
+  infantUpkeepRequests?: Prisma.InfantUpkeepRequestCreateNestedManyWithoutUserInput
+  infantYearlyTopups?: Prisma.InfantYearlyTopupCreateNestedManyWithoutUserInput
+  influencerYearlyTopupsApproved?: Prisma.InfluencerYearlyTopupCreateNestedManyWithoutApproverInput
+  influencerYearlyTopups?: Prisma.InfluencerYearlyTopupCreateNestedManyWithoutUserInput
+  likes?: Prisma.LikeCreateNestedManyWithoutUserInput
+  loansAsResolver?: Prisma.LoanCreateNestedManyWithoutResolverInput
+  loansAsUser?: Prisma.LoanCreateNestedManyWithoutUserInput
+  receivedMessages?: Prisma.MessageCreateNestedManyWithoutReceiverInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  orderGroups?: Prisma.OrderGroupCreateNestedManyWithoutUserInput
+  patronGroupTransactions?: Prisma.PatronGroupTransactionCreateNestedManyWithoutUserInput
+  patronGroupsOwned?: Prisma.PatronGroupCreateNestedManyWithoutOwnerInput
+  quizPhaseUsers?: Prisma.QuizPhaseUserCreateNestedManyWithoutUserInput
+  quizUsers?: Prisma.QuizUserCreateNestedManyWithoutUserInput
+  retweets?: Prisma.RetweetCreateNestedManyWithoutUserInput
+  schoolCompensationAsInfant?: Prisma.SchoolCompensationCreateNestedManyWithoutInfantInput
+  schoolCompensationAsSchool?: Prisma.SchoolCompensationCreateNestedManyWithoutSchoolInput
+  schoolFees?: Prisma.SchoolFeeCreateNestedManyWithoutUserInput
+  sponsorInvestmentReturnsSponsor?: Prisma.SponsorInvestmentReturnCreateNestedManyWithoutSponsorInput
+  sponsorInvestmentReturns?: Prisma.SponsorInvestmentReturnCreateNestedManyWithoutUserInput
+  tweets?: Prisma.TweetCreateNestedManyWithoutUserInput
+  unblockingPayments?: Prisma.UnblockingPaymentCreateNestedManyWithoutUserInput
+  userActivationRequests?: Prisma.UserActivationRequestCreateNestedManyWithoutUserInput
+  activationCard?: Prisma.ActivationCardCreateNestedOneWithoutUsersWithCardInput
+  guardianUser?: Prisma.UserCreateNestedOneWithoutGuardianWardsInput
+  guardianWards?: Prisma.UserCreateNestedManyWithoutGuardianUserInput
+  guardianWardSlot?: Prisma.GuardianWardSlotPurchaseCreateNestedOneWithoutUsersInput
+  infantGroup?: Prisma.UserCreateNestedOneWithoutInfantGroupMembersInput
+  infantGroupMembers?: Prisma.UserCreateNestedManyWithoutInfantGroupInput
+  influencerUser?: Prisma.UserCreateNestedOneWithoutInfluenceesInput
+  influencees?: Prisma.UserCreateNestedManyWithoutInfluencerUserInput
+  influencer_promo_periods?: Prisma.InfluencerPromoPeriodCreateNestedOneWithoutUsersInput
+  patronGroup?: Prisma.PatronGroupCreateNestedOneWithoutUsersInput
+  patron?: Prisma.UserCreateNestedOneWithoutPatroneesInput
+  patronees?: Prisma.UserCreateNestedManyWithoutPatronInput
+  referral?: Prisma.UserCreateNestedOneWithoutReferralsInput
+  referrals?: Prisma.UserCreateNestedManyWithoutReferralInput
+  region?: Prisma.RegionCreateNestedOneWithoutUsersInput
+  schoolUser?: Prisma.UserCreateNestedOneWithoutSchoolStudentsInput
+  schoolStudents?: Prisma.UserCreateNestedManyWithoutSchoolUserInput
+  sponsorUser?: Prisma.UserCreateNestedOneWithoutSponsoreesInput
+  sponsorees?: Prisma.UserCreateNestedManyWithoutSponsorUserInput
+  wallets?: Prisma.WalletCreateNestedManyWithoutUserInput
+  wishlists?: Prisma.WishlistCreateNestedManyWithoutUserInput
+  withDrawals?: Prisma.WithDrawalCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  id?: bigint | number
+  patronId?: bigint | number | null
+  name: string
+  username?: string | null
+  email?: string | null
+  phone?: string | null
+  pictureUrl?: string | null
+  cloudinaryPublicId?: string | null
+  regionId?: bigint | number | null
+  role?: number
+  accountState?: number
+  country?: string | null
+  referralId?: bigint | number | null
+  emailVerificationCode?: string | null
+  emailVerificationCodeSentAt?: Date | string | null
+  emailVerifiedAt?: Date | string | null
+  password: string
+  passwordResetOtp?: string | null
+  passwordResetOtpSentAt?: Date | string | null
+  rememberToken?: string | null
+  createdAt?: Date | string | null
+  updatedAt?: Date | string | null
+  status?: boolean
+  withdrawalPin?: string | null
+  withdrawalPinResetOtp?: string | null
+  withdrawalPinResetOtpSentAt?: Date | string | null
+  referralActivateAt?: Date | string | null
+  bank?: string | null
+  accountNumber?: string | null
+  isInfant?: boolean
+  birthDate?: Date | string | null
+  birthPlace?: string | null
+  birthCertificate?: string | null
+  infantGroupId?: bigint | number | null
+  canWithdraw?: boolean
+  canUseVtu?: boolean
+  deletedAt?: Date | string | null
+  canEarn?: boolean
+  canOptOut?: boolean
+  canWithdrawGkwth?: boolean
+  lastSeen?: Date | string | null
+  activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
+  isOnline?: boolean
+  sponsorshipAcceptedAt?: Date | string | null
+  sponsorAgreement?: boolean | null
+  sponsorshipStatus?: $Enums.SponsorshipStatus | null
+  sponsorLoginOtp?: number | null
+  sponsorLoginOtpCreatedAt?: Date | string | null
+  isSponsorAccount?: string | null
+  influencerId?: bigint | number | null
+  accountActivationAcknowledgedAt?: Date | string | null
+  sponsorWithdrawalOtp?: number | null
+  sponsorWithdrawalOtpSentAt?: Date | string | null
+  isDeactivated?: boolean
+  sponsorId?: bigint | number | null
+  sponsorSlot?: number
+  loginYearlyCount?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  schoolFeesPermittedAt?: Date | string | null
+  withdrawalBypassAt?: Date | string | null
+  isUnitLeader?: boolean
+  schoolId?: bigint | number | null
+  address?: string | null
+  sponsorClass?: $Enums.SponsorClass | null
+  transferId?: string | null
+  unblockingCode?: string | null
+  blockedAt?: Date | string | null
+  influencerPromoPeriodId?: bigint | number | null
+  guardianId?: bigint | number | null
+  guardianWardSlotId?: bigint | number | null
+  pimId?: string | null
+  patronGroupId?: bigint | number | null
+  activationCardId?: bigint | number | null
+  refreshToken?: string | null
+  activationCardTransactions?: Prisma.ActivationCardTransactionUncheckedCreateNestedManyWithoutUserInput
+  activationCardsApproved?: Prisma.ActivationCardUncheckedCreateNestedManyWithoutApproverInput
+  activationCardsOwned?: Prisma.ActivationCardUncheckedCreateNestedManyWithoutOwnerInput
+  adminLogs?: Prisma.AdminLogUncheckedCreateNestedManyWithoutAdminInput
+  attemptLogins?: Prisma.AttemptLoginUncheckedCreateNestedManyWithoutUserInput
+  blogs?: Prisma.BlogUncheckedCreateNestedManyWithoutUserInput
+  carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
+  centralTreasuryLogs?: Prisma.CentralTreasuryLogUncheckedCreateNestedManyWithoutPerformerInput
+  chatGroupsCreated?: Prisma.ChatGroupUncheckedCreateNestedManyWithoutCreatorInput
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutUserInput
+  followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
+  followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
+  guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
+  infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
+  infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
+  infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedCreateNestedManyWithoutUserInput
+  infantYearlyTopups?: Prisma.InfantYearlyTopupUncheckedCreateNestedManyWithoutUserInput
+  influencerYearlyTopupsApproved?: Prisma.InfluencerYearlyTopupUncheckedCreateNestedManyWithoutApproverInput
+  influencerYearlyTopups?: Prisma.InfluencerYearlyTopupUncheckedCreateNestedManyWithoutUserInput
+  likes?: Prisma.LikeUncheckedCreateNestedManyWithoutUserInput
+  loansAsResolver?: Prisma.LoanUncheckedCreateNestedManyWithoutResolverInput
+  loansAsUser?: Prisma.LoanUncheckedCreateNestedManyWithoutUserInput
+  receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutReceiverInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  orderGroups?: Prisma.OrderGroupUncheckedCreateNestedManyWithoutUserInput
+  patronGroupTransactions?: Prisma.PatronGroupTransactionUncheckedCreateNestedManyWithoutUserInput
+  patronGroupsOwned?: Prisma.PatronGroupUncheckedCreateNestedManyWithoutOwnerInput
+  quizPhaseUsers?: Prisma.QuizPhaseUserUncheckedCreateNestedManyWithoutUserInput
+  quizUsers?: Prisma.QuizUserUncheckedCreateNestedManyWithoutUserInput
+  retweets?: Prisma.RetweetUncheckedCreateNestedManyWithoutUserInput
+  schoolCompensationAsInfant?: Prisma.SchoolCompensationUncheckedCreateNestedManyWithoutInfantInput
+  schoolCompensationAsSchool?: Prisma.SchoolCompensationUncheckedCreateNestedManyWithoutSchoolInput
+  schoolFees?: Prisma.SchoolFeeUncheckedCreateNestedManyWithoutUserInput
+  sponsorInvestmentReturnsSponsor?: Prisma.SponsorInvestmentReturnUncheckedCreateNestedManyWithoutSponsorInput
+  sponsorInvestmentReturns?: Prisma.SponsorInvestmentReturnUncheckedCreateNestedManyWithoutUserInput
+  tweets?: Prisma.TweetUncheckedCreateNestedManyWithoutUserInput
+  unblockingPayments?: Prisma.UnblockingPaymentUncheckedCreateNestedManyWithoutUserInput
+  userActivationRequests?: Prisma.UserActivationRequestUncheckedCreateNestedManyWithoutUserInput
+  guardianWards?: Prisma.UserUncheckedCreateNestedManyWithoutGuardianUserInput
+  infantGroupMembers?: Prisma.UserUncheckedCreateNestedManyWithoutInfantGroupInput
+  influencees?: Prisma.UserUncheckedCreateNestedManyWithoutInfluencerUserInput
+  patronees?: Prisma.UserUncheckedCreateNestedManyWithoutPatronInput
+  referrals?: Prisma.UserUncheckedCreateNestedManyWithoutReferralInput
+  schoolStudents?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolUserInput
+  sponsorees?: Prisma.UserUncheckedCreateNestedManyWithoutSponsorUserInput
+  wallets?: Prisma.WalletUncheckedCreateNestedManyWithoutUserInput
+  wishlists?: Prisma.WishlistUncheckedCreateNestedManyWithoutUserInput
+  withDrawals?: Prisma.WithDrawalUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pictureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.IntFieldUpdateOperationsInput | number
+  accountState?: Prisma.IntFieldUpdateOperationsInput | number
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationCodeSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordResetOtp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetOtpSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rememberToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  withdrawalPin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  withdrawalPinResetOtp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  withdrawalPinResetOtpSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  referralActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bank?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isInfant?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  birthPlace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthCertificate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canWithdraw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canUseVtu?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canEarn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canOptOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  sponsorshipStatus?: Prisma.NullableEnumSponsorshipStatusFieldUpdateOperationsInput | $Enums.SponsorshipStatus | null
+  sponsorLoginOtp?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sponsorLoginOtpCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isSponsorAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountActivationAcknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sponsorWithdrawalOtp?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sponsorWithdrawalOtpSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeactivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sponsorSlot?: Prisma.IntFieldUpdateOperationsInput | number
+  loginYearlyCount?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  schoolFeesPermittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawalBypassAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isUnitLeader?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sponsorClass?: Prisma.NullableEnumSponsorClassFieldUpdateOperationsInput | $Enums.SponsorClass | null
+  transferId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  unblockingCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pimId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationCardTransactions?: Prisma.ActivationCardTransactionUpdateManyWithoutUserNestedInput
+  activationCardsApproved?: Prisma.ActivationCardUpdateManyWithoutApproverNestedInput
+  activationCardsOwned?: Prisma.ActivationCardUpdateManyWithoutOwnerNestedInput
+  adminLogs?: Prisma.AdminLogUpdateManyWithoutAdminNestedInput
+  attemptLogins?: Prisma.AttemptLoginUpdateManyWithoutUserNestedInput
+  blogs?: Prisma.BlogUpdateManyWithoutUserNestedInput
+  carts?: Prisma.CartUpdateManyWithoutUserNestedInput
+  centralTreasuryLogs?: Prisma.CentralTreasuryLogUpdateManyWithoutPerformerNestedInput
+  chatGroupsCreated?: Prisma.ChatGroupUpdateManyWithoutCreatorNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutUserNestedInput
+  followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
+  followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
+  guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
+  infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
+  infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
+  infantUpkeepRequests?: Prisma.InfantUpkeepRequestUpdateManyWithoutUserNestedInput
+  infantYearlyTopups?: Prisma.InfantYearlyTopupUpdateManyWithoutUserNestedInput
+  influencerYearlyTopupsApproved?: Prisma.InfluencerYearlyTopupUpdateManyWithoutApproverNestedInput
+  influencerYearlyTopups?: Prisma.InfluencerYearlyTopupUpdateManyWithoutUserNestedInput
+  likes?: Prisma.LikeUpdateManyWithoutUserNestedInput
+  loansAsResolver?: Prisma.LoanUpdateManyWithoutResolverNestedInput
+  loansAsUser?: Prisma.LoanUpdateManyWithoutUserNestedInput
+  receivedMessages?: Prisma.MessageUpdateManyWithoutReceiverNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  orderGroups?: Prisma.OrderGroupUpdateManyWithoutUserNestedInput
+  patronGroupTransactions?: Prisma.PatronGroupTransactionUpdateManyWithoutUserNestedInput
+  patronGroupsOwned?: Prisma.PatronGroupUpdateManyWithoutOwnerNestedInput
+  quizPhaseUsers?: Prisma.QuizPhaseUserUpdateManyWithoutUserNestedInput
+  quizUsers?: Prisma.QuizUserUpdateManyWithoutUserNestedInput
+  retweets?: Prisma.RetweetUpdateManyWithoutUserNestedInput
+  schoolCompensationAsInfant?: Prisma.SchoolCompensationUpdateManyWithoutInfantNestedInput
+  schoolCompensationAsSchool?: Prisma.SchoolCompensationUpdateManyWithoutSchoolNestedInput
+  schoolFees?: Prisma.SchoolFeeUpdateManyWithoutUserNestedInput
+  sponsorInvestmentReturnsSponsor?: Prisma.SponsorInvestmentReturnUpdateManyWithoutSponsorNestedInput
+  sponsorInvestmentReturns?: Prisma.SponsorInvestmentReturnUpdateManyWithoutUserNestedInput
+  tweets?: Prisma.TweetUpdateManyWithoutUserNestedInput
+  unblockingPayments?: Prisma.UnblockingPaymentUpdateManyWithoutUserNestedInput
+  userActivationRequests?: Prisma.UserActivationRequestUpdateManyWithoutUserNestedInput
+  activationCard?: Prisma.ActivationCardUpdateOneWithoutUsersWithCardNestedInput
+  guardianUser?: Prisma.UserUpdateOneWithoutGuardianWardsNestedInput
+  guardianWards?: Prisma.UserUpdateManyWithoutGuardianUserNestedInput
+  guardianWardSlot?: Prisma.GuardianWardSlotPurchaseUpdateOneWithoutUsersNestedInput
+  infantGroup?: Prisma.UserUpdateOneWithoutInfantGroupMembersNestedInput
+  infantGroupMembers?: Prisma.UserUpdateManyWithoutInfantGroupNestedInput
+  influencerUser?: Prisma.UserUpdateOneWithoutInfluenceesNestedInput
+  influencees?: Prisma.UserUpdateManyWithoutInfluencerUserNestedInput
+  influencer_promo_periods?: Prisma.InfluencerPromoPeriodUpdateOneWithoutUsersNestedInput
+  patronGroup?: Prisma.PatronGroupUpdateOneWithoutUsersNestedInput
+  patron?: Prisma.UserUpdateOneWithoutPatroneesNestedInput
+  patronees?: Prisma.UserUpdateManyWithoutPatronNestedInput
+  referral?: Prisma.UserUpdateOneWithoutReferralsNestedInput
+  referrals?: Prisma.UserUpdateManyWithoutReferralNestedInput
+  region?: Prisma.RegionUpdateOneWithoutUsersNestedInput
+  schoolUser?: Prisma.UserUpdateOneWithoutSchoolStudentsNestedInput
+  schoolStudents?: Prisma.UserUpdateManyWithoutSchoolUserNestedInput
+  sponsorUser?: Prisma.UserUpdateOneWithoutSponsoreesNestedInput
+  sponsorees?: Prisma.UserUpdateManyWithoutSponsorUserNestedInput
+  wallets?: Prisma.WalletUpdateManyWithoutUserNestedInput
+  wishlists?: Prisma.WishlistUpdateManyWithoutUserNestedInput
+  withDrawals?: Prisma.WithDrawalUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  patronId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pictureUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cloudinaryPublicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regionId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  role?: Prisma.IntFieldUpdateOperationsInput | number
+  accountState?: Prisma.IntFieldUpdateOperationsInput | number
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  referralId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  emailVerificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationCodeSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordResetOtp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetOtpSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rememberToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  withdrawalPin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  withdrawalPinResetOtp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  withdrawalPinResetOtpSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  referralActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bank?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isInfant?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  birthPlace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthCertificate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  infantGroupId?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  canWithdraw?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canUseVtu?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canEarn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canOptOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -19188,6 +19991,7 @@ export type UserUncheckedUpdateWithoutLoansAsUserInput = {
   influencerYearlyTopups?: Prisma.InfluencerYearlyTopupUncheckedUpdateManyWithoutUserNestedInput
   likes?: Prisma.LikeUncheckedUpdateManyWithoutUserNestedInput
   loansAsResolver?: Prisma.LoanUncheckedUpdateManyWithoutResolverNestedInput
+  loansAsUser?: Prisma.LoanUncheckedUpdateManyWithoutUserNestedInput
   receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutReceiverNestedInput
   sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
   orderGroups?: Prisma.OrderGroupUncheckedUpdateManyWithoutUserNestedInput
@@ -19255,6 +20059,7 @@ export type UserCreateWithoutSchoolFeesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -19291,6 +20096,7 @@ export type UserCreateWithoutSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -19383,6 +20189,7 @@ export type UserUncheckedCreateWithoutSchoolFeesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -19427,6 +20234,7 @@ export type UserUncheckedCreateWithoutSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -19519,6 +20327,7 @@ export type UserUpdateWithoutSchoolFeesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -19555,6 +20364,7 @@ export type UserUpdateWithoutSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -19647,6 +20457,7 @@ export type UserUncheckedUpdateWithoutSchoolFeesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -19691,6 +20502,7 @@ export type UserUncheckedUpdateWithoutSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -19767,6 +20579,7 @@ export type UserCreateWithoutInfantSchoolFeeGroupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -19803,6 +20616,7 @@ export type UserCreateWithoutInfantSchoolFeeGroupsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestCreateNestedManyWithoutUserInput
@@ -19895,6 +20709,7 @@ export type UserUncheckedCreateWithoutInfantSchoolFeeGroupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -19939,6 +20754,7 @@ export type UserUncheckedCreateWithoutInfantSchoolFeeGroupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedCreateNestedManyWithoutUserInput
@@ -20031,6 +20847,7 @@ export type UserUpdateWithoutInfantSchoolFeeGroupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20067,6 +20884,7 @@ export type UserUpdateWithoutInfantSchoolFeeGroupsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUpdateManyWithoutUserNestedInput
@@ -20159,6 +20977,7 @@ export type UserUncheckedUpdateWithoutInfantSchoolFeeGroupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20203,6 +21022,7 @@ export type UserUncheckedUpdateWithoutInfantSchoolFeeGroupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -20279,6 +21099,7 @@ export type UserCreateWithoutInfantSchoolFeesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -20315,6 +21136,7 @@ export type UserCreateWithoutInfantSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestCreateNestedManyWithoutUserInput
@@ -20407,6 +21229,7 @@ export type UserUncheckedCreateWithoutInfantSchoolFeesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -20451,6 +21274,7 @@ export type UserUncheckedCreateWithoutInfantSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedCreateNestedManyWithoutUserInput
@@ -20543,6 +21367,7 @@ export type UserUpdateWithoutInfantSchoolFeesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20579,6 +21404,7 @@ export type UserUpdateWithoutInfantSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUpdateManyWithoutUserNestedInput
@@ -20671,6 +21497,7 @@ export type UserUncheckedUpdateWithoutInfantSchoolFeesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20715,6 +21542,7 @@ export type UserUncheckedUpdateWithoutInfantSchoolFeesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -20791,6 +21619,7 @@ export type UserCreateWithoutInfantUpkeepRequestsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -20827,6 +21656,7 @@ export type UserCreateWithoutInfantUpkeepRequestsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -20919,6 +21749,7 @@ export type UserUncheckedCreateWithoutInfantUpkeepRequestsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -20963,6 +21794,7 @@ export type UserUncheckedCreateWithoutInfantUpkeepRequestsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -21055,6 +21887,7 @@ export type UserUpdateWithoutInfantUpkeepRequestsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -21091,6 +21924,7 @@ export type UserUpdateWithoutInfantUpkeepRequestsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -21183,6 +22017,7 @@ export type UserUncheckedUpdateWithoutInfantUpkeepRequestsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -21227,6 +22062,7 @@ export type UserUncheckedUpdateWithoutInfantUpkeepRequestsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -21303,6 +22139,7 @@ export type UserCreateWithoutInfantYearlyTopupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -21339,6 +22176,7 @@ export type UserCreateWithoutInfantYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -21431,6 +22269,7 @@ export type UserUncheckedCreateWithoutInfantYearlyTopupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -21475,6 +22314,7 @@ export type UserUncheckedCreateWithoutInfantYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -21567,6 +22407,7 @@ export type UserUpdateWithoutInfantYearlyTopupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -21603,6 +22444,7 @@ export type UserUpdateWithoutInfantYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -21695,6 +22537,7 @@ export type UserUncheckedUpdateWithoutInfantYearlyTopupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -21739,6 +22582,7 @@ export type UserUncheckedUpdateWithoutInfantYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -21815,6 +22659,7 @@ export type UserCreateWithoutInfantFormFeesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -21851,6 +22696,7 @@ export type UserCreateWithoutInfantFormFeesInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestCreateNestedManyWithoutUserInput
@@ -21943,6 +22789,7 @@ export type UserUncheckedCreateWithoutInfantFormFeesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -21987,6 +22834,7 @@ export type UserUncheckedCreateWithoutInfantFormFeesInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedCreateNestedManyWithoutUserInput
@@ -22079,6 +22927,7 @@ export type UserUpdateWithoutInfantFormFeesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -22115,6 +22964,7 @@ export type UserUpdateWithoutInfantFormFeesInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUpdateManyWithoutUserNestedInput
@@ -22207,6 +23057,7 @@ export type UserUncheckedUpdateWithoutInfantFormFeesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -22251,6 +23102,7 @@ export type UserUncheckedUpdateWithoutInfantFormFeesInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
   infantUpkeepRequests?: Prisma.InfantUpkeepRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -22327,6 +23179,7 @@ export type UserCreateWithoutInfluencer_promo_periodsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -22363,6 +23216,7 @@ export type UserCreateWithoutInfluencer_promo_periodsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -22455,6 +23309,7 @@ export type UserUncheckedCreateWithoutInfluencer_promo_periodsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -22498,6 +23353,7 @@ export type UserUncheckedCreateWithoutInfluencer_promo_periodsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -22601,6 +23457,7 @@ export type UserCreateWithoutInfluencerYearlyTopupsApprovedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -22637,6 +23494,7 @@ export type UserCreateWithoutInfluencerYearlyTopupsApprovedInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -22729,6 +23587,7 @@ export type UserUncheckedCreateWithoutInfluencerYearlyTopupsApprovedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -22773,6 +23632,7 @@ export type UserUncheckedCreateWithoutInfluencerYearlyTopupsApprovedInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -22854,6 +23714,7 @@ export type UserCreateWithoutInfluencerYearlyTopupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -22890,6 +23751,7 @@ export type UserCreateWithoutInfluencerYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -22982,6 +23844,7 @@ export type UserUncheckedCreateWithoutInfluencerYearlyTopupsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -23026,6 +23889,7 @@ export type UserUncheckedCreateWithoutInfluencerYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -23118,6 +23982,7 @@ export type UserUpdateWithoutInfluencerYearlyTopupsApprovedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -23154,6 +24019,7 @@ export type UserUpdateWithoutInfluencerYearlyTopupsApprovedInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -23246,6 +24112,7 @@ export type UserUncheckedUpdateWithoutInfluencerYearlyTopupsApprovedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -23290,6 +24157,7 @@ export type UserUncheckedUpdateWithoutInfluencerYearlyTopupsApprovedInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -23377,6 +24245,7 @@ export type UserUpdateWithoutInfluencerYearlyTopupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -23413,6 +24282,7 @@ export type UserUpdateWithoutInfluencerYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -23505,6 +24375,7 @@ export type UserUncheckedUpdateWithoutInfluencerYearlyTopupsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -23549,6 +24420,7 @@ export type UserUncheckedUpdateWithoutInfluencerYearlyTopupsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -23625,6 +24497,7 @@ export type UserCreateWithoutSponsorInvestmentReturnsSponsorInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -23661,6 +24534,7 @@ export type UserCreateWithoutSponsorInvestmentReturnsSponsorInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -23753,6 +24627,7 @@ export type UserUncheckedCreateWithoutSponsorInvestmentReturnsSponsorInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -23797,6 +24672,7 @@ export type UserUncheckedCreateWithoutSponsorInvestmentReturnsSponsorInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -23878,6 +24754,7 @@ export type UserCreateWithoutSponsorInvestmentReturnsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -23914,6 +24791,7 @@ export type UserCreateWithoutSponsorInvestmentReturnsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -24006,6 +24884,7 @@ export type UserUncheckedCreateWithoutSponsorInvestmentReturnsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -24050,6 +24929,7 @@ export type UserUncheckedCreateWithoutSponsorInvestmentReturnsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -24142,6 +25022,7 @@ export type UserUpdateWithoutSponsorInvestmentReturnsSponsorInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -24178,6 +25059,7 @@ export type UserUpdateWithoutSponsorInvestmentReturnsSponsorInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -24270,6 +25152,7 @@ export type UserUncheckedUpdateWithoutSponsorInvestmentReturnsSponsorInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -24314,6 +25197,7 @@ export type UserUncheckedUpdateWithoutSponsorInvestmentReturnsSponsorInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -24401,6 +25285,7 @@ export type UserUpdateWithoutSponsorInvestmentReturnsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -24437,6 +25322,7 @@ export type UserUpdateWithoutSponsorInvestmentReturnsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -24529,6 +25415,7 @@ export type UserUncheckedUpdateWithoutSponsorInvestmentReturnsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -24573,6 +25460,7 @@ export type UserUncheckedUpdateWithoutSponsorInvestmentReturnsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -24649,6 +25537,7 @@ export type UserCreateWithoutSchoolCompensationAsInfantInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -24685,6 +25574,7 @@ export type UserCreateWithoutSchoolCompensationAsInfantInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -24777,6 +25667,7 @@ export type UserUncheckedCreateWithoutSchoolCompensationAsInfantInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -24821,6 +25712,7 @@ export type UserUncheckedCreateWithoutSchoolCompensationAsInfantInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -24902,6 +25794,7 @@ export type UserCreateWithoutSchoolCompensationAsSchoolInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -24938,6 +25831,7 @@ export type UserCreateWithoutSchoolCompensationAsSchoolInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -25030,6 +25924,7 @@ export type UserUncheckedCreateWithoutSchoolCompensationAsSchoolInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -25074,6 +25969,7 @@ export type UserUncheckedCreateWithoutSchoolCompensationAsSchoolInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -25166,6 +26062,7 @@ export type UserUpdateWithoutSchoolCompensationAsInfantInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25202,6 +26099,7 @@ export type UserUpdateWithoutSchoolCompensationAsInfantInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -25294,6 +26192,7 @@ export type UserUncheckedUpdateWithoutSchoolCompensationAsInfantInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25338,6 +26237,7 @@ export type UserUncheckedUpdateWithoutSchoolCompensationAsInfantInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -25425,6 +26325,7 @@ export type UserUpdateWithoutSchoolCompensationAsSchoolInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25461,6 +26362,7 @@ export type UserUpdateWithoutSchoolCompensationAsSchoolInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -25553,6 +26455,7 @@ export type UserUncheckedUpdateWithoutSchoolCompensationAsSchoolInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25597,6 +26500,7 @@ export type UserUncheckedUpdateWithoutSchoolCompensationAsSchoolInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -25673,6 +26577,7 @@ export type UserCreateWithoutUnblockingPaymentsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -25709,6 +26614,7 @@ export type UserCreateWithoutUnblockingPaymentsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -25801,6 +26707,7 @@ export type UserUncheckedCreateWithoutUnblockingPaymentsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -25845,6 +26752,7 @@ export type UserUncheckedCreateWithoutUnblockingPaymentsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -25937,6 +26845,7 @@ export type UserUpdateWithoutUnblockingPaymentsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -25973,6 +26882,7 @@ export type UserUpdateWithoutUnblockingPaymentsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -26065,6 +26975,7 @@ export type UserUncheckedUpdateWithoutUnblockingPaymentsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -26109,6 +27020,7 @@ export type UserUncheckedUpdateWithoutUnblockingPaymentsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -26185,6 +27097,7 @@ export type UserCreateWithoutUserActivationRequestsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -26221,6 +27134,7 @@ export type UserCreateWithoutUserActivationRequestsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -26313,6 +27227,7 @@ export type UserUncheckedCreateWithoutUserActivationRequestsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -26357,6 +27272,7 @@ export type UserUncheckedCreateWithoutUserActivationRequestsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -26449,6 +27365,7 @@ export type UserUpdateWithoutUserActivationRequestsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -26485,6 +27402,7 @@ export type UserUpdateWithoutUserActivationRequestsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -26577,6 +27495,7 @@ export type UserUncheckedUpdateWithoutUserActivationRequestsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -26621,6 +27540,7 @@ export type UserUncheckedUpdateWithoutUserActivationRequestsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -26697,6 +27617,7 @@ export type UserCreateWithoutActivationCardsApprovedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -26732,6 +27653,7 @@ export type UserCreateWithoutActivationCardsApprovedInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -26825,6 +27747,7 @@ export type UserUncheckedCreateWithoutActivationCardsApprovedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -26868,6 +27791,7 @@ export type UserUncheckedCreateWithoutActivationCardsApprovedInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -26950,6 +27874,7 @@ export type UserCreateWithoutActivationCardsOwnedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -26985,6 +27910,7 @@ export type UserCreateWithoutActivationCardsOwnedInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -27078,6 +28004,7 @@ export type UserUncheckedCreateWithoutActivationCardsOwnedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -27121,6 +28048,7 @@ export type UserUncheckedCreateWithoutActivationCardsOwnedInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -27203,6 +28131,7 @@ export type UserCreateWithoutActivationCardInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -27239,6 +28168,7 @@ export type UserCreateWithoutActivationCardInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -27331,6 +28261,7 @@ export type UserUncheckedCreateWithoutActivationCardInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -27374,6 +28305,7 @@ export type UserUncheckedCreateWithoutActivationCardInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -27472,6 +28404,7 @@ export type UserUpdateWithoutActivationCardsApprovedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -27507,6 +28440,7 @@ export type UserUpdateWithoutActivationCardsApprovedInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -27600,6 +28534,7 @@ export type UserUncheckedUpdateWithoutActivationCardsApprovedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -27643,6 +28578,7 @@ export type UserUncheckedUpdateWithoutActivationCardsApprovedInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -27731,6 +28667,7 @@ export type UserUpdateWithoutActivationCardsOwnedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -27766,6 +28703,7 @@ export type UserUpdateWithoutActivationCardsOwnedInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -27859,6 +28797,7 @@ export type UserUncheckedUpdateWithoutActivationCardsOwnedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -27902,6 +28841,7 @@ export type UserUncheckedUpdateWithoutActivationCardsOwnedInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -27995,6 +28935,7 @@ export type UserCreateWithoutActivationCardTransactionsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -28030,6 +28971,7 @@ export type UserCreateWithoutActivationCardTransactionsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -28123,6 +29065,7 @@ export type UserUncheckedCreateWithoutActivationCardTransactionsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -28166,6 +29109,7 @@ export type UserUncheckedCreateWithoutActivationCardTransactionsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -28259,6 +29203,7 @@ export type UserUpdateWithoutActivationCardTransactionsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -28294,6 +29239,7 @@ export type UserUpdateWithoutActivationCardTransactionsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -28387,6 +29333,7 @@ export type UserUncheckedUpdateWithoutActivationCardTransactionsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -28430,6 +29377,7 @@ export type UserUncheckedUpdateWithoutActivationCardTransactionsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -28507,6 +29455,7 @@ export type UserCreateWithoutGuardianWardSlotPurchasesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -28542,6 +29491,7 @@ export type UserCreateWithoutGuardianWardSlotPurchasesInput = {
   comments?: Prisma.CommentCreateNestedManyWithoutUserInput
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -28635,6 +29585,7 @@ export type UserUncheckedCreateWithoutGuardianWardSlotPurchasesInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -28678,6 +29629,7 @@ export type UserUncheckedCreateWithoutGuardianWardSlotPurchasesInput = {
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutUserInput
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -28760,6 +29712,7 @@ export type UserCreateWithoutGuardianWardSlotInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -28796,6 +29749,7 @@ export type UserCreateWithoutGuardianWardSlotInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -28888,6 +29842,7 @@ export type UserUncheckedCreateWithoutGuardianWardSlotInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -28931,6 +29886,7 @@ export type UserUncheckedCreateWithoutGuardianWardSlotInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -29029,6 +29985,7 @@ export type UserUpdateWithoutGuardianWardSlotPurchasesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -29064,6 +30021,7 @@ export type UserUpdateWithoutGuardianWardSlotPurchasesInput = {
   comments?: Prisma.CommentUpdateManyWithoutUserNestedInput
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -29157,6 +30115,7 @@ export type UserUncheckedUpdateWithoutGuardianWardSlotPurchasesInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -29200,6 +30159,7 @@ export type UserUncheckedUpdateWithoutGuardianWardSlotPurchasesInput = {
   comments?: Prisma.CommentUncheckedUpdateManyWithoutUserNestedInput
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -29293,6 +30253,7 @@ export type UserCreateWithoutPatronGroupsOwnedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -29329,6 +30290,7 @@ export type UserCreateWithoutPatronGroupsOwnedInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -29421,6 +30383,7 @@ export type UserUncheckedCreateWithoutPatronGroupsOwnedInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -29465,6 +30428,7 @@ export type UserUncheckedCreateWithoutPatronGroupsOwnedInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -29546,6 +30510,7 @@ export type UserCreateWithoutPatronGroupInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -29582,6 +30547,7 @@ export type UserCreateWithoutPatronGroupInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -29674,6 +30640,7 @@ export type UserUncheckedCreateWithoutPatronGroupInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -29717,6 +30684,7 @@ export type UserUncheckedCreateWithoutPatronGroupInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -29815,6 +30783,7 @@ export type UserUpdateWithoutPatronGroupsOwnedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -29851,6 +30820,7 @@ export type UserUpdateWithoutPatronGroupsOwnedInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -29943,6 +30913,7 @@ export type UserUncheckedUpdateWithoutPatronGroupsOwnedInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -29987,6 +30958,7 @@ export type UserUncheckedUpdateWithoutPatronGroupsOwnedInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -30079,6 +31051,7 @@ export type UserCreateWithoutPatronGroupTransactionsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -30115,6 +31088,7 @@ export type UserCreateWithoutPatronGroupTransactionsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -30207,6 +31181,7 @@ export type UserUncheckedCreateWithoutPatronGroupTransactionsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -30251,6 +31226,7 @@ export type UserUncheckedCreateWithoutPatronGroupTransactionsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -30343,6 +31319,7 @@ export type UserUpdateWithoutPatronGroupTransactionsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -30379,6 +31356,7 @@ export type UserUpdateWithoutPatronGroupTransactionsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -30471,6 +31449,7 @@ export type UserUncheckedUpdateWithoutPatronGroupTransactionsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -30515,6 +31494,7 @@ export type UserUncheckedUpdateWithoutPatronGroupTransactionsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -30591,6 +31571,7 @@ export type UserCreateWithoutWithDrawalsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -30627,6 +31608,7 @@ export type UserCreateWithoutWithDrawalsInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -30719,6 +31701,7 @@ export type UserUncheckedCreateWithoutWithDrawalsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -30763,6 +31746,7 @@ export type UserUncheckedCreateWithoutWithDrawalsInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -30855,6 +31839,7 @@ export type UserUpdateWithoutWithDrawalsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -30891,6 +31876,7 @@ export type UserUpdateWithoutWithDrawalsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -30983,6 +31969,7 @@ export type UserUncheckedUpdateWithoutWithDrawalsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -31027,6 +32014,7 @@ export type UserUncheckedUpdateWithoutWithDrawalsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -31103,6 +32091,7 @@ export type UserCreateWithoutQuizUsersInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -31139,6 +32128,7 @@ export type UserCreateWithoutQuizUsersInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -31231,6 +32221,7 @@ export type UserUncheckedCreateWithoutQuizUsersInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -31275,6 +32266,7 @@ export type UserUncheckedCreateWithoutQuizUsersInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -31367,6 +32359,7 @@ export type UserUpdateWithoutQuizUsersInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -31403,6 +32396,7 @@ export type UserUpdateWithoutQuizUsersInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -31495,6 +32489,7 @@ export type UserUncheckedUpdateWithoutQuizUsersInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -31539,6 +32534,7 @@ export type UserUncheckedUpdateWithoutQuizUsersInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -31615,6 +32611,7 @@ export type UserCreateWithoutQuizPhaseUsersInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -31651,6 +32648,7 @@ export type UserCreateWithoutQuizPhaseUsersInput = {
   followsAsFollower?: Prisma.FollowCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeCreateNestedManyWithoutUserInput
@@ -31743,6 +32741,7 @@ export type UserUncheckedCreateWithoutQuizPhaseUsersInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -31787,6 +32786,7 @@ export type UserUncheckedCreateWithoutQuizPhaseUsersInput = {
   followsAsFollower?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowerInput
   followsAsFollowing?: Prisma.FollowUncheckedCreateNestedManyWithoutFollowingInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUserUncheckedCreateNestedManyWithoutUserInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedCreateNestedManyWithoutUserInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedCreateNestedManyWithoutUserInput
@@ -31879,6 +32879,7 @@ export type UserUpdateWithoutQuizPhaseUsersInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -31915,6 +32916,7 @@ export type UserUpdateWithoutQuizPhaseUsersInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -32007,6 +33009,7 @@ export type UserUncheckedUpdateWithoutQuizPhaseUsersInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -32051,6 +33054,7 @@ export type UserUncheckedUpdateWithoutQuizPhaseUsersInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -32131,6 +33135,7 @@ export type UserCreateManyGuardianUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32205,6 +33210,7 @@ export type UserCreateManyInfantGroupInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32281,6 +33287,7 @@ export type UserCreateManyInfluencerUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32355,6 +33362,7 @@ export type UserCreateManyPatronInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32430,6 +33438,7 @@ export type UserCreateManyReferralInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32506,6 +33515,7 @@ export type UserCreateManySchoolUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32581,6 +33591,7 @@ export type UserCreateManySponsorUserInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -32652,6 +33663,7 @@ export type UserUpdateWithoutGuardianUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -32688,6 +33700,7 @@ export type UserUpdateWithoutGuardianUserInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -32780,6 +33793,7 @@ export type UserUncheckedUpdateWithoutGuardianUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -32823,6 +33837,7 @@ export type UserUncheckedUpdateWithoutGuardianUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -32904,6 +33919,7 @@ export type UserUncheckedUpdateManyWithoutGuardianUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -32975,6 +33991,7 @@ export type UserUpdateWithoutInfantGroupInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33011,6 +34028,7 @@ export type UserUpdateWithoutInfantGroupInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -33102,6 +34120,7 @@ export type UserUncheckedUpdateWithoutInfantGroupInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33146,6 +34165,7 @@ export type UserUncheckedUpdateWithoutInfantGroupInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -33226,6 +34246,7 @@ export type UserUncheckedUpdateManyWithoutInfantGroupInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33298,6 +34319,7 @@ export type UserUpdateWithoutInfluencerUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33334,6 +34356,7 @@ export type UserUpdateWithoutInfluencerUserInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -33426,6 +34449,7 @@ export type UserUncheckedUpdateWithoutInfluencerUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33469,6 +34493,7 @@ export type UserUncheckedUpdateWithoutInfluencerUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -33550,6 +34575,7 @@ export type UserUncheckedUpdateManyWithoutInfluencerUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33621,6 +34647,7 @@ export type UserUpdateWithoutPatronInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33657,6 +34684,7 @@ export type UserUpdateWithoutPatronInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -33748,6 +34776,7 @@ export type UserUncheckedUpdateWithoutPatronInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33792,6 +34821,7 @@ export type UserUncheckedUpdateWithoutPatronInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -33872,6 +34902,7 @@ export type UserUncheckedUpdateManyWithoutPatronInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33944,6 +34975,7 @@ export type UserUpdateWithoutReferralInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -33980,6 +35012,7 @@ export type UserUpdateWithoutReferralInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -34071,6 +35104,7 @@ export type UserUncheckedUpdateWithoutReferralInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34115,6 +35149,7 @@ export type UserUncheckedUpdateWithoutReferralInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -34195,6 +35230,7 @@ export type UserUncheckedUpdateManyWithoutReferralInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34267,6 +35303,7 @@ export type UserUpdateWithoutSchoolUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34303,6 +35340,7 @@ export type UserUpdateWithoutSchoolUserInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -34395,6 +35433,7 @@ export type UserUncheckedUpdateWithoutSchoolUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34438,6 +35477,7 @@ export type UserUncheckedUpdateWithoutSchoolUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -34519,6 +35559,7 @@ export type UserUncheckedUpdateManyWithoutSchoolUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34590,6 +35631,7 @@ export type UserUpdateWithoutSponsorUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34626,6 +35668,7 @@ export type UserUpdateWithoutSponsorUserInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -34718,6 +35761,7 @@ export type UserUncheckedUpdateWithoutSponsorUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34761,6 +35805,7 @@ export type UserUncheckedUpdateWithoutSponsorUserInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -34842,6 +35887,7 @@ export type UserUncheckedUpdateManyWithoutSponsorUserInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -34916,6 +35962,7 @@ export type UserCreateManyRegionInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -34988,6 +36035,7 @@ export type UserUpdateWithoutRegionInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35024,6 +36072,7 @@ export type UserUpdateWithoutRegionInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -35115,6 +36164,7 @@ export type UserUncheckedUpdateWithoutRegionInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35159,6 +36209,7 @@ export type UserUncheckedUpdateWithoutRegionInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -35239,6 +36290,7 @@ export type UserUncheckedUpdateManyWithoutRegionInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35315,6 +36367,7 @@ export type UserCreateManyInfluencer_promo_periodsInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -35386,6 +36439,7 @@ export type UserUpdateWithoutInfluencer_promo_periodsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35422,6 +36476,7 @@ export type UserUpdateWithoutInfluencer_promo_periodsInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -35514,6 +36569,7 @@ export type UserUncheckedUpdateWithoutInfluencer_promo_periodsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35557,6 +36613,7 @@ export type UserUncheckedUpdateWithoutInfluencer_promo_periodsInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -35638,6 +36695,7 @@ export type UserUncheckedUpdateManyWithoutInfluencer_promo_periodsInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35713,6 +36771,7 @@ export type UserCreateManyActivationCardInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -35784,6 +36843,7 @@ export type UserUpdateWithoutActivationCardInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35820,6 +36880,7 @@ export type UserUpdateWithoutActivationCardInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -35912,6 +36973,7 @@ export type UserUncheckedUpdateWithoutActivationCardInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -35955,6 +37017,7 @@ export type UserUncheckedUpdateWithoutActivationCardInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -36036,6 +37099,7 @@ export type UserUncheckedUpdateManyWithoutActivationCardInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36111,6 +37175,7 @@ export type UserCreateManyGuardianWardSlotInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -36182,6 +37247,7 @@ export type UserUpdateWithoutGuardianWardSlotInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36218,6 +37284,7 @@ export type UserUpdateWithoutGuardianWardSlotInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -36310,6 +37377,7 @@ export type UserUncheckedUpdateWithoutGuardianWardSlotInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36353,6 +37421,7 @@ export type UserUncheckedUpdateWithoutGuardianWardSlotInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -36434,6 +37503,7 @@ export type UserUncheckedUpdateManyWithoutGuardianWardSlotInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36509,6 +37579,7 @@ export type UserCreateManyPatronGroupInput = {
   canWithdrawGkwth?: boolean
   lastSeen?: Date | string | null
   activatedAt?: Date | string | null
+  upgradeToAdultAt?: Date | string | null
   isOnline?: boolean
   sponsorshipAcceptedAt?: Date | string | null
   sponsorAgreement?: boolean | null
@@ -36580,6 +37651,7 @@ export type UserUpdateWithoutPatronGroupInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36616,6 +37688,7 @@ export type UserUpdateWithoutPatronGroupInput = {
   followsAsFollower?: Prisma.FollowUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUpdateManyWithoutUserNestedInput
@@ -36708,6 +37781,7 @@ export type UserUncheckedUpdateWithoutPatronGroupInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36751,6 +37825,7 @@ export type UserUncheckedUpdateWithoutPatronGroupInput = {
   followsAsFollower?: Prisma.FollowUncheckedUpdateManyWithoutFollowerNestedInput
   followsAsFollowing?: Prisma.FollowUncheckedUpdateManyWithoutFollowingNestedInput
   guardianWardSlotPurchases?: Prisma.GuardianWardSlotPurchaseUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUserUncheckedUpdateManyWithoutUserNestedInput
   infantFormFees?: Prisma.InfantFormFeeUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFeeGroups?: Prisma.InfantSchoolFeeGroupUncheckedUpdateManyWithoutUserNestedInput
   infantSchoolFees?: Prisma.InfantSchoolFeeUncheckedUpdateManyWithoutUserNestedInput
@@ -36832,6 +37907,7 @@ export type UserUncheckedUpdateManyWithoutPatronGroupInput = {
   canWithdrawGkwth?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastSeen?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  upgradeToAdultAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isOnline?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sponsorshipAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sponsorAgreement?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -36883,6 +37959,7 @@ export type UserCountOutputType = {
   followsAsFollower: number
   followsAsFollowing: number
   guardianWardSlotPurchases: number
+  notifications: number
   infantFormFees: number
   infantSchoolFeeGroups: number
   infantSchoolFees: number
@@ -36935,6 +38012,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   followsAsFollower?: boolean | UserCountOutputTypeCountFollowsAsFollowerArgs
   followsAsFollowing?: boolean | UserCountOutputTypeCountFollowsAsFollowingArgs
   guardianWardSlotPurchases?: boolean | UserCountOutputTypeCountGuardianWardSlotPurchasesArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   infantFormFees?: boolean | UserCountOutputTypeCountInfantFormFeesArgs
   infantSchoolFeeGroups?: boolean | UserCountOutputTypeCountInfantSchoolFeeGroupsArgs
   infantSchoolFees?: boolean | UserCountOutputTypeCountInfantSchoolFeesArgs
@@ -37072,6 +38150,13 @@ export type UserCountOutputTypeCountFollowsAsFollowingArgs<ExtArgs extends runti
  */
 export type UserCountOutputTypeCountGuardianWardSlotPurchasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.GuardianWardSlotPurchaseWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationUserWhereInput
 }
 
 /**
@@ -37370,6 +38455,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   canWithdrawGkwth?: boolean
   lastSeen?: boolean
   activatedAt?: boolean
+  upgradeToAdultAt?: boolean
   isOnline?: boolean
   sponsorshipAcceptedAt?: boolean
   sponsorAgreement?: boolean
@@ -37414,6 +38500,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   followsAsFollower?: boolean | Prisma.User$followsAsFollowerArgs<ExtArgs>
   followsAsFollowing?: boolean | Prisma.User$followsAsFollowingArgs<ExtArgs>
   guardianWardSlotPurchases?: boolean | Prisma.User$guardianWardSlotPurchasesArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   infantFormFees?: boolean | Prisma.User$infantFormFeesArgs<ExtArgs>
   infantSchoolFeeGroups?: boolean | Prisma.User$infantSchoolFeeGroupsArgs<ExtArgs>
   infantSchoolFees?: boolean | Prisma.User$infantSchoolFeesArgs<ExtArgs>
@@ -37510,6 +38597,7 @@ export type UserSelectScalar = {
   canWithdrawGkwth?: boolean
   lastSeen?: boolean
   activatedAt?: boolean
+  upgradeToAdultAt?: boolean
   isOnline?: boolean
   sponsorshipAcceptedAt?: boolean
   sponsorAgreement?: boolean
@@ -37543,7 +38631,7 @@ export type UserSelectScalar = {
   refreshToken?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "patronId" | "name" | "username" | "email" | "phone" | "pictureUrl" | "cloudinaryPublicId" | "regionId" | "role" | "accountState" | "country" | "referralId" | "emailVerificationCode" | "emailVerificationCodeSentAt" | "emailVerifiedAt" | "password" | "passwordResetOtp" | "passwordResetOtpSentAt" | "rememberToken" | "createdAt" | "updatedAt" | "status" | "withdrawalPin" | "withdrawalPinResetOtp" | "withdrawalPinResetOtpSentAt" | "referralActivateAt" | "bank" | "accountNumber" | "isInfant" | "birthDate" | "birthPlace" | "birthCertificate" | "infantGroupId" | "canWithdraw" | "canUseVtu" | "deletedAt" | "canEarn" | "canOptOut" | "canWithdrawGkwth" | "lastSeen" | "activatedAt" | "isOnline" | "sponsorshipAcceptedAt" | "sponsorAgreement" | "sponsorshipStatus" | "sponsorLoginOtp" | "sponsorLoginOtpCreatedAt" | "isSponsorAccount" | "influencerId" | "accountActivationAcknowledgedAt" | "sponsorWithdrawalOtp" | "sponsorWithdrawalOtpSentAt" | "isDeactivated" | "sponsorId" | "sponsorSlot" | "loginYearlyCount" | "schoolFeesPermittedAt" | "withdrawalBypassAt" | "isUnitLeader" | "schoolId" | "address" | "sponsorClass" | "transferId" | "unblockingCode" | "blockedAt" | "influencerPromoPeriodId" | "guardianId" | "guardianWardSlotId" | "pimId" | "patronGroupId" | "activationCardId" | "refreshToken", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "patronId" | "name" | "username" | "email" | "phone" | "pictureUrl" | "cloudinaryPublicId" | "regionId" | "role" | "accountState" | "country" | "referralId" | "emailVerificationCode" | "emailVerificationCodeSentAt" | "emailVerifiedAt" | "password" | "passwordResetOtp" | "passwordResetOtpSentAt" | "rememberToken" | "createdAt" | "updatedAt" | "status" | "withdrawalPin" | "withdrawalPinResetOtp" | "withdrawalPinResetOtpSentAt" | "referralActivateAt" | "bank" | "accountNumber" | "isInfant" | "birthDate" | "birthPlace" | "birthCertificate" | "infantGroupId" | "canWithdraw" | "canUseVtu" | "deletedAt" | "canEarn" | "canOptOut" | "canWithdrawGkwth" | "lastSeen" | "activatedAt" | "upgradeToAdultAt" | "isOnline" | "sponsorshipAcceptedAt" | "sponsorAgreement" | "sponsorshipStatus" | "sponsorLoginOtp" | "sponsorLoginOtpCreatedAt" | "isSponsorAccount" | "influencerId" | "accountActivationAcknowledgedAt" | "sponsorWithdrawalOtp" | "sponsorWithdrawalOtpSentAt" | "isDeactivated" | "sponsorId" | "sponsorSlot" | "loginYearlyCount" | "schoolFeesPermittedAt" | "withdrawalBypassAt" | "isUnitLeader" | "schoolId" | "address" | "sponsorClass" | "transferId" | "unblockingCode" | "blockedAt" | "influencerPromoPeriodId" | "guardianId" | "guardianWardSlotId" | "pimId" | "patronGroupId" | "activationCardId" | "refreshToken", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   activationCardTransactions?: boolean | Prisma.User$activationCardTransactionsArgs<ExtArgs>
   activationCardsApproved?: boolean | Prisma.User$activationCardsApprovedArgs<ExtArgs>
@@ -37558,6 +38646,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   followsAsFollower?: boolean | Prisma.User$followsAsFollowerArgs<ExtArgs>
   followsAsFollowing?: boolean | Prisma.User$followsAsFollowingArgs<ExtArgs>
   guardianWardSlotPurchases?: boolean | Prisma.User$guardianWardSlotPurchasesArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   infantFormFees?: boolean | Prisma.User$infantFormFeesArgs<ExtArgs>
   infantSchoolFeeGroups?: boolean | Prisma.User$infantSchoolFeeGroupsArgs<ExtArgs>
   infantSchoolFees?: boolean | Prisma.User$infantSchoolFeesArgs<ExtArgs>
@@ -37625,6 +38714,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     followsAsFollower: Prisma.$FollowPayload<ExtArgs>[]
     followsAsFollowing: Prisma.$FollowPayload<ExtArgs>[]
     guardianWardSlotPurchases: Prisma.$GuardianWardSlotPurchasePayload<ExtArgs>[]
+    notifications: Prisma.$NotificationUserPayload<ExtArgs>[]
     infantFormFees: Prisma.$InfantFormFeePayload<ExtArgs>[]
     infantSchoolFeeGroups: Prisma.$InfantSchoolFeeGroupPayload<ExtArgs>[]
     infantSchoolFees: Prisma.$InfantSchoolFeePayload<ExtArgs>[]
@@ -37717,6 +38807,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     canWithdrawGkwth: boolean
     lastSeen: Date | null
     activatedAt: Date | null
+    upgradeToAdultAt: Date | null
     isOnline: boolean
     sponsorshipAcceptedAt: Date | null
     sponsorAgreement: boolean | null
@@ -38101,6 +39192,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   followsAsFollower<T extends Prisma.User$followsAsFollowerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$followsAsFollowerArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FollowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   followsAsFollowing<T extends Prisma.User$followsAsFollowingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$followsAsFollowingArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FollowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   guardianWardSlotPurchases<T extends Prisma.User$guardianWardSlotPurchasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$guardianWardSlotPurchasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuardianWardSlotPurchasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   infantFormFees<T extends Prisma.User$infantFormFeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$infantFormFeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InfantFormFeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   infantSchoolFeeGroups<T extends Prisma.User$infantSchoolFeeGroupsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$infantSchoolFeeGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InfantSchoolFeeGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   infantSchoolFees<T extends Prisma.User$infantSchoolFeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$infantSchoolFeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InfantSchoolFeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -38220,6 +39312,7 @@ export interface UserFieldRefs {
   readonly canWithdrawGkwth: Prisma.FieldRef<"User", 'Boolean'>
   readonly lastSeen: Prisma.FieldRef<"User", 'DateTime'>
   readonly activatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly upgradeToAdultAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly isOnline: Prisma.FieldRef<"User", 'Boolean'>
   readonly sponsorshipAcceptedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly sponsorAgreement: Prisma.FieldRef<"User", 'Boolean'>
@@ -38903,6 +39996,30 @@ export type User$guardianWardSlotPurchasesArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.GuardianWardSlotPurchaseScalarFieldEnum | Prisma.GuardianWardSlotPurchaseScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NotificationUser
+   */
+  select?: Prisma.NotificationUserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the NotificationUser
+   */
+  omit?: Prisma.NotificationUserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationUserInclude<ExtArgs> | null
+  where?: Prisma.NotificationUserWhereInput
+  orderBy?: Prisma.NotificationUserOrderByWithRelationInput | Prisma.NotificationUserOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationUserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationUserScalarFieldEnum | Prisma.NotificationUserScalarFieldEnum[]
 }
 
 /**

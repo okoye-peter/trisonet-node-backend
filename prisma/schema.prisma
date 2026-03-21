@@ -98,6 +98,7 @@ model User {
     followsAsFollower               Follow[]                    @relation("Follower")
     followsAsFollowing              Follow[]                    @relation("Following")
     guardianWardSlotPurchases       GuardianWardSlotPurchase[]  @relation("GWSUser")
+    notifications                   NotificationUser[]
     infantFormFees                  InfantFormFee[]
     infantSchoolFeeGroups           InfantSchoolFeeGroup[]
     infantSchoolFees                InfantSchoolFee[]
@@ -110,7 +111,6 @@ model User {
     loansAsUser                     Loan[]                      @relation("LoanUser")
     receivedMessages                Message[]                   @relation("Receiver")
     sentMessages                    Message[]                   @relation("Sender")
-    notificationUsers               NotificationUser[]          @ignore
     orderGroups                     OrderGroup[]
     patronGroupTransactions         PatronGroupTransaction[]
     patronGroupsOwned               PatronGroup[]               @relation("PGOwner")
@@ -639,23 +639,24 @@ model Notification {
     body      String             @db.LongText
     createdAt DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
-    users     NotificationUser[] @ignore
+    users     NotificationUser[]
 
     @@map("notifications")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model NotificationUser {
+    id             BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
     status         Boolean      @default(false)
     userId         BigInt       @map("user_id") @db.UnsignedBigInt
     notificationId BigInt       @map("notification_id") @db.UnsignedBigInt
     notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_user_notification_id_foreign")
     user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_user_user_id_foreign")
 
+    @@unique([userId, notificationId], map: "notification_user_user_id_notification_id_unique")
     @@index([notificationId], map: "notification_user_notification_id_foreign")
     @@index([userId], map: "notification_user_user_id_foreign")
     @@map("notification_user")
-    @@ignore
 }
 
 model PublicNotice {
@@ -1073,6 +1074,7 @@ model WithDrawal {
     sponsorInvestmentReturnsId BigInt?                  @map("sponsor_investment_returns_id") @db.UnsignedBigInt
     requestedAt                DateTime?                @map("requested_at") @db.Timestamp(0)
     reference                  String?                  @db.VarChar(255)
+    accountName                String?                  @map("account_name") @db.VarChar(255)
     sponsorInvestmentReturn    SponsorInvestmentReturn? @relation(fields: [sponsorInvestmentReturnsId], references: [id], onUpdate: NoAction, map: "with_drawals_sponsor_investment_returns_id_foreign")
     user                       User?                    @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "with_drawals_user_id_foreign")
 
@@ -1100,6 +1102,7 @@ model WithdrawalRequest {
     sponsorInvestmentReturnsId BigInt?                    @map("sponsor_investment_returns_id") @db.UnsignedBigInt
     status                     WithdrawalRequestStatus    @default(pending)
     reference                  String?                    @db.VarChar(255)
+    accountName                String?                    @map("account_name") @db.VarChar(255)
     sponsorInvestmentReturn    SponsorInvestmentReturn?   @relation(fields: [sponsorInvestmentReturnsId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "withdrawal_requests_sponsor_investment_returns_id_foreign")
     wallet                     Wallet?                    @relation(fields: [walletId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "withdrawal_requests_wallet_id_foreign")
 

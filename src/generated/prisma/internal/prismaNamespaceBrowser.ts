@@ -79,6 +79,7 @@ export const ModelName = {
   OrderTransaction: 'OrderTransaction',
   Loan: 'Loan',
   Notification: 'Notification',
+  NotificationUser: 'NotificationUser',
   PublicNotice: 'PublicNotice',
   Setting: 'Setting',
   DeletedUser: 'DeletedUser',
@@ -182,6 +183,7 @@ export const UserScalarFieldEnum = {
   canWithdrawGkwth: 'canWithdrawGkwth',
   lastSeen: 'lastSeen',
   activatedAt: 'activatedAt',
+  upgradeToAdultAt: 'upgradeToAdultAt',
   isOnline: 'isOnline',
   sponsorshipAcceptedAt: 'sponsorshipAcceptedAt',
   sponsorAgreement: 'sponsorAgreement',
@@ -600,6 +602,16 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const NotificationUserScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  userId: 'userId',
+  notificationId: 'notificationId'
+} as const
+
+export type NotificationUserScalarFieldEnum = (typeof NotificationUserScalarFieldEnum)[keyof typeof NotificationUserScalarFieldEnum]
+
+
 export const PublicNoticeScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -949,7 +961,8 @@ export const WithDrawalScalarFieldEnum = {
   userEmail: 'userEmail',
   sponsorInvestmentReturnsId: 'sponsorInvestmentReturnsId',
   requestedAt: 'requestedAt',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithDrawalScalarFieldEnum = (typeof WithDrawalScalarFieldEnum)[keyof typeof WithDrawalScalarFieldEnum]
@@ -973,7 +986,8 @@ export const WithdrawalRequestScalarFieldEnum = {
   updatedAt: 'updatedAt',
   sponsorInvestmentReturnsId: 'sponsorInvestmentReturnsId',
   status: 'status',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithdrawalRequestScalarFieldEnum = (typeof WithdrawalRequestScalarFieldEnum)[keyof typeof WithdrawalRequestScalarFieldEnum]
@@ -1616,7 +1630,8 @@ export const WithDrawalOrderByRelevanceFieldEnum = {
   newBalance: 'newBalance',
   paystackRef: 'paystackRef',
   userEmail: 'userEmail',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithDrawalOrderByRelevanceFieldEnum = (typeof WithDrawalOrderByRelevanceFieldEnum)[keyof typeof WithDrawalOrderByRelevanceFieldEnum]
@@ -1629,7 +1644,8 @@ export const WithdrawalRequestOrderByRelevanceFieldEnum = {
   bankCode: 'bankCode',
   accountNumber: 'accountNumber',
   userEmail: 'userEmail',
-  reference: 'reference'
+  reference: 'reference',
+  accountName: 'accountName'
 } as const
 
 export type WithdrawalRequestOrderByRelevanceFieldEnum = (typeof WithdrawalRequestOrderByRelevanceFieldEnum)[keyof typeof WithdrawalRequestOrderByRelevanceFieldEnum]
