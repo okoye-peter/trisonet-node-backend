@@ -582,6 +582,8 @@ export class PagaService {
             : params.filter(param => param !== null && param !== '')
         ).join('') + this.hashKey;
 
+        pagaLogger.info('PAGA HASH DEBUG', { stringToHash });
+
         return crypto.createHash('sha512').update(stringToHash).digest('hex');
     }
 
