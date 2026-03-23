@@ -6,6 +6,9 @@ import { AppError } from "../utils/AppError";
 import { paginate } from "../utils/pagination";
 import { NextFunction, Request, Response } from "express";
 import { addMinutes, format } from "date-fns";
+import { encrypt } from "../utils/crypto";
+import { COMPANY_DETAILS, PAGA } from "../config/constants";
+import { pagaLogger } from "../utils/logger";
 
 export const generateVirtualAccountForWardSlotPurchase = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { type, quantity } = req.body;
@@ -132,27 +135,127 @@ export const purchaseGkwth = asyncHandler(async (req: Request, res: Response, ne
     });
 });
 
+export const initiateWalletFunding = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { amount } = req.body;
+    const { id: userId } = req.user;
+
+    if (!amount || Number(amount) < 500) {
+        return next(new AppError('Minimum funding amount is 500 NGN', 400));
+    }
+
+    const [lockSetting, user, wallet] = await Promise.all([
+        prisma.setting.findFirst({ where: { key: 'lock_wallet_funding' } }),
+        prisma.user.findFirst({ 
+            where: { id: userId }, 
+            include: {
+                guardianUser: true
+            } 
+        }),
+        prisma.wallet.findFirst({ where: { userId, type: 'direct' } })
+    ]);
+
+    if (lockSetting?.value === '1') {
+        return next(new AppError('Wallet funding is currently unavailable', 400));
+    }
+
+    if (!wallet) {
+        return next(new AppError('Direct wallet not found', 400));
+    }
+
+    const pagaService = new PagaService();
+    const ref = pagaService.generateReference('WALLET');
+
+    // Create a pending funding record
+    await prisma.manuallyFunding.create({
+        data: {
+            walletId: wallet.id,
+            amount: amount.toString(),
+            receipt: ref,
+        }
+    });
+
+    return sendSuccess(res, 200, 'Funding initiated', {
+        reference: ref,
+        amount: Number(amount),
+        publicKey: encrypt(PAGA.USERNAME || ""),
+        email: user?.email || user?.guardianUser?.email || COMPANY_DETAILS.EMAIL,
+        phone: user?.phone || user?.guardianUser?.phone || COMPANY_DETAILS.PHONE_NUMBER,
+    });
+});
+
 export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Note: In a real implementation, you'd verify the Paga hash here
-    const { referenceNumber, transactionId, status } = req.body;
+    const { externalReferenceNumber, event, status, paymentAmount } = req.body;
 
-    if (status !== 'SUCCESS') {
+    if (!['PAYMENT_COMPLETE', 'PARTIAL_PAYMENT'].includes(event)) {
+        pagaLogger.error(`Paga webhook received for ref: ${externalReferenceNumber} with event: ${event} and status: ${status} and paymentAmount: ${paymentAmount}. data: ${JSON.stringify(req.body)}`);
         return res.status(200).json({ status: 'ok' }); // Acknowledge even if failed
     }
 
     // 1. Find the funding record
     const fundingRecord = await prisma.manuallyFunding.findFirst({
-        where: { receipt: referenceNumber },
+        where: { receipt: externalReferenceNumber },
         include: { wallet: { include: { user: true } } }
     });
 
     if (!fundingRecord) {
-        console.error(`Funding record not found for ref: ${referenceNumber}`);
+        console.error(`Funding record not found for ref: ${externalReferenceNumber}`);
         return res.status(200).json({ status: 'ok' });
     }
 
     const user = fundingRecord.wallet.user;
     const wallet = fundingRecord.wallet;
+
+    if (!wallet) {
+        pagaLogger.error(`Wallet not found for funding record: ${fundingRecord.id}. data: ${JSON.stringify(req.body)}`);
+        return res.status(200).json({ status: 'ok' });
+    }
+
+    // Check if the paid amount matches or exceeds the expected amount
+    if (paymentAmount && Number(fundingRecord.amount) > Number(paymentAmount)) {
+        pagaLogger.error(`Paga failed transaction due to wallet amount mismatch. Expected: ${fundingRecord.amount}, Paid: ${paymentAmount}. data: ${JSON.stringify(req.body)}`);
+        return res.status(200).json({ status: 'ok' });
+    }
+    
+    // Check if it's a direct wallet funding or a GKWTH purchase
+    const isDirectFunding = externalReferenceNumber.startsWith('DIRECT_WALLET') || externalReferenceNumber.startsWith('DIRECTWALLET') || externalReferenceNumber.startsWith('WALLET');
+
+    if (isDirectFunding) {
+        const amount = Number(fundingRecord.amount);
+        
+        await prisma.$transaction(async (tx) => {
+            // Credit the wallet
+            await tx.wallet.update({
+                where: { id: wallet.id },
+                data: { amount: { increment: amount } }
+            });
+
+            // notify user
+            const type_str = wallet.type === 'indirect' ? 'gkwth wallet' : 'wallet';
+            const amount_str = wallet.type === 'indirect' ? `${fundingRecord.amount} gkwth` : `₦${fundingRecord.amount}`;
+
+            const notification = await tx.notification.create({
+                data: {
+                    title: 'wallet funding transaction status',
+                    body: `Your ${type_str} has been credited with ${amount_str}`,
+                }
+            });
+
+            await tx.notificationUser.create({
+                data: {
+                    userId: user.id,
+                    notificationId: notification.id,
+                }
+            });
+
+            // Clean up funding record
+            await tx.manuallyFunding.delete({ where: { id: fundingRecord.id } });
+        });
+        
+        return res.status(200).json({ status: 'ok' });
+    }
+
+    // Existing GKWTH purchase logic
     const totalPurchasedGkwth = Number(fundingRecord.gkwthAmountToSend);
     const price = Number(fundingRecord.gkwthValuePerUnit);
 
