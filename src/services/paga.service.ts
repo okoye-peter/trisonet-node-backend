@@ -100,7 +100,7 @@ export class PagaService {
         options: any = {}
     ): Promise<PagaResponse> {
         const refNumber = referenceNumber || this.generateReference('VR');
-        
+
         // Expiry handling
         let expiry = options.expiryDateTimeUTC;
         if (!expiry) {
@@ -132,15 +132,13 @@ export class PagaService {
             amount: amount,
             currency: currency,
             payer: Object.fromEntries(Object.entries(payer).filter(([_, v]) => v !== "")),
-            payee: Object.fromEntries(Object.entries(payee).filter(([_, v]) => v !== "")),
             payerCollectionFeeShare: 1,
             payeeCollectionFeeShare: 0,
             isAllowOverPayments: true,
             isAllowPartialPayments: false,
             paymentMethods: ["BANK_TRANSFER"],
             callbackUrl: PAGA.CALLBACK_URL,
-            ...options,
-            expiryDateTimeUTC: expiry.replace('T', ' ')
+            ...options
         };
 
         const hashParams = [
@@ -292,10 +290,10 @@ export class PagaService {
         const isValid = statusCode === 0 || statusCode === '0';
 
         if (!isValid) {
-            pagaLogger.error(`Paga resolveBankDetails Failure`, { 
-                accountNumber, 
-                bankUUID, 
-                response: apiData 
+            pagaLogger.error(`Paga resolveBankDetails Failure`, {
+                accountNumber,
+                bankUUID,
+                response: apiData
             });
             return {
                 success: false,
@@ -386,10 +384,10 @@ export class PagaService {
         const isSuccess = statusCode === 0 || statusCode === '0';
 
         if (!isSuccess) {
-            pagaLogger.error(`Paga withdraw Failure`, { 
-                destinationAccount, 
-                amount, 
-                response: data 
+            pagaLogger.error(`Paga withdraw Failure`, {
+                destinationAccount,
+                amount,
+                response: data
             });
         }
 
@@ -447,11 +445,11 @@ export class PagaService {
         const isSuccess = statusCode === 0 || statusCode === '0';
 
         if (!isSuccess) {
-            pagaLogger.error(`Paga withdrawToBank Failure`, { 
-                destinationBankAccountNumber, 
-                destinationBankUUID, 
-                amount, 
-                response: data 
+            pagaLogger.error(`Paga withdrawToBank Failure`, {
+                destinationBankAccountNumber,
+                destinationBankUUID,
+                amount,
+                response: data
             });
         }
 
@@ -577,7 +575,7 @@ export class PagaService {
      * Generate SHA-512 Hash
      */
     generateHash(params: string[], strict: boolean = false): string {
-        const stringToHash = (strict 
+        const stringToHash = (strict
             ? params  // include empty strings as-is
             : params.filter(param => param !== null && param !== '')
         ).join('') + this.hashKey;
@@ -592,15 +590,15 @@ export class PagaService {
      */
     private formatPhoneNumber(phoneNumber: string): string {
         if (!phoneNumber) return '';
-        
+
         // Remove all non-digits
         let cleaned = phoneNumber.replace(/\D/g, '');
-        
+
         // If it starts with 0, replace with 234
         if (cleaned.startsWith('0') && cleaned.length === 11) {
             cleaned = '234' + cleaned.substring(1);
         }
-        
+
         return cleaned;
     }
 
@@ -611,7 +609,7 @@ export class PagaService {
         const timestamp = Math.floor(Date.now() / 1000).toString(16);
         const neededRandom = 12 - prefix.length - timestamp.length;
         let random = '';
-        
+
         if (neededRandom > 0) {
             random = crypto.randomBytes(neededRandom / 2).toString('hex').toUpperCase();
         }
