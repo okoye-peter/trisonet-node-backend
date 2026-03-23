@@ -125,6 +125,7 @@ export const PAGA = {
     TEST_MODE: process.env.PAGA_TEST_MODE === 'true',
     BUSINESS_PUBLIC_ID: process.env.PAGA_BUSINESS_PUBLIC_ID,
     BUSINESS_PASSWORD: process.env.PAGA_BUSINESS_PASSWORD,
+    CALLBACK_URL: process.env.PAGA_CALLBACK_URL,
 } as const;
 
 export const ACTIVATION_CARD_STATUSES = {

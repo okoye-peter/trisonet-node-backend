@@ -138,7 +138,7 @@ export class PagaService {
             isAllowOverPayments: true,
             isAllowPartialPayments: false,
             paymentMethods: ["BANK_TRANSFER"],
-            callbackUrl: process.env.PAGA_CALLBACK_URL, // Need to handle routes
+            callbackUrl: PAGA.CALLBACK_URL, // Need to handle routes
             ...options,
             expiryDateTimeUTC: expiry
         };
