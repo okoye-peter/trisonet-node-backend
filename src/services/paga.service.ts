@@ -130,21 +130,18 @@ export class PagaService {
         const payload: any = {
             referenceNumber: refNumber,
             amount: amount,
+            currency: currency,
             payer: Object.fromEntries(Object.entries(payer).filter(([_, v]) => v !== "")),
             payee: Object.fromEntries(Object.entries(payee).filter(([_, v]) => v !== "")),
             payerCollectionFeeShare: 1,
             payeeCollectionFeeShare: 0,
-            isAllowOverPayment: true,
-            isAllowPartialPayment: false,
+            isAllowOverPayments: true,
+            isAllowPartialPayments: false,
             paymentMethods: ["BANK_TRANSFER"],
             callbackUrl: PAGA.CALLBACK_URL,
             ...options,
             expiryDateTimeUTC: expiry.replace('T', ' ')
         };
-
-        if (currency !== "NGN") {
-            payload.currency = currency;
-        }
 
         const hashParams = [
             refNumber,
