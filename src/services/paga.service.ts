@@ -113,7 +113,7 @@ export class PagaService {
 
         const payer = {
             name: customerName,
-            phoneNumber: customerPhoneNumber || COMPANY_DETAILS.PHONE_NUMBER,
+            phoneNumber: this.formatPhoneNumber(customerPhoneNumber || COMPANY_DETAILS.PHONE_NUMBER),
             email: "",
             ...options.payer
         };
@@ -121,27 +121,30 @@ export class PagaService {
         const payee = {
             name: COMPANY_DETAILS.NAME, // Should be app name from config but hardcoded for now based on COMPANY_DETAILS
             accountNumber: "",
-            phoneNumber: "",
+            phoneNumber: this.formatPhoneNumber(options.payee?.phoneNumber || ""),
             bankId: "",
             bankAccountNumber: "",
             ...options.payee
         };
 
-        const payload = {
+        const payload: any = {
             referenceNumber: refNumber,
             amount: amount,
-            currency: currency,
             payer: Object.fromEntries(Object.entries(payer).filter(([_, v]) => v !== "")),
             payee: Object.fromEntries(Object.entries(payee).filter(([_, v]) => v !== "")),
             payerCollectionFeeShare: 1,
             payeeCollectionFeeShare: 0,
-            isAllowOverPayments: true,
-            isAllowPartialPayments: false,
+            isAllowOverPayment: true,
+            isAllowPartialPayment: false,
             paymentMethods: ["BANK_TRANSFER"],
-            callbackUrl: PAGA.CALLBACK_URL, // Need to handle routes
+            callbackUrl: PAGA.CALLBACK_URL,
             ...options,
-            expiryDateTimeUTC: expiry
+            expiryDateTimeUTC: expiry.replace('T', ' ')
         };
+
+        if (currency !== "NGN") {
+            payload.currency = currency;
+        }
 
         const hashParams = [
             refNumber,
@@ -585,6 +588,23 @@ export class PagaService {
         pagaLogger.info('PAGA HASH DEBUG', { stringToHash });
 
         return crypto.createHash('sha512').update(stringToHash).digest('hex');
+    }
+
+    /**
+     * Format phone number for Paga (digits only, e.g. 2348103...)
+     */
+    private formatPhoneNumber(phoneNumber: string): string {
+        if (!phoneNumber) return '';
+        
+        // Remove all non-digits
+        let cleaned = phoneNumber.replace(/\D/g, '');
+        
+        // If it starts with 0, replace with 234
+        if (cleaned.startsWith('0') && cleaned.length === 11) {
+            cleaned = '234' + cleaned.substring(1);
+        }
+        
+        return cleaned;
     }
 
     /**
