@@ -20,6 +20,7 @@ import walletRouter from './routes/wallet.route';
 import withdrawalRouter from './routes/withdrawal.route';
 import paymentRouter from './routes/payment.route';
 import notificationRouter from './routes/notification.route';
+import pagaTestRouter from './routes/paga_test.routes';
 
 // Initialize background workers
 import './queue';
@@ -82,6 +83,7 @@ app.use('/api/wallet', walletRouter);
 app.use('/api/withdrawal', withdrawalRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/notifications', notificationRouter);
+app.use('/api/paga-test', pagaTestRouter);
 
 app.all('/{*splat}', (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({
