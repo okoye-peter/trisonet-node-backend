@@ -135,23 +135,15 @@ export const purchaseGkwth = asyncHandler(async (req: Request, res: Response, ne
     });
 });
 
-export const initiateWalletFunding = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const initiateDirectWalletFunding = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { amount } = req.body;
-    const { id: userId } = req.user;
+    const user = req.user;
 
-    if (!amount || Number(amount) < 500) {
-        return next(new AppError('Minimum funding amount is 500 NGN', 400));
-    }
-
-    const [lockSetting, user, wallet] = await Promise.all([
+    const [lockSetting, wallet] = await Promise.all([
         prisma.setting.findFirst({ where: { key: 'lock_wallet_funding' } }),
-        prisma.user.findFirst({ 
-            where: { id: userId }, 
-            include: {
-                guardianUser: true
-            } 
-        }),
-        prisma.wallet.findFirst({ where: { userId, type: 'direct' } })
+        prisma.wallet.findFirst({ 
+            where: { userId: user?.id, type: 'direct' }, 
+        })
     ]);
 
     if (lockSetting?.value === '1') {
@@ -187,10 +179,66 @@ export const initiateWalletFunding = asyncHandler(async (req: Request, res: Resp
 
     return sendSuccess(res, 200, 'Funding initiated', {
         reference: ref,
-        amount: Number(amount),
-        publicKey: encrypt(PAGA.USERNAME || ""),
-        email: user?.email || user?.guardianUser?.email || COMPANY_DETAILS.EMAIL,
-        phone: user?.phone || user?.guardianUser?.phone || COMPANY_DETAILS.PHONE_NUMBER,
+        amount: response.data.amount,
+        account_detail: {
+            account_name: response.data.account_name,
+            bank_name: response.data.bank_name,
+            account_number: response.data.virtual_account,
+            expiry_date: format(addMinutes(new Date(), 28), 'HH:mm'),
+        }
+    });
+});
+
+export const initiateGkwthPurchase = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { gkwthAmount } = req.body;
+    const user = req.user;
+
+    const [lockSetting, wallet, priceSetting] = await Promise.all([
+        prisma.setting.findFirst({ where: { key: 'lock_wallet_funding' } }),
+        prisma.wallet.findFirst({ 
+            where: { userId: user?.id, type: 'indirect' }, 
+        }),
+        prisma.setting.findFirst({ where: { key: 'gkwth_sale_price' } })
+    ]);
+
+    if (lockSetting?.value === '1') {
+        return next(new AppError('Wallet funding is currently unavailable', 400));
+    }
+
+    if (!priceSetting) {
+        return next(new AppError('GKWTH price not set', 400));
+    }
+
+    if (!wallet) {
+        return next(new AppError('Indirect wallet not found', 400));
+    }
+
+    const pagaService = new PagaService();
+    const ref = pagaService.generateReference('GK_PURCHASE');
+
+    const response = await pagaService.generateVirtualAccount(
+        Number(gkwthAmount) * Number(priceSetting?.value),
+        user?.name as string,
+        user?.phone as string,
+        ref
+    );
+
+    if (!response.success) {
+        return next(new AppError(response.error || 'Failed to generate virtual account', 400));
+    }
+
+    // Create a pending funding record
+    await prisma.manuallyFunding.create({
+        data: {
+            walletId: wallet.id,
+            amount: gkwthAmount.toString(),
+            receipt: ref,
+        }
+    });
+
+    return sendSuccess(res, 200, 'Funding initiated', {
+        reference: ref,
+        amount: response.data.amount,
         account_detail: {
             account_name: response.data.account_name,
             bank_name: response.data.bank_name,
