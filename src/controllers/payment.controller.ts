@@ -214,14 +214,14 @@ export const checkFundingStatus = asyncHandler(async (req: Request, res: Respons
     }
 
     // 3. If record is still there, check Paga status directly
-    const pagaService = new PagaService();
-    const result = await pagaService.verifyPayment(reference);
+    // const pagaService = new PagaService();
+    // const result = await pagaService.verifyPayment(reference);
 
-    if (result.success && result.is_paid) {
+    // if (result.success && result.is_paid) {
         // If Paga says it's paid but our webhook hasn't run yet, it's safer to just return 'success'
         // and let the frontend poll until the webhook credits it or show success and refresh.
-        return sendSuccess(res, 200, 'Transaction status checked', { status: 'success' });
-    }
+    //     return sendSuccess(res, 200, 'Transaction status checked', { status: 'success' });
+    // }
 
     return sendSuccess(res, 200, 'Transaction status checked', { status: 'pending' });
 });
