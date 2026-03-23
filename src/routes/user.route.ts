@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
-import { getUserReferrals, getAuthUser, getUserDashboardStats, updateProfile, updateBankDetails, updatePassword, sendProfileUpdateOtp, getUserWards, getUserWardStats, getWardsSchoolFees, getUserByTransferId, resetWithdrawalPin, sendOtpForWithdrawalPinReset } from "../controllers/user.controller";
+import { getUserReferrals, getAuthUser, getUserDashboardStats, updateProfile, updateBankDetails, updatePassword, getUserWards, getUserWardStats, getWardsSchoolFees, getUserByTransferId, resetWithdrawalPin, sendOtpForWithdrawalPinReset } from "../controllers/user.controller";
 import { validate } from "../middlewares/validateRequest";
 import { changePasswordSchema } from "../validations/password_reset.validation";
 import { otpLimiter } from "../middlewares/rateLimiter";
