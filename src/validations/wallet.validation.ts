@@ -11,12 +11,12 @@ export const transferFundsSchema = z.object({
 
 export const initiateDirectWalletFundingSchema = z.object({
     body: z.object({
-        amount: z.string().min(500, 'Minimum funding amount is ₦500'),
+        amount: z.coerce.number().min(500, 'Minimum funding amount is ₦500'),
     }),
 })
 
 export const initiateGkwthPurchaseSchema = z.object({
     body: z.object({
-        gkwthAmount: z.string().min(1, 'Minimum gkwth amount is 1'),
+        gkwthAmount: z.coerce.number().min(1, 'Minimum gkwth amount is 1'),
     }),
 })
