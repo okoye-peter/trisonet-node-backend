@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs"
 import { AppError } from "../utils/AppError"
 import { differenceInMinutes } from "date-fns"
 import { getOrSetCache } from '../utils/cache';
+import { TermiiService } from '../services/termii.service';
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -99,48 +100,10 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
     });
 })
 
-export const sendProfileUpdateOtp = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
-    const user = req.user;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await prisma.user.update({
-        where: { id: user.id },
-        data: {
-            passwordResetOtp: otp,
-            passwordResetOtpSentAt: new Date()
-        }
-    });
-
-    // In a real app, send via TermiiService here. For now, we'll just return it in dev or log it.
-    console.log(`Profile Update OTP for ${user.email}: ${otp}`);
-
-    sendSuccess(res, 200, 'Verification code sent to your email');
-});
 
 export const updateProfile = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
-    const { name, phone, bank, accountNumber, otp, currentPassword } = req.body;
-
-    // If changing sensitive info (bank details), verify password and OTP
-    if (bank || accountNumber) {
-        if (!currentPassword || !otp) {
-            return next(new AppError('Password and verification code are required to update bank details', 400));
-        }
-
-        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-        if (!isPasswordValid) {
-            return next(new AppError('Invalid current password', 400));
-        }
-
-        if (user.passwordResetOtp !== otp) {
-            return next(new AppError('Invalid verification code', 400));
-        }
-
-        const minutesPassed = differenceInMinutes(new Date(), user.passwordResetOtpSentAt!);
-        if (minutesPassed > 15) {
-            return next(new AppError('Verification code has expired', 400));
-        }
-    }
+    const { name, phone } = req.body;
 
     const updatedUser = await prisma.user.update({
         where: {
@@ -149,13 +112,44 @@ export const updateProfile = asyncHandler(async (req: any, res: Response, next: 
         data: {
             name: name || undefined,
             phone: phone || undefined,
+        }
+    });
+
+    // Remove sensitive fields from response
+    const { password, ...userResponse } = updatedUser;
+
+    sendSuccess(res, 200, 'User profile updated successfully', userResponse);
+})
+
+export const updateBankDetails = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { bank, accountNumber, currentPassword } = req.body;
+
+    if (!currentPassword) {
+        return next(new AppError('Password is required to update bank details', 400));
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+        return next(new AppError('Invalid current password', 400));
+    }
+
+    const updatedUser = await prisma.user.update({
+        where: {
+            id: user.id
+        },
+        data: {
             bank: bank || undefined,
             accountNumber: accountNumber || undefined,
-            passwordResetOtp: (bank || accountNumber) ? null : undefined,
-            passwordResetOtpSentAt: (bank || accountNumber) ? null : undefined
-        } as any
+            passwordResetOtp: null,
+            passwordResetOtpSentAt: null
+        }
     });
-    sendSuccess(res, 200, 'User profile updated successfully', updatedUser);
+
+    // Remove sensitive fields from response
+    const { password: _, ...userResponse } = updatedUser;
+
+    sendSuccess(res, 200, 'Bank details updated successfully', userResponse);
 })
 
 export const updatePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -379,3 +373,64 @@ export const getUserByTransferId = asyncHandler(async (req: Request, res: Respon
     });
 });
 
+export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const user = await prisma.user.findFirst({ 
+        where: { id: req.user.id },
+        select: {
+            id: true,
+            phone: true,
+            guardianUser: {
+                select: {
+                    id: true,
+                    phone: true
+                }
+            }
+        }
+    });
+
+
+    if(!user) return next(new AppError('User not found', 404));
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const phone = user.phone || user.guardianUser?.phone;
+    if(!phone) return next(new AppError('No phone number found', 400));
+    
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            withdrawalPinResetOtp: otp,
+            withdrawalPinResetOtpSentAt: new Date()
+        }
+    });
+    
+    if (phone) {
+        TermiiService.sendSms(phone, `Your withdrawal pin reset code is ${otp}`)
+    }
+
+    sendSuccess(res, 200, 'Verification code sent to your phone number');
+});
+
+export const resetWithdrawalPin = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const { otp, newPin } = req.body;
+    const user = await prisma.user.findFirst({
+        where: { id: req.user.id }
+    });
+
+    if(!user) return next(new AppError('User not found', 404));
+
+    if(user.withdrawalPinResetOtp !== otp) return next(new AppError('Invalid OTP', 400));
+
+    // 10 minutes max
+    if(user.withdrawalPinResetOtpSentAt && user.withdrawalPinResetOtpSentAt < new Date(Date.now() - 10 * 60 * 1000)) return next(new AppError('OTP expired', 400));
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: {
+            withdrawalPin: await bcrypt.hash(newPin, 12),
+            withdrawalPinResetOtp: null,
+            withdrawalPinResetOtpSentAt: null
+        }
+    });
+
+    sendSuccess(res, 200, 'Withdrawal pin reset successfully');
+});

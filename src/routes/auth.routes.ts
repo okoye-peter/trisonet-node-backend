@@ -3,10 +3,12 @@ import { register, login, getNewToken } from '../controllers/auth.controller';
 import { validate } from '../middlewares/validateRequest';
 import { registerSchema, loginSchema, refreshTokenSchema } from '../validations/auth.validation';
 
+import { authLimiter } from '../middlewares/rateLimiter';
+
 const router = Router();
 
-router.post('/register', validate(registerSchema), register);
-router.post('/login', validate(loginSchema), login);
+router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/login', authLimiter, validate(loginSchema), login);
 router.post('/refresh-token', validate(refreshTokenSchema), getNewToken);
 
 export const authRouter = router;
