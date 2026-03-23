@@ -129,7 +129,7 @@ export class PagaService {
 
         const payload: any = {
             referenceNumber: refNumber,
-            amount: amount,
+            amount: amount.toString(),
             currency: currency,
             payer: Object.fromEntries(Object.entries(payer).filter(([_, v]) => v !== "")),
             payerCollectionFeeShare: 1,
@@ -519,8 +519,8 @@ export class PagaService {
                     headers['principal'] = this.businessPublicId;
                     headers['credentials'] = this.businessPassword;
                 } else {
-                    const auth = Buffer.from(`${this.publicKey}:${this.secretKey}`).toString('base64');
-                    headers['Authorization'] = `Basic ${auth}`;
+                    headers['principal'] = this.publicKey;
+                    headers['credentials'] = this.secretKey;
                 }
 
                 const response = await fetch(url, {
