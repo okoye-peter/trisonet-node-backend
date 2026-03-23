@@ -155,7 +155,7 @@ export class PagaService {
             payee.bankAccountNumber || ''
         ];
 
-        const hash = this.generateHash(hashParams);
+        const hash = this.generateHash(hashParams, true);
 
         pagaLogger.info('Paga Virtual Account Request', { payload, hash, callbackUrl: PAGA.CALLBACK_URL });
         const result = await this.callApi('paymentRequest', payload, hash);
@@ -576,10 +576,11 @@ export class PagaService {
     /**
      * Generate SHA-512 Hash
      */
-    generateHash(params: string[]): string {
-        const stringToHash = params
-            .filter(param => param !== null && param !== '')
-            .join('') + this.hashKey;
+    generateHash(params: string[], strict: boolean = false): string {
+        const stringToHash = (strict 
+            ? params  // include empty strings as-is
+            : params.filter(param => param !== null && param !== '')
+        ).join('') + this.hashKey;
 
         return crypto.createHash('sha512').update(stringToHash).digest('hex');
     }
