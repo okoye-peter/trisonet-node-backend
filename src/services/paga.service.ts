@@ -157,7 +157,7 @@ export class PagaService {
 
         const hash = this.generateHash(hashParams);
 
-        pagaLogger.info('Paga Virtual Account Request', { payload });
+        pagaLogger.info('Paga Virtual Account Request', { payload, hash });
         const result = await this.callApi('paymentRequest', payload, hash);
         pagaLogger.info('Paga Virtual Account Response', { response: result });
 
