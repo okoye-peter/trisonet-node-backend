@@ -6,7 +6,8 @@ import {
     handlePagaWebhook,
     requestAssetLoan,
     getAssetLoans,
-    initiateWalletFunding
+    initiateWalletFunding,
+    checkFundingStatus
 } from "../controllers/payment.controller";
 
 const router = Router();
@@ -17,6 +18,7 @@ router.post('/webhook/paga', handlePagaWebhook);
 // Protected routes
 router.use(protect);
 router.post('/wallet/initiate-funding', initiateWalletFunding);
+router.get('/wallet/check-status/:reference', checkFundingStatus);
 router.post('/wards/generate-virtual-account', generateVirtualAccountForWardSlotPurchase);
 router.post('/gkwth/purchase', purchaseGkwth);
 router.post('/gkwth/loan-request', requestAssetLoan);

@@ -165,6 +165,17 @@ export const initiateWalletFunding = asyncHandler(async (req: Request, res: Resp
     const pagaService = new PagaService();
     const ref = pagaService.generateReference('WALLET');
 
+    const response = await pagaService.generateVirtualAccount(
+        Number(amount),
+        user?.name as string,
+        user?.phone as string,
+        ref
+    );
+
+    if (!response.success) {
+        return next(new AppError(response.error || 'Failed to generate virtual account', 400));
+    }
+
     // Create a pending funding record
     await prisma.manuallyFunding.create({
         data: {
@@ -180,7 +191,39 @@ export const initiateWalletFunding = asyncHandler(async (req: Request, res: Resp
         publicKey: encrypt(PAGA.USERNAME || ""),
         email: user?.email || user?.guardianUser?.email || COMPANY_DETAILS.EMAIL,
         phone: user?.phone || user?.guardianUser?.phone || COMPANY_DETAILS.PHONE_NUMBER,
+        account_detail: {
+            account_name: response.data.account_name,
+            bank_name: response.data.bank_name,
+            account_number: response.data.virtual_account,
+            expiry_date: format(addMinutes(new Date(), 28), 'HH:mm'),
+        }
     });
+});
+
+export const checkFundingStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const reference = req.params.reference as string;
+    
+    // 1. Check if the funding record still exists in our DB
+    const fundingRecord = await prisma.manuallyFunding.findFirst({
+        where: { receipt: reference }
+    });
+
+    // 2. If record is gone, it might have been processed by webhook already
+    if (!fundingRecord) {
+        return sendSuccess(res, 200, 'Transaction status checked', { status: 'success' });
+    }
+
+    // 3. If record is still there, check Paga status directly
+    const pagaService = new PagaService();
+    const result = await pagaService.verifyPayment(reference);
+
+    if (result.success && result.is_paid) {
+        // If Paga says it's paid but our webhook hasn't run yet, it's safer to just return 'success'
+        // and let the frontend poll until the webhook credits it or show success and refresh.
+        return sendSuccess(res, 200, 'Transaction status checked', { status: 'success' });
+    }
+
+    return sendSuccess(res, 200, 'Transaction status checked', { status: 'pending' });
 });
 
 export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

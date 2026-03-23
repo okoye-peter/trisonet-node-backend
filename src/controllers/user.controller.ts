@@ -141,15 +141,10 @@ export const updateBankDetails = asyncHandler(async (req: any, res: Response, ne
         data: {
             bank: bank || undefined,
             accountNumber: accountNumber || undefined,
-            passwordResetOtp: null,
-            passwordResetOtpSentAt: null
         }
     });
 
-    // Remove sensitive fields from response
-    const { password: _, ...userResponse } = updatedUser;
-
-    sendSuccess(res, 200, 'Bank details updated successfully', userResponse);
+    sendSuccess(res, 200, 'Bank details updated successfully');
 })
 
 export const updatePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -343,11 +338,11 @@ export const getWardsSchoolFees = asyncHandler(async (req: Request, res: Respons
 
 export const getUserByTransferId = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const transferId = req.params.transferId as string;
-    if(!transferId) return next(new AppError('Invalid transfer ID', 400));
-    if(req.user.transferId === transferId) return next(new AppError('You cannot transfer to yourself', 400));
+    if (!transferId) return next(new AppError('Invalid transfer ID', 400));
+    if (req.user.transferId === transferId) return next(new AppError('You cannot transfer to yourself', 400));
 
     const user = await prisma.user.findFirst({
-        where: { 
+        where: {
             transferId,
             status: true,
             accountState: 1, // Assuming 1 is true/active in this schema's context
@@ -374,7 +369,7 @@ export const getUserByTransferId = asyncHandler(async (req: Request, res: Respon
 });
 
 export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
-    const user = await prisma.user.findFirst({ 
+    const user = await prisma.user.findFirst({
         where: { id: req.user.id },
         select: {
             id: true,
@@ -389,12 +384,12 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
     });
 
 
-    if(!user) return next(new AppError('User not found', 404));
+    if (!user) return next(new AppError('User not found', 404));
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const phone = user.phone || user.guardianUser?.phone;
-    if(!phone) return next(new AppError('No phone number found', 400));
-    
+    if (!phone) return next(new AppError('No phone number found', 400));
+
     await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -402,7 +397,7 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
             withdrawalPinResetOtpSentAt: new Date()
         }
     });
-    
+
     if (phone) {
         TermiiService.sendSms(phone, `Your withdrawal pin reset code is ${otp}`)
     }
@@ -416,12 +411,12 @@ export const resetWithdrawalPin = asyncHandler(async (req: any, res: Response, n
         where: { id: req.user.id }
     });
 
-    if(!user) return next(new AppError('User not found', 404));
+    if (!user) return next(new AppError('User not found', 404));
 
-    if(user.withdrawalPinResetOtp !== otp) return next(new AppError('Invalid OTP', 400));
+    if (user.withdrawalPinResetOtp !== otp) return next(new AppError('Invalid OTP', 400));
 
     // 10 minutes max
-    if(user.withdrawalPinResetOtpSentAt && user.withdrawalPinResetOtpSentAt < new Date(Date.now() - 10 * 60 * 1000)) return next(new AppError('OTP expired', 400));
+    if (user.withdrawalPinResetOtpSentAt && user.withdrawalPinResetOtpSentAt < new Date(Date.now() - 10 * 60 * 1000)) return next(new AppError('OTP expired', 400));
 
     await prisma.user.update({
         where: { id: user.id },
