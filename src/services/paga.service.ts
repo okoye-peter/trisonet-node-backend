@@ -127,18 +127,19 @@ export class PagaService {
         };
 
         const payload: any = {
+            ...options,
             referenceNumber: refNumber,
             amount: amount.toString(),
             currency: currency,
             payer: Object.fromEntries(Object.entries(payer).filter(([_, v]) => v !== "")),
+            payee: Object.fromEntries(Object.entries(payee).filter(([_, v]) => v !== "")),
             payerCollectionFeeShare: 1,
             payeeCollectionFeeShare: 0,
             isAllowOverPayments: true,
             isAllowPartialPayments: false,
             paymentMethods: ["BANK_TRANSFER"],
             callbackUrl: PAGA.CALLBACK_URL,
-            expiryDateTimeUTC: expiry,
-            ...options
+            expiryDateTimeUTC: expiry
         };
 
         const hashParams = [
@@ -155,7 +156,7 @@ export class PagaService {
 
         pagaLogger.info('PAGA HASH PARAMS', {
             refNumber,
-            amount: amount.toString(),
+            amount,
             currency,
             payerPhone: payer.phoneNumber || '',
             payerEmail: payer.email || '',
