@@ -51,15 +51,6 @@ export class PagaService {
         const referenceNumber = this.generateReference('BNK');
         const hash = this.generateHash([referenceNumber]);
 
-        // pagaLogger.info('PAGA DEBUG', {
-        //     hashKey: this.hashKey,
-        //     businessPublicId: this.businessPublicId,
-        //     businessPassword: this.businessPassword,
-        //     referenceNumber,
-        //     hash,
-        //     testMode: this.testMode
-        // });
-
         return await getOrSetCache('paga__banks', 86400, async () => {
             return await this.callApi('getBanks', { referenceNumber }, hash, true);
         });
@@ -158,10 +149,7 @@ export class PagaService {
 
         const hash = this.generateHash(hashParams);
 
-        pagaLogger.info('Paga Virtual Account Request', { payload, hash, callbackUrl: PAGA.CALLBACK_URL });
         const result = await this.callApi('paymentRequest', payload, hash);
-        pagaLogger.info('Paga Virtual Account Response', { response: result });
-
 
         if (!result.success) {
             return result;
@@ -524,12 +512,6 @@ export class PagaService {
                     headers['credentials'] = this.businessPassword;
                 }
 
-                pagaLogger.info('PAGA REQUEST DEBUG', {
-                    url,
-                    isBusiness,
-                    testMode: this.testMode,
-                });
-
                 const response = await axios.post(url, data, {
                     headers,
                     ...(isBusiness ? {} : {
@@ -593,8 +575,6 @@ export class PagaService {
         const stringToHash = params
             .filter(param => param !== null && param !== '')
             .join('') + this.hashKey;
-
-        pagaLogger.info('PAGA HASH DEBUG', { stringToHash });
 
         return crypto.createHash('sha512').update(stringToHash).digest('hex');
     }
