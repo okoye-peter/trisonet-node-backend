@@ -517,8 +517,10 @@ export class PagaService {
                 if (isBusiness) {
                     headers['principal'] = this.businessPublicId;
                     headers['credentials'] = this.businessPassword;
-                }else{
-                    headers['auth'] = [this.businessPublicId, this.businessPassword];
+                } else {
+                    // Collect API uses HTTP Basic Auth
+                    const basicAuth = Buffer.from(`${this.publicKey}:${this.secretKey}`).toString('base64');
+                    headers['Authorization'] = `Basic ${basicAuth}`;
                 }
 
                 console.log('PAGA AUTH DEBUG', {
