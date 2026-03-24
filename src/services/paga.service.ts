@@ -535,8 +535,10 @@ export class PagaService {
                     headers['principal'] = this.businessPublicId;
                     headers['credentials'] = this.businessPassword;
                 } else {
-                    const basicAuth = Buffer.from(`${this.publicKey}:${this.secretKey}`).toString('base64');
-                    headers['Authorization'] = `Basic ${basicAuth}`;
+                    headers['auth'] = {
+                        username: this.publicKey,
+                        password: this.secretKey
+                    }
                 }
 
                 pagaLogger.info('PAGA REQUEST DEBUG', {
