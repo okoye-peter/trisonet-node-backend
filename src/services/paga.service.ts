@@ -156,18 +156,6 @@ export class PagaService {
             payee.bankAccountNumber || ''
         ];
 
-        pagaLogger.info('PAGA HASH PARAMS', {
-            refNumber,
-            amount,
-            currency,
-            payerPhone: payer.phoneNumber || '',
-            payerEmail: payer.email || '',
-            payeeAccount: payee.accountNumber || '',
-            payeePhone: payee.phoneNumber || '',
-            payeeBankId: payee.bankId || '',
-            payeeBankAccount: payee.bankAccountNumber || ''
-        });
-
         const hash = this.generateHash(hashParams);
 
         pagaLogger.info('Paga Virtual Account Request', { payload, hash, callbackUrl: PAGA.CALLBACK_URL });
@@ -192,7 +180,7 @@ export class PagaService {
                     account_name: virtualAccountDetails.account_name,
                     amount: data.totalPaymentAmount || amount,
                     reference: refNumber,
-                    expires_at: data.expiryDateTimeUTC || null,
+                    expires_at: (data.expiryDateTimeUTC || expiry || '').split('T')[1]?.substring(0, 5) || null,
                     full_response: data
                 }
             };
