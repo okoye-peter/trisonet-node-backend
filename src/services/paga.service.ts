@@ -26,7 +26,8 @@ export class PagaService {
         this.publicKey = PAGA.USERNAME || '';
         this.secretKey = PAGA.SECRET_KEY || '';
         this.hashKey = PAGA.HMAC_KEY || '';
-        this.testMode = PAGA.TEST_MODE;
+        // this.testMode = PAGA.TEST_MODE;
+        this.testMode = false;
         this.businessPublicId = PAGA.BUSINESS_PUBLIC_ID || '';
         this.businessPassword = PAGA.BUSINESS_PASSWORD || '';
 
