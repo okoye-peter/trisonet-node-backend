@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import axios from 'axios';
+import https from 'https';
 import { PAGA, COMPANY_DETAILS } from '../config/constants';
 import { logger, pagaLogger } from '../utils/logger';
 import { AppError } from '../utils/AppError';
@@ -526,6 +528,7 @@ export class PagaService {
                     'hash': hash,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
+                    'Connection': 'close',
                 };
 
                 if (isBusiness) {
@@ -534,50 +537,43 @@ export class PagaService {
                 } else {
                     const basicAuth = Buffer.from(`${this.publicKey}:${this.secretKey}`).toString('base64');
                     headers['Authorization'] = `Basic ${basicAuth}`;
-
-                    // Add this temporarily
-                    pagaLogger.info('PAGA BASIC AUTH DEBUG', {
-                        publicKey: this.publicKey,
-                        secretKeySet: !!this.secretKey,
-                        authHeader: headers['Authorization'].substring(0, 20) + '...' // partial, don't log full key
-                    });
                 }
 
-                pagaLogger.info('PAGA AUTH DEBUG', {
+                pagaLogger.info('PAGA REQUEST DEBUG', {
                     url,
-                    principal: headers['principal'],
-                    credentialsSet: !!headers['credentials'],
+                    isBusiness,
                     testMode: this.testMode,
                 });
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(data),
+                const response = await axios.post(url, data, {
+                    headers,
+                    timeout: 60000,
+                    httpsAgent: new https.Agent({ keepAlive: false }),
                 });
-
-                const responseData = await response.json();
-
-                if (!response.ok) {
-                    pagaLogger.error(`Paga API Error: ${operation}`, {
-                        status: response.status,
-                        response: responseData
-                    });
-                    return {
-                        success: false,
-                        error: `API call failed with status ${response.status}: ${JSON.stringify(responseData).substring(0, 200)}`,
-                        operation: operation
-                    };
-                }
 
                 return {
                     success: true,
-                    data: responseData,
-                    operation: operation
+                    data: response.data,
+                    operation,
                 };
+
             } catch (error: any) {
-                if (error.message.includes('cURL error 18') && attempt < maxAttempts) {
-                    pagaLogger.warn(`Paga cURL 18 on attempt ${attempt}, retrying: ${operation}`);
+                if (error.response) {
+                    pagaLogger.error(`Paga API Error: ${operation}`, {
+                        status: error.response.status,
+                        response: error.response.data,
+                    });
+                    return {
+                        success: false,
+                        error: `API call failed with status ${error.response.status}: ${JSON.stringify(error.response.data).substring(0, 200)}`,
+                        operation,
+                    };
+                }
+
+                if (attempt < maxAttempts) {
+                    pagaLogger.warn(`Paga request failed on attempt ${attempt}, retrying: ${operation}`, {
+                        error: error.message,
+                    });
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     continue;
                 }
@@ -586,7 +582,7 @@ export class PagaService {
                 return {
                     success: false,
                     error: error.message,
-                    operation: operation
+                    operation,
                 };
             }
         }
@@ -594,7 +590,7 @@ export class PagaService {
         return {
             success: false,
             error: 'Maximum retry attempts reached',
-            operation: operation
+            operation,
         };
     }
 
