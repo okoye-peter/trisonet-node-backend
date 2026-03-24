@@ -517,9 +517,8 @@ export class PagaService {
                 if (isBusiness) {
                     headers['principal'] = this.businessPublicId;
                     headers['credentials'] = this.businessPassword;
-                } else {
-                    headers['principal'] = this.publicKey;
-                    headers['credentials'] = this.secretKey;
+                }else{
+                    headers['auth'] = [this.businessPublicId, this.businessPassword];
                 }
 
                 console.log('PAGA AUTH DEBUG', {
