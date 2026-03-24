@@ -534,11 +534,6 @@ export class PagaService {
                 if (isBusiness) {
                     headers['principal'] = this.businessPublicId;
                     headers['credentials'] = this.businessPassword;
-                } else {
-                    headers['auth'] = {
-                        username: this.publicKey,
-                        password: this.secretKey
-                    }
                 }
 
                 pagaLogger.info('PAGA REQUEST DEBUG', {
@@ -549,9 +544,16 @@ export class PagaService {
 
                 const response = await axios.post(url, data, {
                     headers,
+                    ...(isBusiness ? {} : {
+                        auth: {
+                            username: this.publicKey,
+                            password: this.secretKey
+                        }
+                    }),
                     timeout: 60000,
                     httpsAgent: new https.Agent({ keepAlive: false }),
                 });
+
 
                 return {
                     success: true,
