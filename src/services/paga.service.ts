@@ -536,7 +536,7 @@ export class PagaService {
                     headers['Authorization'] = `Basic ${basicAuth}`;
                 }
 
-                console.log('PAGA AUTH DEBUG', {
+                pagaLogger.info('PAGA AUTH DEBUG', {
                     url,
                     principal: headers['principal'],
                     credentialsSet: !!headers['credentials'],
