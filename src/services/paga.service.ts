@@ -532,9 +532,15 @@ export class PagaService {
                     headers['principal'] = this.businessPublicId;
                     headers['credentials'] = this.businessPassword;
                 } else {
-                    // Collect API uses HTTP Basic Auth
                     const basicAuth = Buffer.from(`${this.publicKey}:${this.secretKey}`).toString('base64');
                     headers['Authorization'] = `Basic ${basicAuth}`;
+
+                    // Add this temporarily
+                    pagaLogger.info('PAGA BASIC AUTH DEBUG', {
+                        publicKey: this.publicKey,
+                        secretKeySet: !!this.secretKey,
+                        authHeader: headers['Authorization'].substring(0, 20) + '...' // partial, don't log full key
+                    });
                 }
 
                 pagaLogger.info('PAGA AUTH DEBUG', {
