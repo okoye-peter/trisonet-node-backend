@@ -129,7 +129,7 @@ export class PagaService {
         const payload: any = {
             ...options,
             referenceNumber: refNumber,
-            amount: amount.toString(),
+            amount: parseFloat(amount.toString()),
             currency: currency,
             payer: Object.fromEntries(Object.entries(payer).filter(([_, v]) => v !== "")),
             payee: Object.fromEntries(Object.entries(payee).filter(([_, v]) => v !== "")),
@@ -626,15 +626,9 @@ export class PagaService {
      * Generate unique reference
      */
     generateReference(prefix: string = 'PAGA'): string {
-        const timestamp = Math.floor(Date.now() / 1000).toString(16);
-        const neededRandom = 12 - prefix.length - timestamp.length;
-        let random = '';
-
-        if (neededRandom > 0) {
-            random = crypto.randomBytes(neededRandom / 2).toString('hex').toUpperCase();
-        }
-
-        return (prefix + timestamp + random).toUpperCase();
+        const timestamp = Math.floor(Date.now() / 1000).toString(16).toUpperCase();
+        const randomBytes = crypto.randomBytes(4).toString('hex').toUpperCase(); // always 8 chars
+        return `${prefix.toUpperCase()}${timestamp}${randomBytes}`;
     }
 
     /**
