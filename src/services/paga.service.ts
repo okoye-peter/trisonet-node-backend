@@ -103,10 +103,8 @@ export class PagaService {
 
         // Expiry handling
         let expiry = options.expiryDateTimeUTC;
-        if (!expiry) {
-            const date = new Date();
-            date.setMinutes(date.getMinutes() + 30);
-            expiry = date.toISOString().replace(/\.\d{3}Z$/, ''); // Roughly Y-m-d\TH:i:s
+        if (!expiry || this.isDateExpired(expiry)) {
+            expiry = this.getNigeriaExpiry();
         }
 
         const currency = "NGN";
@@ -138,6 +136,7 @@ export class PagaService {
             isAllowPartialPayments: false,
             paymentMethods: ["BANK_TRANSFER"],
             callbackUrl: PAGA.CALLBACK_URL,
+            expiryDateTimeUTC: expiry,
             ...options
         };
 
@@ -679,4 +678,37 @@ export class PagaService {
             }
         }
     }
+
+    private getNigeriaExpiry() {
+        const date = new Date();
+        date.setMinutes(date.getMinutes() + 30);
+        return new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'Africa/Lagos',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).format(date).replace(' ', 'T');
+    };
+
+    private isDateExpired(expiryString: string): boolean {
+        const expiryDate = new Date(expiryString);
+        // Get current time in Lagos
+        const nowLagos = new Date(new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'Africa/Lagos',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).format(new Date()).replace(' ', 'T'));
+
+        return expiryDate <= nowLagos;
+    }
+
 }
