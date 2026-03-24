@@ -522,6 +522,13 @@ export class PagaService {
                     headers['credentials'] = this.secretKey;
                 }
 
+                console.log('PAGA AUTH DEBUG', {
+                    url,
+                    principal: headers['principal'],
+                    credentialsSet: !!headers['credentials'],
+                    testMode: this.testMode,
+                });
+
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: headers,
