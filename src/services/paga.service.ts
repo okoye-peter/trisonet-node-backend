@@ -153,6 +153,18 @@ export class PagaService {
             payee.bankAccountNumber || ''
         ];
 
+        pagaLogger.info('PAGA HASH PARAMS', {
+            refNumber,
+            amount: amount.toString(),
+            currency,
+            payerPhone: payer.phoneNumber || '',
+            payerEmail: payer.email || '',
+            payeeAccount: payee.accountNumber || '',
+            payeePhone: payee.phoneNumber || '',
+            payeeBankId: payee.bankId || '',
+            payeeBankAccount: payee.bankAccountNumber || ''
+        });
+
         const hash = this.generateHash(hashParams);
 
         pagaLogger.info('Paga Virtual Account Request', { payload, hash, callbackUrl: PAGA.CALLBACK_URL });
