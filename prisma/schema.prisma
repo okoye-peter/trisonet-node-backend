@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
     provider = "mysql"
-    url = env("DATABASE_URL")
+    url      = env("DATABASE_URL")
 }
 
 model User {
@@ -1069,6 +1069,8 @@ model WithDrawal {
     newBalance                 String?                  @map("new_balance") @db.VarChar(255)
     gkwthPrice                 Float?                   @map("gkwth_price")
     paystackRef                String?                  @map("paystack_ref") @db.VarChar(255)
+    pagaRef                    String?                  @map("paga_ref") @db.VarChar(255)
+    pagaTransactionId          String?                  @map("paga_transaction_id") @db.VarChar(255)
     userType                   WithdrawalUserType       @default(customer) @map("user_type")
     userEmail                  String?                  @map("user_email") @db.VarChar(255)
     sponsorInvestmentReturnsId BigInt?                  @map("sponsor_investment_returns_id") @db.UnsignedBigInt
@@ -1474,4 +1476,6 @@ enum WithdrawalRequestUserType {
 enum WithdrawalRequestStatus {
     pending
     being_processed
+    processed
+    failed
 }

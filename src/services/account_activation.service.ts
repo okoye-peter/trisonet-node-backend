@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma";
 import { ROLES } from "../config/constants";
-import { WalletType } from "../generated/prisma/enums";
+import { WalletType } from "../generated/prisma/index.js";
 import { addFundReferralsJob } from "../queue/referral.queue";
 import { logger } from "../utils/logger";
 

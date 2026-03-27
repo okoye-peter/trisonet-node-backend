@@ -169,6 +169,7 @@ export class PagaService {
                     amount: data.totalPaymentAmount || amount,
                     reference: refNumber,
                     expires_at: (data.expiryDateTimeUTC || expiry || '').split('T')[1]?.substring(0, 5) || null,
+                    expiry_date_full: data.expiryDateTimeUTC || expiry,
                     full_response: data
                 }
             };

@@ -1,10 +1,11 @@
 import { prisma } from "../config/prisma";
-import { ROLES } from "../config/constants";
+import { ROLES, WITHDRAWAL_STATUSES } from "../config/constants";
 import NotificationService from "./notification.service";
 import { differenceInHours } from "date-fns";
 import { AppError } from "../utils/AppError";
 import bcrypt from "bcryptjs";
 import { InitiateTransferInput } from "../validations/withdrawal.validation";
+import { PagaService } from "./paga.service";
 
 export class WithdrawalService {
     /**
@@ -305,5 +306,106 @@ export class WithdrawalService {
         }
 
         return request;
+    }
+
+    /**
+     * Approve and process a withdrawal request
+     */
+    static async approveWithdrawal(requestId: bigint, adminUser: any) {
+        const request = await prisma.withdrawalRequest.findUnique({
+            where: { id: requestId },
+            include: { wallet: { include: { user: true } } }
+        });
+
+        if (!request) {
+            throw new AppError('Withdrawal request not found', 404);
+        }
+
+        if (!request.wallet) {
+            throw new AppError('Wallet associated with this request not found', 404);
+        }
+
+        const wallet = request.wallet;
+
+        if (request.status !== 'pending') {
+            throw new AppError(`Request already ${request.status}`, 400);
+        }
+
+        const pagaService = new PagaService();
+        
+        // 1. Mark as being processed
+        await prisma.withdrawalRequest.update({
+            where: { id: requestId },
+            data: { status: 'being_processed' }
+        });
+
+        try {
+            if (!request.bankCode) {
+                throw new AppError('Bank code is missing from the withdrawal request', 400);
+            }
+
+            // 2. Execute Transfer via Paga
+            const payoutResponse = await pagaService.withdrawToBank(
+                request.amountToTransfer,
+                request.bankCode,
+                request.accountNumber,
+                pagaService.generateReference('WD_PAID'),
+                { remarks: `Withdrawal for ${request.userEmail}` }
+            );
+
+            if (!payoutResponse.success) {
+                // Revert status to pending or mark as failed
+                await prisma.withdrawalRequest.update({
+                    where: { id: requestId },
+                    data: { status: 'pending' }
+                });
+                throw new AppError(payoutResponse.error || 'Paga transfer failed', 400);
+            }
+
+            // 3. Finalize in DB
+            await prisma.$transaction(async (tx) => {
+                // Update Request Status
+                await tx.withdrawalRequest.update({
+                    where: { id: requestId },
+                    data: { status: 'processed' }
+                });
+
+                // Create WithDrawal Log (The historical record)
+                await tx.withDrawal.create({
+                    data: {
+                        userId: wallet.userId,
+                        amount: request.amountRequested.toString(),
+                        bankName: request.bankName,
+                        accountNumber: request.accountNumber,
+                        isPaid: WITHDRAWAL_STATUSES.SUCCESS,
+                        oldBalance: request.oldBalance || '',
+                        newBalance: request.newBalance || '',
+                        gkwthPrice: request.gkwthValue ? Number(request.gkwthValue) : null,
+                        pagaRef: payoutResponse.reference,
+                        pagaTransactionId: payoutResponse.transaction_id
+                    }
+                });
+            });
+
+            // 4. Notify User
+            await NotificationService.createNotification(
+                [wallet.userId],
+                'Withdrawal Successful',
+                `Your withdrawal of ₦${request.amountToTransfer.toLocaleString()} has been processed and sent to your bank account.`
+            );
+
+            return { success: true, reference: payoutResponse.reference };
+
+        } catch (error: any) {
+            // If it's an AppError we threw, rethrow it
+            if (error instanceof AppError) throw error;
+
+            // Otherwise, revert status and throw
+            await prisma.withdrawalRequest.update({
+                where: { id: requestId },
+                data: { status: 'pending' }
+            });
+            throw new AppError(error.message || 'An error occurred during payout', 500);
+        }
     }
 }

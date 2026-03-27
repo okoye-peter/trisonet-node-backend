@@ -429,3 +429,72 @@ export const resetWithdrawalPin = asyncHandler(async (req: any, res: Response, n
 
     sendSuccess(res, 200, 'Withdrawal pin reset successfully');
 });
+
+export const getUserAwards = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const regionId = user.regionId;
+
+    if (!regionId) {
+        return next(new AppError('User region not found', 400));
+    }
+
+    // 1. Get user's active referral count
+    const userReferralCount = await prisma.user.count({
+        where: {
+            referralId: user.id,
+            status: true
+        }
+    });
+
+    // 2. Optimized Rank Query
+    // We count users in the same region with MORE active referrals OR SAME and earlier createdAt
+    const rankResult: any[] = await prisma.$queryRaw`
+        SELECT COUNT(*) + 1 as rank
+        FROM users u
+        LEFT JOIN (
+            SELECT referral_id, COUNT(*) as ref_count
+            FROM users
+            WHERE status = 1 AND referral_id IS NOT NULL
+            GROUP BY referral_id
+        ) urc ON u.id = urc.referral_id
+        WHERE u.region_id = ${regionId}
+        AND (
+            COALESCE(urc.ref_count, 0) > ${userReferralCount}
+            OR (COALESCE(urc.ref_count, 0) = ${userReferralCount} AND u.created_at < ${user.createdAt})
+        )
+    `;
+
+    const rank = Number(rankResult[0]?.rank || 1);
+
+    // 3. Fetch Prizes via Raw SQL (PrizeUser is ignored)
+    const prizes: any[] = await prisma.$queryRaw`
+        SELECT p.* 
+        FROM prizes p
+        JOIN prize_user pu ON p.id = pu.prize_id
+        WHERE pu.user_id = ${user.id}
+    `;
+
+    // 4. Return Data
+    const {
+        password, emailVerificationCode, referralId, passwordResetOtp,
+        passwordResetOtpSentAt, rememberToken, 
+        withdrawalPin, withdrawalPinResetOtp, withdrawalPinResetOtpSentAt,
+        referralActivateAt, infantGroupId, canWithdraw, canUseVtu,
+        deletedAt, canEarn, canOptOut, canWithdrawGkwth,
+        sponsorshipAcceptedAt, sponsorAgreement, sponsorshipStatus,
+        sponsorLoginOtp, sponsorLoginOtpCreatedAt, influencerId,
+        sponsorWithdrawalOtp, sponsorWithdrawalOtpSentAt, isDeactivated,
+        sponsorId, sponsorSlot, loginYearlyCount, schoolFeesPermittedAt,
+        withdrawalBypassAt, schoolId, address, sponsorClass,
+        blockedAt, influencerPromoPeriodId,
+        guardianId, guardianWardSlotId, patronGroupId,
+        activationCardId, refreshToken,
+        ...safeUser
+    } = user;
+
+    sendSuccess(res, 200, 'User awards and rank fetched successfully', {
+        rank,
+        user: safeUser,
+        prizes
+    });
+});

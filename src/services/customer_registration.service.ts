@@ -4,9 +4,9 @@ import RegionService from "./region.service";
 import { ROLES } from "../config/constants";
 import { handleReferral } from "./referral.service";
 import WalletService from "./wallet.service";
-import { WalletType } from "../generated/prisma/enums";
+import { WalletType } from "../generated/prisma/index.js";
 import { AccountActivationService } from "./account_activation.service";
-import { User } from "../generated/prisma";
+import { User } from "../generated/prisma/index.js";
 
 interface UserRequestData {
     name: string;

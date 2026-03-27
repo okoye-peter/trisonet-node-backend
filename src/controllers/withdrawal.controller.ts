@@ -3,13 +3,10 @@ import { asyncHandler } from "../middlewares/asyncHandler";
 import { NextFunction, Request, Response } from "express";
 import { sendSuccess } from "../utils/responseWrapper";
 import { paginate } from "../utils/pagination";
-import { initiateTransferSchema, InitiateTransferInput } from "../validations/withdrawal.validation";
-import { ROLES, WITHDRAWAL_STATUSES } from "../config/constants";
-import { AppError } from "../utils/AppError";
-import bcrypt from "bcryptjs";
+import { InitiateTransferInput } from "../validations/withdrawal.validation";
 import { WithdrawalService } from "../services/withdrawal.service";
 
-export const getTransactions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const getTransactions = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
     const { page, limit, orderBy } = req.query;
 
@@ -23,13 +20,16 @@ export const getTransactions = asyncHandler(async (req: Request, res: Response, 
                 createdAt: (orderBy as string) === 'asc' ? 'asc' : 'desc'
             }
         },
-        { page: page as string, limit: limit as string }
+        { 
+            page: typeof page === 'string' ? page : undefined, 
+            limit: typeof limit === 'string' ? limit : undefined 
+        }
     );
 
     sendSuccess(res, 200, 'Transactions fetched successfully', transactions);
 });
 
-export const initiateTransfer = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const initiateTransfer = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
     const { type } = req.query;
 
@@ -37,7 +37,31 @@ export const initiateTransfer = asyncHandler(async (req: Request, res: Response,
     const input = req.body as InitiateTransferInput;
 
     // 2. Call Service
-    await WithdrawalService.initiateTransfer(user, input, type as string);
+    await WithdrawalService.initiateTransfer(user, input, typeof type === 'string' ? type : undefined);
 
     sendSuccess(res, 200, 'Withdrawal created successfully and under review');
+});
+
+export const approveWithdrawal = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const result = await WithdrawalService.approveWithdrawal(BigInt(req.params.id as string), req.user);
+    return sendSuccess(res, 200, 'Withdrawal approved and processed', result);
+});
+
+export const getWithdrawalRequests = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const { page, limit, status } = req.query;
+
+    const requests = await paginate(
+        prisma.withdrawalRequest,
+        {
+            where: status ? { status: status as any } : {},
+            orderBy: { createdAt: 'desc' },
+            include: { wallet: { include: { user: true } } }
+        },
+        { 
+            page: typeof page === 'string' ? page : undefined, 
+            limit: typeof limit === 'string' ? limit : undefined 
+        }
+    );
+
+    sendSuccess(res, 200, 'Withdrawal requests fetched successfully', requests);
 });

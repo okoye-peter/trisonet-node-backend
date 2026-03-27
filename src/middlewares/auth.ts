@@ -35,3 +35,16 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
         return next(new AppError('Invalid token or token expired.', 401));
     }
 });
+
+/**
+ * Middleware to restrict access to specific roles
+ */
+export const restrictTo = (...roles: number[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const user = (req as any).user;
+        if (!user || !roles.includes(Number(user.role))) {
+            return next(new AppError('You do not have permission to perform this action', 403));
+        }
+        next();
+    };
+};

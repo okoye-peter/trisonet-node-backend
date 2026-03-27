@@ -1,13 +1,17 @@
 import { Router } from "express";
-import { getTransactions, initiateTransfer } from "../controllers/withdrawal.controller";
-import { protect } from "../middlewares/auth";
-import { validate } from "../middlewares/validateRequest";
-import { initiateTransferSchema } from "../validations/withdrawal.validation";
+import { protect, restrictTo } from "../middlewares/auth";
+import { ROLES } from "../config/constants";
+import * as withdrawalController from "../controllers/withdrawal.controller";
 
 const router = Router();
-router.use(protect)
 
-router.get('/transactions', getTransactions);
-router.post('/', validate(initiateTransferSchema), initiateTransfer);
+router.use(protect);
+
+router.get("/transactions", withdrawalController.getTransactions);
+router.post("/initiate", withdrawalController.initiateTransfer);
+
+// Admin only
+router.get("/requests", restrictTo(ROLES.ADMIN, ROLES.SUPER_ADMIN), withdrawalController.getWithdrawalRequests);
+router.post("/approve/:id", restrictTo(ROLES.ADMIN, ROLES.SUPER_ADMIN), withdrawalController.approveWithdrawal);
 
 export default router;
