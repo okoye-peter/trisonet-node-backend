@@ -646,14 +646,13 @@ model Notification {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model NotificationUser {
-    id             BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
     status         Boolean      @default(false)
     userId         BigInt       @map("user_id") @db.UnsignedBigInt
     notificationId BigInt       @map("notification_id") @db.UnsignedBigInt
     notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_user_notification_id_foreign")
     user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_user_user_id_foreign")
 
-    @@unique([userId, notificationId], map: "notification_user_user_id_notification_id_unique")
+    @@id([userId, notificationId])
     @@index([notificationId], map: "notification_user_notification_id_foreign")
     @@index([userId], map: "notification_user_user_id_foreign")
     @@map("notification_user")

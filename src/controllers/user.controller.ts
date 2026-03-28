@@ -449,7 +449,7 @@ export const getUserAwards = asyncHandler(async (req: any, res: Response, next: 
     // 2. Optimized Rank Query
     // We count users in the same region with MORE active referrals OR SAME and earlier createdAt
     const rankResult: any[] = await prisma.$queryRaw`
-        SELECT COUNT(*) + 1 as rank
+        SELECT COUNT(*) + 1 as \`rank\`
         FROM users u
         LEFT JOIN (
             SELECT referral_id, COUNT(*) as ref_count
