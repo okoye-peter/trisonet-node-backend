@@ -291,7 +291,7 @@ export const getWardsSchoolFees = asyncHandler(async (req: Request, res: Respons
         select: { id: true }
     });
 
-    const wardIds = wards.map(w => w.id);
+    const wardIds = wards.map((w: any) => w.id);
 
     const paginatedFees = await paginate(
         prisma.infantSchoolFee,

@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma";
+import { prisma, Prisma } from "../config/prisma";
 import { ROLES } from "../config/constants";
 import { WalletType } from "../generated/prisma/index.js";
 import NotificationService from "./notification.service";
@@ -22,7 +22,7 @@ class WalletService {
         let receiverData: any;
         let senderData: any;
 
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 1. Verify Sender
             const sender = await tx.user.findUnique({
                 where: { id: senderId },
@@ -92,7 +92,7 @@ class WalletService {
             }
 
             // 4. Find Receiver Wallet (MUST MATCH SENDER TYPE)
-            let receiverWallet = receiver.wallets.find(w => w.type === senderWallet.type);
+            let receiverWallet = receiver.wallets.find((w: any) => w.type === senderWallet.type);
 
             if (!receiverWallet) {
                 throw new Error('Invalid receiver wallet type');

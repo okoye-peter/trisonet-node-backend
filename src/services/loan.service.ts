@@ -20,7 +20,7 @@ export class LoanService {
             where: { userId: BigInt(userId) }
         });
 
-        const indirectWallet = wallets.find(w => w.type === 'indirect');
+        const indirectWallet = wallets.find((w: any) => w.type === 'indirect');
         if (!indirectWallet) {
             throw new AppError('Indirect wallet not found', 400);
         }
@@ -67,7 +67,7 @@ export class LoanService {
             }
         });
 
-        const isOwing = userLoans.some(l => l.quantityGranted > l.quantityRepaid);
+        const isOwing = userLoans.some((l: any) => l.quantityGranted > l.quantityRepaid);
 
         if (isOwing) {
             throw new AppError("You can't request a new loan without paying up outstanding loans", 400);

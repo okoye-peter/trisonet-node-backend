@@ -68,7 +68,7 @@ export async function handleReferral(
                         ? (await prisma.user.findMany({
                             where: { influencerId: unitLeader.id, role: ROLES.INFLUENCER, status: true },
                             select: { id: true },
-                        })).map(f => f.id)
+                        })).map((f: any) => f.id)
                         : [];
 
                     // Count users under unit leader + facilitators within the promo period

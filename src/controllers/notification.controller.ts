@@ -16,7 +16,7 @@ export const getNotifications = asyncHandler(async (req: Request, res: Response,
 
     sendSuccess(res, 200, 'Notifications fetched successfully', {
         ...data,
-        notifications: data.notifications.map(n => ({
+        notifications: data.notifications.map((n: any) => ({
             ...n,
             id: n.id.toString()
         }))

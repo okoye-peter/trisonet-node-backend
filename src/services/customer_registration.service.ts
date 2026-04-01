@@ -184,7 +184,7 @@ const handleAdultSponsorship = async (userId: bigint, username: string) => {
             });
             const commission = commissionPriceStr ? parseFloat(commissionPriceStr.value) : 0;
 
-            const directWallet = patron.wallets.find(w => w.type === WalletType.direct);
+            const directWallet = patron.wallets.find((w: any) => w.type === WalletType.direct);
             if (directWallet) {
                 await prisma.wallet.update({
                     where: { id: directWallet.id },

@@ -9,7 +9,7 @@ class EarningService {
             select: { id: true }
         });
 
-        const walletIds = wallets.map(wallet => Number(wallet.id));
+        const walletIds = wallets.map((wallet: any) => Number(wallet.id));
 
         // 2. Build where clause
         const where: any = {

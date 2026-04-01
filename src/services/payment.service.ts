@@ -1,9 +1,9 @@
-import { prisma } from "../config/prisma";
+import { prisma, Prisma } from "../config/prisma";
 import { pagaLogger } from "../utils/logger";
 import { AppError } from "../utils/AppError";
 import { PagaService } from "./paga.service";
 import { addMinutes, format } from "date-fns";
-import { GuardianSlotType } from "../generated/prisma";
+import { GuardianSlotType } from "../generated/prisma/index.js";
 
 export class PaymentService {
     /**
@@ -57,7 +57,7 @@ export class PaymentService {
     private async processDirectFunding(fundingRecord: any, wallet: any, user: any) {
         const amount = Number(fundingRecord.amount);
         
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Credit the wallet
             await tx.wallet.update({
                 where: { id: wallet.id },
@@ -93,7 +93,7 @@ export class PaymentService {
         const totalPurchasedGkwth = Number(fundingRecord.gkwthAmountToSend);
         const price = Number(fundingRecord.gkwthValuePerUnit);
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 2. Check for active loan
             const userLoans = await tx.loan.findMany({
                 where: {
@@ -103,7 +103,7 @@ export class PaymentService {
                 orderBy: { createdAt: 'desc' }
             });
 
-            const activeLoan = userLoans.find(l => l.quantityGranted > l.quantityRepaid);
+            const activeLoan = userLoans.find((l: any) => l.quantityGranted > l.quantityRepaid);
 
             if (activeLoan) {
                 const loanAmountLeft = activeLoan.quantityGranted - activeLoan.quantityRepaid;
@@ -357,7 +357,7 @@ export class PaymentService {
         }
 
         // Use transaction to ensure consistency
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Deduct from direct wallet
             await tx.wallet.update({
                 where: { id: directWallet.id },

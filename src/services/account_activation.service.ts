@@ -48,7 +48,7 @@ export class AccountActivationService {
                 });
 
                 if (schoolUser) {
-                    const schoolDirectWallet = schoolUser.wallets.find(w => w.type === WalletType.direct);
+                    const schoolDirectWallet = schoolUser.wallets.find((w: any) => w.type === WalletType.direct);
 
                     if (schoolDirectWallet) {
                         await prisma.wallet.update({
@@ -74,7 +74,7 @@ export class AccountActivationService {
         }
 
         // Ensure indirect wallet exists
-        let indirectWallet = user.wallets.find(w => w.type === WalletType.indirect);
+        let indirectWallet = user.wallets.find((w: any) => w.type === WalletType.indirect);
 
         if (!indirectWallet) {
             indirectWallet = await prisma.wallet.create({
@@ -139,7 +139,7 @@ export class AccountActivationService {
                         ref.wallets.push(newDirect, newIndirect);
                     }
 
-                    const targetWallet = ref.wallets.find(w => w.type === typeValue);
+                    const targetWallet = ref.wallets.find((w: any) => w.type === typeValue);
                     if (targetWallet) {
                         await prisma.wallet.update({
                             where: { id: targetWallet.id },
@@ -184,7 +184,7 @@ export class AccountActivationService {
                                 const facilitatorIds = await prisma.user.findMany({
                                     where: { influencerId: unitLeader.id, role: ROLES.INFLUENCER, status: true },
                                     select: { id: true }
-                                }).then(f => f.map(u => u.id));
+                                }).then((f: any) => f.map((u: any) => u.id));
 
                                 const slotCount = await prisma.user.count({
                                     where: {
@@ -204,7 +204,7 @@ export class AccountActivationService {
                         }
                     }
 
-                    const infWallet = influencer.wallets.find(w => w.type === WalletType.direct);
+                    const infWallet = influencer.wallets.find((w: any) => w.type === WalletType.direct);
                     if (infWallet) {
                         await prisma.wallet.update({
                             where: { id: infWallet.id },
@@ -232,7 +232,7 @@ export class AccountActivationService {
                 });
 
                 if (superAdmin) {
-                    const superDirect = superAdmin.wallets.find(w => w.type === WalletType.direct);
+                    const superDirect = superAdmin.wallets.find((w: any) => w.type === WalletType.direct);
                     if (superDirect) {
                         await prisma.wallet.update({
                             where: { id: superDirect.id },
@@ -240,7 +240,7 @@ export class AccountActivationService {
                         });
                     }
 
-                    const superCentral = superAdmin.wallets.find(w => w.type === WalletType.central_treasury);
+                    const superCentral = superAdmin.wallets.find((w: any) => w.type === WalletType.central_treasury);
                     if (superCentral) {
                         await prisma.wallet.update({
                             where: { id: superCentral.id },

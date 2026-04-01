@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma";
+import { prisma, Prisma } from "../config/prisma";
 import { WalletType, LoanStatus } from "../generated/prisma/index.js";
 import { logger } from "../utils/logger";
 
@@ -14,7 +14,7 @@ export class FundReferralsService {
     static async handle(userId: bigint, referralId: bigint): Promise<void> {
         try {
             // We use a transaction to ensure all wallet updates and loan logic apply atomically
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
                 const user = await tx.user.findUnique({ where: { id: userId } });
                 const referral = await tx.user.findUnique({ where: { id: referralId } });
 

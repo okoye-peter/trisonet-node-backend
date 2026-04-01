@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma";
+import { prisma, Prisma } from "../config/prisma";
 import { ROLES, WITHDRAWAL_STATUSES } from "../config/constants";
 import NotificationService from "./notification.service";
 import { differenceInHours } from "date-fns";
@@ -104,7 +104,7 @@ export class WithdrawalService {
             where: { key: { in: settingsKeys } }
         });
 
-        const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
+        const settingsMap = Object.fromEntries(settings.map((s: any) => [s.key, s.value]));
 
         // 1. Global Lock Check
         if (settingsMap['lock_withdrawal'] === '1') {
@@ -220,7 +220,7 @@ export class WithdrawalService {
         }
 
         // 10. Transaction
-        const request = await prisma.$transaction(async (tx) => {
+        const request = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const currentWallet = await tx.wallet.findUnique({ where: { id: walletId! } });
             if (!currentWallet || currentWallet.amount < input.amount) {
                 throw new AppError('Insufficient balance', 400);
@@ -363,7 +363,7 @@ export class WithdrawalService {
             }
 
             // 3. Finalize in DB
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
                 // Update Request Status
                 await tx.withdrawalRequest.update({
                     where: { id: requestId },

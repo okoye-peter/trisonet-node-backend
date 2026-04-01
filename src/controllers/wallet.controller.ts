@@ -96,7 +96,7 @@ export const getGkwthPrices = asyncHandler(async (req: Request, res: Response, n
         where: { key: { in: keys } }
     });
 
-    const settingsMap = settings.reduce((acc, setting) => {
+    const settingsMap = settings.reduce((acc: Record<string, string>, setting: any) => {
         acc[setting.key] = setting.value;
         return acc;
     }, {} as Record<string, string>);

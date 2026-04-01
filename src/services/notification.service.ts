@@ -1,11 +1,11 @@
-import { prisma } from "../config/prisma";
+import { prisma, Prisma } from "../config/prisma";
 
 class NotificationService {
     /**
      * Create a notification and associate it with one or more users
      */
     static async createNotification(userIds: bigint[], title: string, body: string) {
-        return await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const notification = await tx.notification.create({
                 data: {
                     title,
@@ -51,7 +51,7 @@ class NotificationService {
         });
 
         return {
-            notifications: notifications.map(n => ({
+            notifications: notifications.map((n) => ({
                 id: n.notification.id,
                 title: n.notification.title,
                 body: n.notification.body,
