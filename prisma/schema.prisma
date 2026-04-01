@@ -1360,7 +1360,7 @@ model Audit {
 }
 
 model AuthHandoffToken {
-    id        Int      @id @default(autoincrement()) @db.UnsignedInt
+    id        BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
     userId    BigInt   @map("user_id") @db.UnsignedBigInt
     token     String   @db.VarChar(255)
     used      Boolean  @default(false)

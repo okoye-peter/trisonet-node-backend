@@ -2,12 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { prisma } from '../config/prisma';
+// import { prisma } from '../config/prisma';
 import { asyncHandler } from '../middlewares/asyncHandler';
 import { AppError } from '../utils/AppError';
 import { sendSuccess } from '../utils/responseWrapper';
 import { signAccessToken, signRefreshToken } from '../utils/jwt';
 import { createUser } from '../services/customer_registration.service';
+import { prisma } from '../config/prisma';
 
 export const register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userData = req.body;
