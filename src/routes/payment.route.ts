@@ -22,6 +22,7 @@ router.post('/webhook/paga', handlePagaWebhook);
 router.use(protect);
 router.post('/wallet/direct/funding', validate(initiateDirectWalletFundingSchema),initiateDirectWalletFunding);
 router.post('/wallet/indirect/funding', validate(initiateGkwthPurchaseSchema),initiateGkwthPurchase);
+
 router.get('/wallet/check-status/:reference', checkFundingStatus);
 router.post('/wards/generate-virtual-account', generateVirtualAccountForWardSlotPurchase);
 router.post('/gkwth/purchase', purchaseGkwth);

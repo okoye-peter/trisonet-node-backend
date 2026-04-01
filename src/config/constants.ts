@@ -135,3 +135,6 @@ export const ACTIVATION_CARD_STATUSES = {
     
 } as const
 
+export const PREMBLY = {
+    API_KEY: process.env.PREMBLY_API_KEY,
+} as const;

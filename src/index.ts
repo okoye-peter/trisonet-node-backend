@@ -21,6 +21,8 @@ import withdrawalRouter from './routes/withdrawal.route';
 import paymentRouter from './routes/payment.route';
 import notificationRouter from './routes/notification.route';
 import pagaTestRouter from './routes/paga_test.routes';
+import earningRouter from './routes/earning.route';
+import kycRouter from './routes/kyc.route';
 
 // Initialize background workers
 import './queue';
@@ -84,6 +86,8 @@ app.use('/api/withdrawal', withdrawalRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/paga-test', pagaTestRouter);
+app.use('/api/earnings', earningRouter);
+app.use('/api/kyc', kycRouter);
 
 app.all('/{*splat}', (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({
