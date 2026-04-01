@@ -1417,6 +1417,7 @@ enum WalletType {
     indirect
     central_treasury
     patronage
+    earning
 }
 
 enum CentralTreasuryTransactionType {
