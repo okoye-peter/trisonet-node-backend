@@ -37,26 +37,29 @@ app.use(helmet({
 }));
 
 app.use(cors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (origin, callback) => {
         const rawOrigins = process.env.ALLOWED_ORIGINS || '';
         const allowedLinks = rawOrigins
             .split(',')
-            .map((link: string) => link.replace(/['"]/g, '').trim()) // Remove any extra quotes
+            .map(link => link.replace(/['"]/g, '').trim())
             .filter(Boolean);
 
-        console.log(`[CORS] Incoming origin: ${origin}`);
-        console.log(`[CORS] Allowed origins:`, allowedLinks);
+        // Allow internal requests or tools like Postman (where origin is undefined)
+        if (!origin) return callback(null, true);
 
-        if (!origin || allowedLinks.includes(origin) || allowedLinks.includes('*')) {
+        if (allowedLinks.includes(origin) || allowedLinks.includes('*')) {
             callback(null, true);
         } else {
-            console.warn(`[CORS] Blocker origin: ${origin}`);
-            callback(new Error('Not allowed by CORS'));
+            // Log this so you can see it in 'pm2 logs'
+            console.error(`[CORS REJECTED] Origin: ${origin} not in ${allowedLinks}`);
+            // Use false instead of Error to prevent 500 status codes
+            callback(null, false);
         }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true,
+    optionsSuccessStatus: 200
 }));
 
 app.use(express.json());
