@@ -27,7 +27,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     const user = await prisma.user.findFirst({
         where: { 
             email,
-            // level: 2
+            level: 2
         },
         omit: {
             withdrawalPinResetOtp: true,
