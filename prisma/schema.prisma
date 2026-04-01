@@ -84,7 +84,7 @@ model User {
     patronGroupId                   BigInt?                     @map("patron_group_id") @db.UnsignedBigInt
     activationCardId                BigInt?                     @map("activation_card_id") @db.UnsignedBigInt
     refreshToken                    String?                     @map("refresh_token") @db.VarChar(255)
-    level                           Int                         @default(1) @db.UnsignedInt
+    level                           Int                         @default(1)
     activationCardTransactions      ActivationCardTransaction[]
     activationCardsApproved         ActivationCard[]            @relation("ACApprover")
     activationCardsOwned            ActivationCard[]            @relation("ACOwner")
