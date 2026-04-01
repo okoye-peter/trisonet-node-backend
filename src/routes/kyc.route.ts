@@ -5,8 +5,7 @@ import { upload } from "../config/cloudinary";
 
 const router = Router();
 
-// router.use(protect); 
-// Ensure user is authenticated
+router.use(protect); // Ensure user is authenticated
 
 router.post("/verify", upload.fields([{ name: 'image', maxCount: 1 }]), uploadKyc);
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getLogs, getPagaLogs, clearLogs } from '../controllers/log.controller';
+import { getLogs, getPagaLogs, getKycLogs, clearLogs } from '../controllers/log.controller';
 import { protect } from '../middlewares/auth';
 
 const router = Router();
@@ -10,6 +10,7 @@ const router = Router();
 
 router.get('/', getLogs);
 router.get('/paga', getPagaLogs);
+router.get('/kyc', getKycLogs);
 router.delete('/', clearLogs);
 
 export const logRouter = router;

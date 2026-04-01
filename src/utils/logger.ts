@@ -57,6 +57,26 @@ export const pagaLogger = winston.createLogger({
     ]
 });
 
+export const kycLogger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.errors({ stack: true }),
+        winston.format.splat(),
+        customFormat
+    ),
+    transports: [
+        new winston.transports.DailyRotateFile({
+            dirname: logDir,
+            filename: 'kyc-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '30d'
+        })
+    ]
+});
+
 // If we're not in production then log to the `console` as well
 if (process.env.NODE_ENV !== 'production') {
     const consoleTransport = new winston.transports.Console({
@@ -67,4 +87,5 @@ if (process.env.NODE_ENV !== 'production') {
     });
     logger.add(consoleTransport);
     pagaLogger.add(consoleTransport);
+    kycLogger.add(consoleTransport);
 }

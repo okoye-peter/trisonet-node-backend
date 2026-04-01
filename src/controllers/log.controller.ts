@@ -57,6 +57,10 @@ export const getPagaLogs = asyncHandler(async (req: Request, res: Response, next
     readLogs(res, 'paga-');
 });
 
+export const getKycLogs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    readLogs(res, 'kyc-');
+});
+
 export const clearLogs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     if (!fs.existsSync(logDir)) {
         return sendSuccess(res, 200, 'No logs to clear', null);
