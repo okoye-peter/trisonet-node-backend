@@ -111,4 +111,47 @@ export class TermiiService {
             return { status: false, error: "sorry can't mail at the moment", message: error };
         }
     }
+
+    public static async sendTemplate(
+        email: string,
+        subject: string,
+        variables: Record<string, string>
+    ): Promise<boolean> {
+        try {
+            const response = await fetch('https://api.ng.termii.com/api/templates/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    api_key: this.apiKey,
+                    email_configuration_id: 'f4f54611-4cd3-4490-96ab-f9a764f4f869',
+                    template_id: '6bd1e7d7-9271-4edd-bcca-4849a6cd6858',
+                    email,
+                    subject,
+                    variables,
+                }),
+            });
+
+            const data = await response.json() as { code?: string };
+
+            if (!response.ok) {
+                logger.error('Termii sendTemplate error', {
+                    email,
+                    status: response.status,
+                    response: data,
+                });
+            } else {
+                logger.info('Termii sendTemplate success', {
+                    email,
+                    response: data,
+                });
+            }
+
+            return response.ok && data.code === 'ok';
+        } catch (error) {
+            logger.error('Termii sendTemplate exception', { email, error });
+            return false;
+        }
+    }
 }

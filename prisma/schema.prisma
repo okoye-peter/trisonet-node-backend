@@ -1386,7 +1386,7 @@ model EarningSettings {
     name      String   @db.VarChar(255)
     value     String   @db.VarChar(255)
     description String   @db.Text
-    isActive Boolean  @default(true)
+    isActive Boolean  @default(true) @map("ia_active")
     createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
