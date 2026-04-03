@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, WalletType, User, LoanStatus, GuardianSlotType } from '../generated/prisma/index.js';
+import { PrismaClient, Prisma, WalletType, User, LoanStatus, GuardianSlotType } from '../generated/prisma';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
