@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/AppError";
+import { getSafeUserWallets } from "../utils/prismaUtils";
 
 export class LoanService {
     /**
@@ -16,9 +17,7 @@ export class LoanService {
         }
 
         // 2. Fetch User Wallets
-        const wallets = await prisma.wallet.findMany({
-            where: { userId: BigInt(userId) }
-        });
+        const wallets = await getSafeUserWallets(BigInt(userId));
 
         const indirectWallet = wallets.find((w: any) => w.type === 'indirect');
         if (!indirectWallet) {

@@ -1,13 +1,11 @@
 import { prisma } from "../config/prisma";
 import { paginate, PaginateOptions } from "../utils/pagination";
+import { getSafeUserWallets } from "../utils/prismaUtils";
 
 class EarningService {
     static async getEarningTransactions(userId: bigint, options: PaginateOptions & { search?: string, type?: string }) {
         // 1. Get all wallets belonging to the user
-        const wallets = await prisma.wallet.findMany({
-            where: { userId },
-            select: { id: true }
-        });
+        const wallets = await getSafeUserWallets(userId);
 
         const walletIds = wallets.map((wallet: any) => Number(wallet.id));
 

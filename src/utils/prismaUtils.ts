@@ -1,4 +1,4 @@
-import { prisma, WalletType } from "../config/prisma.js";
+import { prisma } from "../config/prisma.js";
 
 /**
  * Safely fetches wallets for a user.
@@ -12,8 +12,14 @@ export async function getSafeUserWallets(userId: bigint) {
             orderBy: { createdAt: 'desc' }
         });
     } catch (error: any) {
-        if (error.message.includes("Value '' not found in enum") || error.message.includes("enum")) {
-            console.warn(`[PrismaUtils] Enum mapping failed for user ${userId}. Falling back to raw query.`);
+        const errorMessage = error.message || "";
+        const isEnumError = 
+            errorMessage.includes("Value '' not found in enum") || 
+            errorMessage.includes("enum") ||
+            errorMessage.includes("PrismaClientUnknownRequestError");
+
+        if (isEnumError) {
+            console.warn(`[PrismaUtils] Enum mapping failed for user ${userId}. Falling back to raw query. Error: ${errorMessage.split('\n')[0]}`);
             
             // Fallback to raw query to bypass Prisma's enum validation
             const rawWallets: any[] = await prisma.$queryRaw`
@@ -23,13 +29,17 @@ export async function getSafeUserWallets(userId: bigint) {
             // Clean up the raw results to match Prisma's output as much as possible
             return rawWallets.map(w => ({
                 ...w,
-                id: BigInt(w.id),
-                userId: BigInt(w.user_id),
-                // If type is invalid, we'll keep it as a string instead of crashing, 
-                // but we can also default it here if we want.
+                id: typeof w.id === 'bigint' ? w.id : BigInt(w.id),
+                userId: typeof w.user_id === 'bigint' ? w.user_id : BigInt(w.user_id),
+                amount: Number(w.amount),
+                // Map DB snake_case to Prisma camelCase if necessary, though wallets table seems to use camelCase for some but snake_case for user_id
+                createdAt: w.created_at || w.createdAt,
+                updatedAt: w.updated_at || w.updatedAt,
+                // Ensure type is a valid string or null
                 type: w.type || null
             }));
         }
         throw error;
     }
 }
+

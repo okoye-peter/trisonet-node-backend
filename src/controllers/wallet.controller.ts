@@ -49,17 +49,11 @@ export const getWalletTransfers = asyncHandler(async (req: Request, res: Respons
 
 export const getAuthUserWallets = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const wallets = await prisma.wallet.findMany({
-        where: {
-            userId: user.id
-        },
-        orderBy: {
-            createdAt: 'desc'
-        }
-    });
+    const wallets = await getSafeUserWallets(user.id);
 
     sendSuccess(res, 200, 'wallet transfers fetched successfully', wallets);
 });
+
 
 export const transferFunds = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { receiverTransferId, senderWalletId, amount, pin } = req.body;
