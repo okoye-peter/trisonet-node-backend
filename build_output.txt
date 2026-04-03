@@ -1,0 +1,34 @@
+
+> trisonet-nodejs@1.0.0 build
+> tsc
+
+src/config/prisma.ts(2,10): error TS2305: Module '"@prisma/client"' has no exported member 'PrismaClient'.
+src/controllers/notification.controller.ts(19,47): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/controllers/user.controller.ts(294,31): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/controllers/wallet.controller.ts(99,42): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+src/controllers/wallet.controller.ts(99,47): error TS7006: Parameter 'setting' implicitly has an 'any' type.
+src/services/account_activation.service.ts(51,72): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/account_activation.service.ts(77,48): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/account_activation.service.ts(142,59): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/account_activation.service.ts(187,41): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/services/account_activation.service.ts(187,52): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/services/account_activation.service.ts(207,63): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/account_activation.service.ts(235,65): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/account_activation.service.ts(243,66): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/customer_registration.service.ts(187,54): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/earning.service.ts(12,39): error TS7006: Parameter 'wallet' implicitly has an 'any' type.
+src/services/fund_referrals.service.ts(17,46): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/loan.service.ts(23,45): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/loan.service.ts(70,40): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/services/notification.service.ts(8,49): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/notification.service.ts(54,46): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/services/payment.service.ts(60,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/payment.service.ts(96,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/payment.service.ts(106,47): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/services/payment.service.ts(360,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/referral.service.ts(71,33): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/services/wallet.service.ts(25,57): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/wallet.service.ts(95,56): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/services/withdrawal.service.ts(107,61): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/services/withdrawal.service.ts(223,58): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/withdrawal.service.ts(366,46): error TS7006: Parameter 'tx' implicitly has an 'any' type.
