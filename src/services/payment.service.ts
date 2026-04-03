@@ -1,9 +1,8 @@
-import { prisma, Prisma } from "../config/prisma";
-import { pagaLogger } from "../utils/logger";
-import { AppError } from "../utils/AppError";
-import { PagaService } from "./paga.service";
+import { prisma, Prisma, GuardianSlotType } from "../config/prisma.js";
+import { pagaLogger } from "../utils/logger.js";
+import { AppError } from "../utils/AppError.js";
+import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
-import { GuardianSlotType } from "../generated/prisma/index.js";
 
 export class PaymentService {
     /**

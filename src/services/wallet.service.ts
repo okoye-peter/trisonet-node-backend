@@ -1,6 +1,5 @@
-import { prisma, Prisma } from "../config/prisma";
-import { ROLES } from "../config/constants";
-import { WalletType } from "../generated/prisma/index.js";
+import { prisma, Prisma, WalletType } from "../config/prisma.js";
+import { ROLES } from "../config/constants.js";
 import NotificationService from "./notification.service";
 import bcrypt from "bcryptjs";
 

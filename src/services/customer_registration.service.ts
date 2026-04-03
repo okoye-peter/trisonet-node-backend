@@ -1,12 +1,10 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "../config/prisma";
-import RegionService from "./region.service";
-import { ROLES } from "../config/constants";
-import { handleReferral } from "./referral.service";
-import WalletService from "./wallet.service";
-import { WalletType } from "../generated/prisma/index.js";
-import { AccountActivationService } from "./account_activation.service";
-import { User } from "../generated/prisma/index.js";
+import { prisma, WalletType, User } from "../config/prisma.js";
+import RegionService from "./region.service.js";
+import { ROLES } from "../config/constants.js";
+import { handleReferral } from "./referral.service.js";
+import WalletService from "./wallet.service.js";
+import { AccountActivationService } from "./account_activation.service.js";
 
 interface UserRequestData {
     name: string;

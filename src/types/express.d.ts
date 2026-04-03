@@ -1,4 +1,4 @@
-import { User } from '../generated/prisma/index.js';
+import { User } from '../config/prisma.js';
 
 declare global {
     namespace Express {

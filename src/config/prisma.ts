@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '../generated/prisma/index.js';
+import { PrismaClient, Prisma, WalletType, User, LoanStatus, GuardianSlotType } from '../generated/prisma/index.js';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
@@ -6,5 +6,6 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({ log: ['query'
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-export { Prisma, PrismaClient };
+export { PrismaClient, WalletType, LoanStatus, GuardianSlotType, Prisma };
+export type { User };
 export default prisma;
