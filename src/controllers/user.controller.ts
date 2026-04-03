@@ -10,6 +10,7 @@ import { AppError } from "../utils/AppError"
 import { differenceInMinutes } from "date-fns"
 import { getOrSetCache } from '../utils/cache';
 import { TermiiService } from '../services/termii.service';
+import { getSafeUserWallets } from "../utils/prismaUtils";
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -72,11 +73,7 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
                 status: true
             }
         }),
-        prisma.wallet.findMany({
-            where: {
-                userId: user.id
-            }
-        }),
+        getSafeUserWallets(user.id),
         prisma.region.findFirst({
             where: {
                 id: user.regionId

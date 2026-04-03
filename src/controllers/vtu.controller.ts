@@ -7,17 +7,12 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendSuccess } from "../utils/responseWrapper";
 
+import { getSafeUserWallets } from "../utils/prismaUtils";
+
 const vtuService = new VtuService();
 
 export const getVtuData = asyncHandler(async (req: Request, res: Response) => {
-    const wallets = await prisma.wallet.findMany({
-        where: {
-            userId: (req as any).user.id
-        },
-        orderBy: {
-            createdAt: 'desc'
-        }
-    })
+    const wallets = await getSafeUserWallets((req as any).user.id);
     const { networks, data_bundles } = await vtuService.getVtuDataBundles();
     const { packages, providers } = (await vtuService.getVtuCableOffers()) as any;
     res.json({

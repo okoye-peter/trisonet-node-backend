@@ -1,40 +1,47 @@
 import { prisma, WalletType } from "../config/prisma.js";
 
-async function fixWallets() {
-    console.log("Starting wallet data repair...");
+async function deepCleanWallets() {
+    console.log("Starting DEEP CLEAN wallet data repair...");
+
+    const validTypes = ['direct', 'indirect', 'central_treasury', 'patronage', 'earning'];
+    const validTypesStr = validTypes.map(t => `'${t}'`).join(', ');
 
     try {
-        // 1. Find all wallets that have an empty string as a type
-        // Since Prisma doesn't directly support querying for invalid enum values with findMany,
-        // we'll use a raw query to find them.
-        const invalidWallets: any[] = await prisma.$queryRaw`
-            SELECT id, user_id, type FROM wallets WHERE type = '' OR type IS NULL
-        `;
+        // Find all wallets that have a type NOT in the valid list
+        const invalidWallets: any[] = await prisma.$queryRawUnsafe(`
+            SELECT id, user_id, type FROM wallets 
+            WHERE type NOT IN (${validTypesStr}) OR type IS NULL OR type = ''
+        `);
 
         if (invalidWallets.length === 0) {
-            console.log("No wallets with invalid types ('') or NULL found.");
-            return;
+            console.log("No invalid wallet types found. Checking for exact empty strings specifically...");
+            // Extra check for empty strings which sometimes behave weirdly in MySQL enums
+            const emptyStrings: any[] = await prisma.$queryRaw`SELECT id FROM wallets WHERE type = ''`;
+            if (emptyStrings.length === 0) {
+                console.log("Clean! No corrupt wallet data found.");
+                return;
+            }
+            invalidWallets.push(...emptyStrings);
         }
 
-        console.log(`Found ${invalidWallets.length} wallets with invalid types.`);
+        console.log(`Found ${invalidWallets.length} wallets with invalid or corrupt types.`);
 
         let fixedCount = 0;
         for (const wallet of invalidWallets) {
-            // Defaulting to 'direct' if the type is missing or empty, 
-            // as it's the most common wallet type.
+            console.log(`Fixing wallet ID ${wallet.id} (current type: '${wallet.type}')`);
             await prisma.wallet.update({
-                where: { id: wallet.id },
+                where: { id: BigInt(wallet.id) },
                 data: { type: WalletType.direct }
             });
             fixedCount++;
         }
 
-        console.log(`Successfully fixed ${fixedCount} wallets.`);
+        console.log(`Successfully repaired ${fixedCount} wallets.`);
     } catch (error: any) {
-        console.error("Error during wallet repair:", error.message);
+        console.error("Error during deep clean:", error.message);
     } finally {
         await prisma.$disconnect();
     }
 }
 
-fixWallets();
+deepCleanWallets();

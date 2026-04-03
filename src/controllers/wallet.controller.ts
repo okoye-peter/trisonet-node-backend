@@ -5,6 +5,7 @@ import { paginate } from "../utils/pagination";
 import { sendSuccess } from "../utils/responseWrapper";
 import { AppError } from "../utils/AppError";
 import WalletService from "../services/wallet.service";
+import { getSafeUserWallets } from "../utils/prismaUtils";
 
 export const getWalletTransfers = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
