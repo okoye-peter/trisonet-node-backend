@@ -1,6 +1,7 @@
 import { Redis } from "ioredis";
+import { redisConnection } from "../config/redis";
 
-export const redis = new Redis(process.env.REDIS_HOST || 'localhost')
+export const redis = new Redis(redisConnection)
 
 export const getOrSetCache = async <T>(key: string, ttl: number, cb: () => Promise<T>): Promise<T> => {
     const cachedValue = await redis.get(key)
