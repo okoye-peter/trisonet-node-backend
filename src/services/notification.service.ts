@@ -51,7 +51,9 @@ class NotificationService {
         });
 
         return {
-            notifications: notifications.map((n) => ({
+            notifications: (notifications as Prisma.NotificationUserGetPayload<{
+                include: { notification: true }
+            }>[]).map((n) => ({
                 id: n.notification.id,
                 title: n.notification.title,
                 body: n.notification.body,
