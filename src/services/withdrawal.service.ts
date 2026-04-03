@@ -1,7 +1,7 @@
 import { prisma, Prisma } from "../config/prisma";
 import { ROLES, WITHDRAWAL_STATUSES } from "../config/constants";
 import NotificationService from "./notification.service";
-import { differenceInHours } from "date-fns";
+import { differenceInHours, differenceInDays } from "date-fns";
 import { AppError } from "../utils/AppError";
 import bcrypt from "bcryptjs";
 import { InitiateTransferInput } from "../validations/withdrawal.validation";
@@ -50,6 +50,13 @@ export class WithdrawalService {
                 orderBy: { createdAt: 'desc' }
             });
 
+            if (lastWithdrawal && lastWithdrawal.createdAt) {
+                const daysSinceLastWithdrawal = differenceInDays(new Date(), lastWithdrawal.createdAt);
+                if (daysSinceLastWithdrawal < 7) {
+                    return { status: false, error: `You can only withdraw once every 7 days. Please wait ${7 - daysSinceLastWithdrawal} more day(s).` };
+                }
+            }
+
             if (lastWithdrawal) {
                 const recentRefs = await prisma.user.count({
                     where: {
@@ -61,7 +68,7 @@ export class WithdrawalService {
 
                 if (recentRefs < 6) {
                     const remaining = 6 - (recentRefs % 6);
-                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units` };
+                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units since your last withdrawal` };
                 }
             }
         } else if (user.role === ROLES.INFLUENCER) {
@@ -75,6 +82,13 @@ export class WithdrawalService {
                 orderBy: { createdAt: 'desc' }
             });
 
+            if (lastWithdrawal && lastWithdrawal.createdAt) {
+                const daysSinceLastWithdrawal = differenceInDays(new Date(), lastWithdrawal.createdAt);
+                if (daysSinceLastWithdrawal < 7) {
+                    return { status: false, error: `You can only withdraw once every 7 days. Please wait ${7 - daysSinceLastWithdrawal} more day(s).` };
+                }
+            }
+
             if (lastWithdrawal) {
                 const recentInfluenced = await prisma.user.count({
                     where: {
@@ -86,7 +100,7 @@ export class WithdrawalService {
 
                 if (recentInfluenced < 6) {
                     const remaining = 6 - (recentInfluenced % 6);
-                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units` };
+                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units since your last withdrawal` };
                 }
             }
         }
@@ -147,6 +161,12 @@ export class WithdrawalService {
         if (!wallet) {
             throw new AppError('Invalid wallet selected', 400);
         }
+
+        // New Rule: Max 50% withdrawal limit
+        if (wallet.type == 'earning' && input.amount > (wallet.amount * 0.5)) {
+            throw new AppError(`Note: You can only withdraw up to 50% of your total balance. Current maximum: ₦${(wallet.amount * 0.5).toLocaleString()}`, 400);
+        }
+
 
         if (wallet.type === 'indirect' && !user.canWithdrawGkwth) {
             throw new AppError('Your account has been restricted from withdrawing GKWTH', 400);

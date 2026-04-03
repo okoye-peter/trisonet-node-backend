@@ -1,13 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { TermiiService } from '../../services/termii.service';
 import { logger } from '../../utils/logger';
-
-// Setup Redis options compatible with BullMQ
-const connectionOpts = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    maxRetriesPerRequest: null,
-};
+import { redisConnection } from '../../config/redis';
 
 export const smsWorker = new Worker(
     'smsQueue',
@@ -17,7 +11,7 @@ export const smsWorker = new Worker(
             await TermiiService.sendSms(phoneNumber, message);
         }
     },
-    { connection: connectionOpts, concurrency: 5 } // Handling concurrency
+    { connection: redisConnection, concurrency: 5 } // Handling concurrency
 );
 
 smsWorker.on('completed', (job: Job) => {
