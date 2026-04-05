@@ -8,10 +8,10 @@
         // Environment Settings
         // See also https://aka.ms/tsconfig/module
         "module": "ESNext",
-        "moduleResolution": "Node",
+        "moduleResolution": "bundler",
         "target": "ES2020",
-        "lib": ["ESNext"],
-        // and npm install -D @types/node
+        "lib": ["ESNext", "DOM"],
+        "types": ["node", "multer"],
         // Other Outputs
         "sourceMap": true,
         "declaration": true,
