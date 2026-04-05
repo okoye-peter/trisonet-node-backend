@@ -6,6 +6,7 @@ import { AppError } from "../utils/AppError";
 import { PREMBLY } from "../config/constants";
 import { kycLogger } from "../utils/logger";
 import { prisma } from "../config/prisma";
+import { deleteCloudinaryFileByUrl } from "../utils/cloudinaryHelper";
 
 export const uploadKyc = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { bvn } = req.body;
@@ -33,6 +34,7 @@ export const uploadKyc = asyncHandler(async (req: any, res: Response, next: Next
     };
 
 
+
     try {
         const response = await axios.request(options);
         kycLogger.info('Prembly Verification Result', { username, bvn, response: response.data });
@@ -50,6 +52,13 @@ export const uploadKyc = asyncHandler(async (req: any, res: Response, next: Next
             bvn
         });
     } catch (error: any) {
+        // Cleanup Cloudinary image on failure
+        if (image_one_url) {
+            deleteCloudinaryFileByUrl(image_one_url).catch(e => 
+                kycLogger.error('Cloudinary Cleanup Error', { url: image_one_url, error: e.message })
+            );
+        }
+
         kycLogger.error('Prembly API Error', { 
             username,
             bvn, 

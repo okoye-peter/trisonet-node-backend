@@ -5,8 +5,6 @@ import { sendSuccess } from "../utils/responseWrapper";
 
 export const getBanksList = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const result = await (new PagaService()).getBanks();
-    return sendSuccess(res, 200, 'service currently not available', result);
-
     if(!result.success){
         return sendSuccess(res, 200, 'service currently not available', []);
     }
@@ -64,20 +62,20 @@ export const getUserBankDetails = asyncHandler(async (req: Request, res: Respons
     const result = await paga.getBankByName(user.bank);
     // return sendSuccess(res, 200, 'service currently not available', result);
 
-    if(!result.success){
+    if(!result){
         return sendSuccess(res, 200, 'service currently not available', []);
     }
 
-    const acc = await paga.resolveBankDetailsByCode(result.data.bank_uuid, user.accountNumber);
+    const acc = await paga.resolveBankDetailsByCode(result.bankCode, user.accountNumber);
 
     if(!acc.success){
         return sendSuccess(res, 200, 'service currently not available', []);
     }
 
     const data = {
-        isValid: result.data.is_valid,
-        accountNumber: result.data.account_number,
-        bankUUID: result.data.bank_uuid,
+        isValid: acc.data.is_valid,
+        accountNumber: acc.data.account_number,
+        bankUUID: acc.data.bank_uuid,
         accountName: acc.data.account_name,
     }
 
