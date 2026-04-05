@@ -88,13 +88,13 @@ model User {
     activationCardTransactions      ActivationCardTransaction[]
     activationCardsApproved         ActivationCard[]            @relation("ACApprover")
     activationCardsOwned            ActivationCard[]            @relation("ACOwner")
-    activationTeamMates             ActivationTeamMateUser[]
+    activationTeamMates             ActivationTeamMateUser[]    @ignore
     adminLogs                       AdminLog[]
     attemptLogins                   AttemptLogin[]
     blogs                           Blog[]
     carts                           Cart[]
     centralTreasuryLogs             CentralTreasuryLog[]
-    chatGroupUsers                  ChatGroupUser[]
+    chatGroupUsers                  ChatGroupUser[]             @ignore
     chatGroupsCreated               ChatGroup[]                 @relation("CGCreator")
     comments                        Comment[]
     followsAsFollower               Follow[]                    @relation("Follower")
@@ -117,7 +117,7 @@ model User {
     patronGroupTransactions         PatronGroupTransaction[]
     patronGroupsOwned               PatronGroup[]               @relation("PGOwner")
     pending_level2_migrations       pending_level2_migrations[]
-    prizeUsers                      PrizeUser[]
+    prizeUsers                      PrizeUser[]                 @ignore
     quizPhaseUsers                  QuizPhaseUser[]
     quizUsers                       QuizUser[]
     retweets                        Retweet[]
@@ -462,7 +462,7 @@ model ChatGroup {
     createdBy          BigInt?         @map("created_by") @db.UnsignedBigInt
     createdAt          DateTime?       @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamp(0)
-    users              ChatGroupUser[]
+    users              ChatGroupUser[] @ignore
     creator            User?           @relation("CGCreator", fields: [createdBy], references: [id], onUpdate: NoAction, map: "chat_groups_created_by_foreign")
     messages           Message[]
 
@@ -928,7 +928,7 @@ model UserActivationRequest {
     reference                     String?                         @unique(map: "user_activation_requests_reference_unique") @db.VarChar(255)
     charge                        Int                             @default(0)
     accountActivationConfirmation AccountActivationConfirmation[]
-    activationTeamMates           ActivationTeamMateUser[]
+    activationTeamMates           ActivationTeamMateUser[] @ignore
     user                          User                            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_activation_requests_user_id_foreign")
 
     @@index([userId], map: "user_activation_requests_user_id_foreign")
@@ -1300,7 +1300,7 @@ model Prize {
     location     String?     @db.LongText
     createdAt    DateTime?   @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt    DateTime?   @updatedAt @map("updated_at") @db.Timestamp(0)
-    users        PrizeUser[]
+    users        PrizeUser[] @ignore
     region       Region?     @relation(fields: [regionId], references: [id], onUpdate: NoAction, map: "prizes_region_id_foreign")
 
     @@index([regionId], map: "prizes_region_id_foreign")
