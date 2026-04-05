@@ -57,7 +57,7 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         withdrawalBypassAt, schoolId, address, sponsorClass,
         blockedAt, influencerPromoPeriodId,
         guardianId, guardianWardSlotId, patronGroupId,
-        activationCardId, refreshToken,
+        activationCardId, bvn,
         ...user
     } = req.user;
     sendSuccess(res, 200, 'User fetched successfully', user);

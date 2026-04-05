@@ -91,6 +91,11 @@ app.use('/api/notifications', notificationRouter);
 app.use('/api/paga-test', pagaTestRouter);
 app.use('/api/earnings', earningRouter);
 app.use('/api/kyc', kycRouter);
+app.get('/api/test', (req: Request, res: Response) => {
+    const encryptedText = encryptText('Hello World');
+    const decryptedText = decryptEncryptedText(encryptedText);
+    res.status(200).json({ status: 'success', message: 'Backend is running', encryptedText, decryptedText });
+});
 
 app.all('/{*splat}', (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({
@@ -106,6 +111,7 @@ import { referralWorker } from './queue/workers/referral.worker';
 import { referralQueue } from './queue/referral.queue';
 import { smsWorker } from './queue/workers/sms.worker';
 import { smsQueue } from './queue/sms.queue';
+import { decryptEncryptedText, encryptText } from './utils/crypto';
 
 const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

@@ -50,8 +50,6 @@ model User {
     canWithdrawGkwth                Boolean                     @default(true) @map("can_withdraw_gkwth")
     lastSeen                        DateTime?                   @map("last_seen") @db.Timestamp(0)
     activatedAt                     DateTime?                   @map("activated_at") @db.Timestamp(0)
-    has_verified_level_2            Boolean                     @default(false) @map("has_verified_level_2")
-    upgradeToAdultAt                DateTime?                   @map("upgrade_to_adult_at") @db.Timestamp(0)
     isOnline                        Boolean                     @default(false) @map("is_online")
     sponsorshipAcceptedAt           DateTime?                   @map("sponsorship_accepted_at") @db.Timestamp(0)
     sponsorAgreement                Boolean?                    @map("sponsor_agreement")
@@ -83,23 +81,25 @@ model User {
     patronGroupId                   BigInt?                     @map("patron_group_id") @db.UnsignedBigInt
     activationCardId                BigInt?                     @map("activation_card_id") @db.UnsignedBigInt
     refreshToken                    String?                     @map("refresh_token") @db.VarChar(255)
-    level                           Int                         @default(1)
+    upgradeToAdultAt                DateTime?                   @map("upgrade_to_adult_at") @db.Timestamp(0)
+    level                           Int                         @default(1) @db.UnsignedInt
+    hasVerifiedLevel2               Boolean                     @default(false) @map("has_verified_level_2")
+    bvn                             String?                     @db.Text
     activationCardTransactions      ActivationCardTransaction[]
     activationCardsApproved         ActivationCard[]            @relation("ACApprover")
     activationCardsOwned            ActivationCard[]            @relation("ACOwner")
-    activationTeamMates             ActivationTeamMateUser[]    @ignore
+    activationTeamMates             ActivationTeamMateUser[]
     adminLogs                       AdminLog[]
     attemptLogins                   AttemptLogin[]
     blogs                           Blog[]
     carts                           Cart[]
     centralTreasuryLogs             CentralTreasuryLog[]
-    chatGroupUsers                  ChatGroupUser[]             @ignore
+    chatGroupUsers                  ChatGroupUser[]
     chatGroupsCreated               ChatGroup[]                 @relation("CGCreator")
     comments                        Comment[]
     followsAsFollower               Follow[]                    @relation("Follower")
     followsAsFollowing              Follow[]                    @relation("Following")
     guardianWardSlotPurchases       GuardianWardSlotPurchase[]  @relation("GWSUser")
-    notifications                   NotificationUser[]
     infantFormFees                  InfantFormFee[]
     infantSchoolFeeGroups           InfantSchoolFeeGroup[]
     infantSchoolFees                InfantSchoolFee[]
@@ -112,10 +112,12 @@ model User {
     loansAsUser                     Loan[]                      @relation("LoanUser")
     receivedMessages                Message[]                   @relation("Receiver")
     sentMessages                    Message[]                   @relation("Sender")
+    notifications                   NotificationUser[]
     orderGroups                     OrderGroup[]
     patronGroupTransactions         PatronGroupTransaction[]
     patronGroupsOwned               PatronGroup[]               @relation("PGOwner")
-    prizeUsers                      PrizeUser[]                 @ignore
+    pending_level2_migrations       pending_level2_migrations[]
+    prizeUsers                      PrizeUser[]
     quizPhaseUsers                  QuizPhaseUser[]
     quizUsers                       QuizUser[]
     retweets                        Retweet[]
@@ -211,6 +213,7 @@ model Wallet {
     createdAt               DateTime?                @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt               DateTime?                @updatedAt @map("updated_at") @db.Timestamp(0)
     centralTreasuryLogs     CentralTreasuryLog[]
+    earning_transactions    EarningTransaction[]
     loans                   Loan[]
     manuallyFundings        ManuallyFunding[]
     orderTransactions       OrderTransaction[]
@@ -459,7 +462,7 @@ model ChatGroup {
     createdBy          BigInt?         @map("created_by") @db.UnsignedBigInt
     createdAt          DateTime?       @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamp(0)
-    users              ChatGroupUser[] @ignore
+    users              ChatGroupUser[]
     creator            User?           @relation("CGCreator", fields: [createdBy], references: [id], onUpdate: NoAction, map: "chat_groups_created_by_foreign")
     messages           Message[]
 
@@ -655,7 +658,6 @@ model NotificationUser {
 
     @@id([userId, notificationId])
     @@index([notificationId], map: "notification_user_notification_id_foreign")
-    @@index([userId], map: "notification_user_user_id_foreign")
     @@map("notification_user")
 }
 
@@ -926,7 +928,7 @@ model UserActivationRequest {
     reference                     String?                         @unique(map: "user_activation_requests_reference_unique") @db.VarChar(255)
     charge                        Int                             @default(0)
     accountActivationConfirmation AccountActivationConfirmation[]
-    activationTeamMates           ActivationTeamMateUser[]        @ignore
+    activationTeamMates           ActivationTeamMateUser[]
     user                          User                            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_activation_requests_user_id_foreign")
 
     @@index([userId], map: "user_activation_requests_user_id_foreign")
@@ -1069,14 +1071,14 @@ model WithDrawal {
     newBalance                 String?                  @map("new_balance") @db.VarChar(255)
     gkwthPrice                 Float?                   @map("gkwth_price")
     paystackRef                String?                  @map("paystack_ref") @db.VarChar(255)
-    pagaRef                    String?                  @map("paga_ref") @db.VarChar(255)
-    pagaTransactionId          String?                  @map("paga_transaction_id") @db.VarChar(255)
     userType                   WithdrawalUserType       @default(customer) @map("user_type")
     userEmail                  String?                  @map("user_email") @db.VarChar(255)
     sponsorInvestmentReturnsId BigInt?                  @map("sponsor_investment_returns_id") @db.UnsignedBigInt
     requestedAt                DateTime?                @map("requested_at") @db.Timestamp(0)
     reference                  String?                  @db.VarChar(255)
     accountName                String?                  @map("account_name") @db.VarChar(255)
+    pagaRef                    String?                  @map("paga_ref") @db.VarChar(255)
+    pagaTransactionId          String?                  @map("paga_transaction_id") @db.VarChar(255)
     sponsorInvestmentReturn    SponsorInvestmentReturn? @relation(fields: [sponsorInvestmentReturnsId], references: [id], onUpdate: NoAction, map: "with_drawals_sponsor_investment_returns_id_foreign")
     user                       User?                    @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "with_drawals_user_id_foreign")
 
@@ -1298,7 +1300,7 @@ model Prize {
     location     String?     @db.LongText
     createdAt    DateTime?   @default(now()) @map("created_at") @db.Timestamp(0)
     updatedAt    DateTime?   @updatedAt @map("updated_at") @db.Timestamp(0)
-    users        PrizeUser[] @ignore
+    users        PrizeUser[]
     region       Region?     @relation(fields: [regionId], references: [id], onUpdate: NoAction, map: "prizes_region_id_foreign")
 
     @@index([regionId], map: "prizes_region_id_foreign")
@@ -1359,7 +1361,7 @@ model Audit {
 }
 
 model AuthHandoffToken {
-    id        BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+    id        Int      @id @default(autoincrement()) @db.UnsignedInt
     userId    BigInt   @map("user_id") @db.UnsignedBigInt
     token     String   @db.VarChar(255)
     used      Boolean  @default(false)
@@ -1381,28 +1383,40 @@ model failed_jobs {
 }
 
 model EarningSettings {
-    id        Int      @id @default(autoincrement()) @db.UnsignedInt
-    name      String   @db.VarChar(255)
-    value     String   @db.VarChar(255)
-    description String   @db.Text
-    isActive Boolean  @default(true) @map("ia_active")
-    createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+    id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+    name        String    @unique(map: "earning_settings_name_unique") @db.VarChar(255)
+    value       String    @db.VarChar(255)
+    description String    @db.VarChar(255)
+    is_active   Boolean   @default(true)
+    createdAt   DateTime? @map("created_at") @db.Timestamp(0)
+    updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
 
     @@map("earning_settings")
 }
 
 model EarningTransaction {
-    id        Int      @id @default(autoincrement()) @db.UnsignedInt
-    amount    Float    @db.Float
-    type      String   @db.VarChar(255)
-    reference String   @db.VarChar(255) @unique(map: "earning_transactions_reference_unique")
-    walletId Int      @map("wallet_id") @db.UnsignedInt
-    narration String   @db.Text
-    createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+    id        BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+    amount    Decimal                 @db.Decimal(10, 2)
+    type      earningTransactionsType
+    reference String                  @unique(map: "earning_transactions_reference_unique") @db.VarChar(255)
+    walletId  BigInt                  @map("wallet_id") @db.UnsignedBigInt
+    narration String                  @db.VarChar(255)
+    createdAt DateTime?               @map("created_at") @db.Timestamp(0)
+    updatedAt DateTime?               @updatedAt @map("updated_at") @db.Timestamp(0)
+    wallets   Wallet                  @relation(fields: [walletId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "earning_transactions_wallet_id_foreign")
 
+    @@index([walletId], map: "earning_transactions_wallet_id_foreign")
     @@map("earning_transactions")
+}
+
+model pending_level2_migrations {
+    id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+    user_id    BigInt    @db.UnsignedBigInt
+    created_at DateTime? @db.Timestamp(0)
+    updated_at DateTime? @db.Timestamp(0)
+    users      User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pending_level2_migrations_user_id_foreign")
+
+    @@index([user_id], map: "pending_level2_migrations_user_id_foreign")
 }
 
 enum AdminAction {
@@ -1516,4 +1530,9 @@ enum WithdrawalRequestStatus {
     being_processed
     processed
     failed
+}
+
+enum earningTransactionsType {
+    credit
+    debit
 }

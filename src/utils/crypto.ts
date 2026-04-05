@@ -16,3 +16,32 @@ export function encrypt(text: string): string {
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
+
+
+
+export function encryptText(plainText: string): string {
+  const iv = crypto.randomBytes(16); // random IV each time
+  const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+
+  let encrypted = cipher.update(plainText, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  // Store iv:encryptedData so we can decrypt later
+  return `${iv.toString('hex')}:${encrypted}`;
+}
+
+export function decryptEncryptedText(encryptedText: string): string {
+  const [ivHex, encrypted] = encryptedText.split(':');
+  
+  if (!ivHex || !encrypted) {
+    throw new Error('Invalid encrypted text format');
+  }
+
+  const iv = Buffer.from(ivHex, 'hex');
+  const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+
+  return decrypted;
+}

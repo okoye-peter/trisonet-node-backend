@@ -60,6 +60,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
             patronGroupId: true,
             activationCardId: true,
             blockedAt: true,
+            bvn: true
         },
         include: {
             region: {
