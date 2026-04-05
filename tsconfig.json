@@ -9,9 +9,8 @@
         // See also https://aka.ms/tsconfig/module
         "module": "ESNext",
         "moduleResolution": "bundler",
-        "target": "ES2020",
-        "lib": ["ESNext", "DOM"],
-        "types": ["node", "multer"],
+        "target": "ESNext",
+        "lib": ["ESNext"],
         // Other Outputs
         "sourceMap": true,
         "declaration": true,

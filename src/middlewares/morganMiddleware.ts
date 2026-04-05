@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 // Override the stream method by telling Morgan to use our custom logger instead of the console.log.
 const stream: StreamOptions = {
     // Use the http severity
-    write: (message) => logger.info(message.trim()),
+    write: (message: string) => logger.info(message.trim()),
 };
 
 // Skip all the Morgan http log if the application is not running in development mode.

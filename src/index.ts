@@ -37,11 +37,11 @@ app.use(helmet({
 }));
 
 app.use(cors({
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         const rawOrigins = process.env.ALLOWED_ORIGINS || '';
         const allowedLinks = rawOrigins
             .split(',')
-            .map(link => link.replace(/['"]/g, '').trim())
+            .map((link: string) => link.replace(/['"]/g, '').trim())
             .filter(Boolean);
 
         // Allow internal requests or tools like Postman (where origin is undefined)

@@ -14,7 +14,7 @@ const readLogs = (res: Response, prefix: string) => {
     }
 
     const files = fs.readdirSync(logDir);
-    const logFiles = files.filter(f => f.startsWith(prefix) && f.endsWith('.log')).sort().reverse();
+    const logFiles = files.filter((f: string) => f.startsWith(prefix) && f.endsWith('.log')).sort().reverse();
 
     if (logFiles.length === 0) {
         return sendSuccess(res, 200, 'No log files found', { logs: [], availableFiles: [] });
@@ -23,7 +23,7 @@ const readLogs = (res: Response, prefix: string) => {
     // Pick the most recent log file
     const latestLog = logFiles[0] as string;
     const logContent = fs.readFileSync(path.join(logDir, latestLog), 'utf-8');
-    const lines = logContent.split('\n').filter(line => line.trim() !== '');
+    const lines = logContent.split('\n').filter((line: string) => line.trim() !== '');
 
     // If the latest log is empty, try to find the last non-empty one
     let currentLog = latestLog;
@@ -32,7 +32,7 @@ const readLogs = (res: Response, prefix: string) => {
     if (currentLines.length === 0 && logFiles.length > 1) {
         for (let i = 1; i < logFiles.length; i++) {
             const content = fs.readFileSync(path.join(logDir, logFiles[i] as string), 'utf-8');
-            const l = content.split('\n').filter(line => line.trim() !== '');
+            const l = content.split('\n').filter((line: string) => line.trim() !== '');
             if (l.length > 0) {
                 currentLog = logFiles[i] as string;
                 currentLines = l;
@@ -67,7 +67,7 @@ export const clearLogs = asyncHandler(async (req: Request, res: Response, next: 
     }
 
     const files = fs.readdirSync(logDir);
-    files.forEach(file => {
+    files.forEach((file: string) => {
         fs.unlinkSync(path.join(logDir, file));
     });
 
