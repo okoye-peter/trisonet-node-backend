@@ -43,7 +43,7 @@ export class WithdrawalService {
             const lastWithdrawal = await prisma.withDrawal.findFirst({
                 where: {
                     userId: user.id,
-                    NOT: { 
+                    NOT: {
                         accountNumber: { in: ['direct wallet', 'indirect wallet'] }
                     }
                 },
@@ -75,7 +75,7 @@ export class WithdrawalService {
             const lastWithdrawal = await prisma.withDrawal.findFirst({
                 where: {
                     userId: user.id,
-                    NOT: { 
+                    NOT: {
                         accountNumber: { in: ['direct wallet', 'indirect wallet'] }
                     }
                 },
@@ -163,8 +163,27 @@ export class WithdrawalService {
         }
 
         // New Rule: Max 50% withdrawal limit
-        if (wallet.type == 'earning' && input.amount > (wallet.amount * 0.5)) {
-            throw new AppError(`Note: You can only withdraw up to 50% of your total balance. Current maximum: ₦${(wallet.amount * 0.5).toLocaleString()}`, 400);
+        if (wallet.type == 'earning') {
+            if (input.amount > (wallet.amount * 0.5)) throw new AppError(`Note: You can only withdraw up to 50% of your total balance. Current maximum: ₦${(wallet.amount * 0.5).toLocaleString()}`, 400);
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            const last = await prisma.earningTransaction.findFirst({
+                where: {
+                    type: 'debit',
+                    walletId: wallet.id,
+                    narration: {
+                        contains: 'withdrawal'
+                    },
+                    createdAt: {
+                        gte: sevenDaysAgo
+                    }
+                }
+            });
+
+            if (last) {
+                throw new AppError('You can only withdraw once every 7 days', 400);
+            }
         }
 
 
@@ -352,7 +371,7 @@ export class WithdrawalService {
         }
 
         const pagaService = new PagaService();
-        
+
         // 1. Mark as being processed
         await prisma.withdrawalRequest.update({
             where: { id: requestId },
@@ -405,27 +424,38 @@ export class WithdrawalService {
                         pagaTransactionId: payoutResponse.transaction_id
                     }
                 });
+
+                if(wallet.type === 'earning') {
+                    await tx.earningTransaction.create({
+                        data: {
+                            amount: request.amountRequested,
+                            type: 'debit',
+                            reference: payoutResponse.reference,
+                            walletId: wallet.id,
+                            narration: 'withdrawal'
+                        }
+                    });            
+                }
+                // 4. Notify User
+                await NotificationService.createNotification(
+                    [wallet.userId],
+                    'Withdrawal Successful',
+                    `Your withdrawal of ₦${request.amountToTransfer.toLocaleString()} has been processed and sent to your bank account.`
+                );
+
+                return { success: true, reference: payoutResponse.reference };
+
             });
-
-            // 4. Notify User
-            await NotificationService.createNotification(
-                [wallet.userId],
-                'Withdrawal Successful',
-                `Your withdrawal of ₦${request.amountToTransfer.toLocaleString()} has been processed and sent to your bank account.`
-            );
-
-            return { success: true, reference: payoutResponse.reference };
-
         } catch (error: any) {
-            // If it's an AppError we threw, rethrow it
-            if (error instanceof AppError) throw error;
+                // If it's an AppError we threw, rethrow it
+                if (error instanceof AppError) throw error;
 
-            // Otherwise, revert status and throw
-            await prisma.withdrawalRequest.update({
-                where: { id: requestId },
-                data: { status: 'pending' }
-            });
-            throw new AppError(error.message || 'An error occurred during payout', 500);
+                // Otherwise, revert status and throw
+                await prisma.withdrawalRequest.update({
+                    where: { id: requestId },
+                    data: { status: 'pending' }
+                });
+                throw new AppError(error.message || 'An error occurred during payout', 500);
+            }
         }
-    }
 }
