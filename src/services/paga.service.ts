@@ -324,6 +324,7 @@ export class PagaService {
 
     async getBankByName(bankName: string): Promise<{uuid: string, name: string, interInstitutionCode: string, sortCode: string, directDebitEnabled: boolean} | null> {
         const result = await this.getBanks();
+        logger.info("result", result);
 
         if (!result.success || !result.data || !result.data.banks) {
             return null;
@@ -333,6 +334,7 @@ export class PagaService {
         const lowerCaseBankName = bankName.toLowerCase();
 
         let bank = banks.find((b: any) => b.name && b.name.toLowerCase() === lowerCaseBankName);
+        logger.info("bank", bank);
 
         if (!bank) {
             bank = banks.find((b: any) => b.name && b.name.toLowerCase().includes(lowerCaseBankName));
