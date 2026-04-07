@@ -61,15 +61,14 @@ export const getUserBankDetails = asyncHandler(async (req: Request, res: Respons
     const paga = new PagaService();
 
     const result = await paga.getBankByName(user.bank);
-    logger.info("result", result);
     // return sendSuccess(res, 200, 'service currently not available', result);
 
     if(!result){
         return sendSuccess(res, 200, 'service currently not available', []);
     }
 
-    const acc = await paga.resolveBankDetails(result.uuid, user.accountNumber);
-    logger.info('acc', acc);
+    const bankUUID = result.uuid || result.bankUUID || result.uuid;
+    const acc = await paga.resolveBankDetails(bankUUID, user.accountNumber);
 
     if(!acc.success){
         return sendSuccess(res, 200, 'service currently not available', []);
