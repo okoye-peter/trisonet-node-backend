@@ -322,7 +322,7 @@ export class PagaService {
         return result.data.banks.find((b: any) => b.bankCode === bankCode);
     }
 
-    async getBankByName(bankName: string): Promise<any | null> {
+    async getBankByName(bankName: string): Promise<{uuid: string, name: string, interInstitutionCode: string, sortCode: string, directDebitEnabled: boolean} | null> {
         const result = await this.getBanks();
 
         if (!result.success || !result.data || !result.data.banks) {

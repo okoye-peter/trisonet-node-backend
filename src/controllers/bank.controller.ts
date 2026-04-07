@@ -66,7 +66,7 @@ export const getUserBankDetails = asyncHandler(async (req: Request, res: Respons
         return sendSuccess(res, 200, 'service currently not available', []);
     }
 
-    const acc = await paga.resolveBankDetailsByCode(result.bankCode, user.accountNumber);
+    const acc = await paga.resolveBankDetailsByCode(result.uuid, user.accountNumber);
 
     if(!acc.success){
         return sendSuccess(res, 200, 'service currently not available', []);
