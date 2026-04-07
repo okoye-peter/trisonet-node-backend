@@ -216,8 +216,59 @@ export const generateVirtualAccountForCardPurchase = asyncHandler(async (req: Re
             bank_name: response.data.bank_name,
             account_number: response.data.virtual_account,
             bank_uuid: response.data.bank_uuid,
-            expiry_date: format(addMinutes(new Date(), 28), 'HH:mm'),
-            amount: totalWithCharges
+            expiry_date: response.data.expiry_date_full ? format(new Date(response.data.expiry_date_full), 'HH:mm') : format(addMinutes(new Date(), 28), 'HH:mm'),
+            amount: totalWithCharges,
+            reference: ref
         }
     });
+});
+
+export const verifyCardPurchasePayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { reference } = req.body;
+    const { id: userId } = req.user;
+
+    if (!reference) {
+        return sendSuccess(res, 400, 'Reference is required');
+    }
+
+    const activationCard = await prisma.activationCard.findFirst({
+        where: {
+            proofOfPayment: reference,
+            userId: userId as bigint,
+        }
+    });
+
+    if (!activationCard) {
+        return sendSuccess(res, 404, 'Activation card not found');
+    }
+
+    if(activationCard.status === ACTIVATION_CARD_STATUSES.APPROVED){
+        return sendSuccess(res, 200, 'Activation card already approved');
+    }
+
+    const pagaService = new PagaService();
+    const response = await pagaService.verifyPayment(reference);
+
+    if (!response.success || !response.is_paid) {
+        return sendSuccess(res, 400, response?.error || 'Failed to verify payment');
+    }
+
+    if (response.data.amount !== activationCard.amount) {
+        return sendSuccess(res, 400, 'Amount is less than the required amount (including charges)');
+    }
+
+    // if (response.data.status !== 'ACTIVE') {
+    //     return sendSuccess(res, 400, 'Virtual account is not active');
+    // }
+
+    await prisma.activationCard.update({
+        where: {
+            id: activationCard.id
+        },
+        data: {
+            status: ACTIVATION_CARD_STATUSES.APPROVED
+        }
+    });
+
+    return sendSuccess(res, 200, 'Card purchase verified successfully');
 });
