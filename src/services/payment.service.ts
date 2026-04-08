@@ -446,6 +446,7 @@ export class PaymentService {
         });
 
         return {
+            reference: ref,
             account_detail: {
                 account_name: response.data.account_name,
                 bank_name: response.data.bank_name,

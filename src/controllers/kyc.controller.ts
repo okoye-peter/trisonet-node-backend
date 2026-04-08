@@ -36,13 +36,18 @@ const verifyNameMatch = (fullName: string, firstName: string, lastName: string):
 };
 
 export const uploadKyc = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { bvn } = req.body;
+    const { bvn, name } = req.body;
     const user = req.user;
     const username = user?.username || 'Unknown User';
 
     // Basic BVN Validation
     if (!bvn || bvn.length !== 11 || !/^\d+$/.test(bvn)) {
         return next(new AppError('Please provide a valid 11-digit BVN.', 400));
+    }
+
+    const parts = name.trim().split(/\s+/); // Splits by one or more spaces
+    if (parts.length < 2 || parts.some((part: string) => part.length < 3)) {
+        return next(new AppError('Please provide your full name', 400));
     }
 
     // Multer upload.fields puts files in req.files
@@ -77,12 +82,13 @@ export const uploadKyc = asyncHandler(async (req: Request, res: Response, next: 
         const { firstName, lastName } = response.data.data;
 
         // Verify if names match the user's registered name
-        if (verifyNameMatch(user?.name || '', firstName, lastName)) {
+        if (verifyNameMatch(name || '', firstName, lastName)) {
             await prisma.user.update({
                 where: { id: user.id },
                 data: { 
                     hasVerifiedLevel2: true,
-                    bvn: encryptText(bvn)
+                    bvn: encryptText(bvn),
+                    name
                 }
             });
 

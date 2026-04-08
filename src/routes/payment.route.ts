@@ -8,7 +8,8 @@ import {
     checkFundingStatus,
     initiateDirectWalletFunding,
     initiateGkwthPurchase,
-    getAssetLoans
+    getAssetLoans,
+    verifyWardSlotPurchase
 } from "../controllers/payment.controller";
 import { validate } from "../middlewares/validateRequest";
 import { initiateDirectWalletFundingSchema, initiateGkwthPurchaseSchema } from "../validations/wallet.validation";
@@ -25,6 +26,7 @@ router.post('/wallet/indirect/funding', validate(initiateGkwthPurchaseSchema),in
 
 router.get('/wallet/check-status/:reference', checkFundingStatus);
 router.post('/wards/generate-virtual-account', generateVirtualAccountForWardSlotPurchase);
+router.post('/wards/purchase/verify', verifyWardSlotPurchase);
 router.post('/gkwth/purchase', purchaseGkwth);
 router.post('/gkwth/loan-request', requestAssetLoan);
 router.get('/gkwth/loans', getAssetLoans);

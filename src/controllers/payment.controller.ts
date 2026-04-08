@@ -13,6 +13,31 @@ export const generateVirtualAccountForWardSlotPurchase = asyncHandler(async (req
     return sendSuccess(res, 200, 'Virtual account generated successfully', result);
 });
 
+export const verifyWardSlotPurchase = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { reference } = req.body;
+    if (!reference) {
+        throw new AppError('Reference is required', 400);
+    }
+
+    const user = req.user;
+    const payment = await prisma.guardianWardSlotPurchase.findFirst({
+        where: {
+            reference,
+            userId: user.id,
+            status: 'success'
+        }
+    })
+    if (!payment) {
+        throw new AppError('Payment not found', 404);
+    }
+
+    if (payment.status === 'success') {
+        return sendSuccess(res, 200, 'Payment verified successfully', payment);
+    }
+
+    throw new AppError('Payment not found', 404);
+});
+
 export const purchaseGkwth = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const paymentService = new PaymentService();
     const result = await paymentService.generateVirtualAccountForGkwthPurchase(BigInt(req.user.id), req.body.quantity, req.user);
