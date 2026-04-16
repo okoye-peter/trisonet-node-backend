@@ -43,3 +43,24 @@ export const markAllRead = asyncHandler(async (req: Request, res: Response, next
 
     sendSuccess(res, 200, 'All notifications marked as read');
 });
+
+export const getNotification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+    const { id } = req.params;
+    
+    if (!id) {
+        return next(new AppError('Notification ID is required', 400));
+    }
+    
+    const notificationId = BigInt(id as string);
+    const notification = await NotificationService.getNotificationById(userId, notificationId);
+
+    if (!notification) {
+        return next(new AppError('Notification not found', 404));
+    }
+
+    sendSuccess(res, 200, 'Notification fetched successfully', {
+        ...notification,
+        id: notification.id.toString()
+    });
+});

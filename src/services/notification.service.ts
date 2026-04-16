@@ -91,6 +91,32 @@ class NotificationService {
             }
         });
     }
+
+    /**
+     * Get a single notification by its ID for a specific user
+     */
+    static async getNotificationById(userId: bigint, notificationId: bigint) {
+        const notificationUser = await prisma.notificationUser.findFirst({
+            where: {
+                userId,
+                notificationId
+            },
+            include: {
+                notification: true
+            }
+        });
+
+        if (!notificationUser) return null;
+
+        return {
+            id: notificationUser.notification.id,
+            title: notificationUser.notification.title,
+            body: notificationUser.notification.body,
+            status: notificationUser.status,
+            createdAt: notificationUser.notification.createdAt,
+            updatedAt: notificationUser.notification.updatedAt
+        };
+    }
 }
 
 export default NotificationService;
