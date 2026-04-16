@@ -97,7 +97,7 @@ app.get('/api/test', (req: Request, res: Response) => {
     res.status(200).json({ status: 'success', message: 'Backend is running', encryptedText, decryptedText });
 });
 
-app.all('/{*splat}', (req: Request, res: Response, next: NextFunction) => {
+app.all(/.*/, (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({
         status: 'fail',
         message: `Can't find ${req.originalUrl} on this server!`,
