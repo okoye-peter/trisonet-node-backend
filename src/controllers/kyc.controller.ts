@@ -134,3 +134,22 @@ export const uploadKyc = asyncHandler(async (req: Request, res: Response, next: 
         return next(new AppError(errorMessage, 500));
     }
 });
+
+export const updateUserBvnHash = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const users = await prisma.user.findMany({
+        where: {
+            bvn: {
+                not: null
+            },
+            bvnHash: null
+        }
+    });
+    for (const user of users) {
+        const bvnHash = hashString(decryptEncryptedText(user.bvn));
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { bvnHash }
+        });
+    }
+    return sendSuccess(res, 200, "BVN hashes updated successfully.");
+})
