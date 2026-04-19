@@ -85,6 +85,7 @@ model User {
   level                           Int                         @default(1)
   hasVerifiedLevel2               Boolean                     @default(false) @map("has_verified_level_2")
   bvn                             String?                     @db.VarChar(255)
+  bvnHash                         String?                     @unique(map: "users_bvn_hash_unique") @map("bvn_hash") @db.VarChar(255)
   migratedAt                      DateTime?                   @map("migrated_at") @db.Timestamp(0)
   activationCardTransactions      ActivationCardTransaction[]
   activationCardsApproved         ActivationCard[]            @relation("ACApprover")

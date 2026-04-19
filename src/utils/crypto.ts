@@ -45,3 +45,11 @@ export function decryptEncryptedText(encryptedText: string): string {
 
   return decrypted;
 }
+
+/**
+ * Creates a deterministic SHA-256 hash of a string
+ */
+export function hashString(text: string): string {
+  return crypto.createHash('sha256').update(text).digest('hex');
+}
+

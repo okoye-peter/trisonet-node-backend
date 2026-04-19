@@ -7,7 +7,7 @@ import { PREMBLY } from "../config/constants";
 import { kycLogger } from "../utils/logger";
 import { prisma } from "../config/prisma";
 import { deleteCloudinaryFileByUrl } from "../utils/cloudinaryHelper";
-import { encryptText } from "../utils/crypto";
+import { encryptText, decryptEncryptedText, hashString } from "../utils/crypto";
 
 /**
  * Helper to clean up Cloudinary assets and log errors if any
@@ -83,11 +83,25 @@ export const uploadKyc = asyncHandler(async (req: Request, res: Response, next: 
 
         // Verify if names match the user's registered name
         if (verifyNameMatch(name || '', firstName, lastName)) {
+            // Check if BVN is already used by another user
+            const bvnHash = hashString(bvn);
+            const existingBvnUser = await prisma.user.findFirst({
+                where: { 
+                    bvnHash,
+                    id: { not: user.id }
+                }
+            });
+
+            if (existingBvnUser) {
+                cleanupCloudinary(image_one_url);
+                return next(new AppError('This BVN is already used by another verified user.', 400));
+            }
             await prisma.user.update({
                 where: { id: user.id },
                 data: { 
                     hasVerifiedLevel2: true,
                     bvn: encryptText(bvn),
+                    bvnHash,
                     name
                 }
             });
