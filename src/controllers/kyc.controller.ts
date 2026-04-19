@@ -145,7 +145,7 @@ export const updateUserBvnHash = asyncHandler(async (req: Request, res: Response
         }
     });
     for (const user of users) {
-        const bvnHash = hashString(decryptEncryptedText(user.bvn));
+        const bvnHash = hashString(decryptEncryptedText(user.bvn as string));
         await prisma.user.update({
             where: { id: user.id },
             data: { bvnHash }
