@@ -254,7 +254,7 @@ export class WithdrawalService {
                 throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
             }
 
-            amountCalculated = user.country === "Nigeria" ? input.amount * priceValue! : input.amount * 10;
+            amountCalculated = user.country === "Nigeria" ? input.amount * priceValue : input.amount * 10;
         }
 
         // 10. Transaction
@@ -279,7 +279,7 @@ export class WithdrawalService {
             });
 
             // Increment Central Treasury if indirect
-            if (wallet.type === 'indirect' || wallet.type === 'earning') {
+            if (wallet.type === 'indirect') {
                 const centralTreasury = await tx.wallet.findFirst({ where: { type: 'central_treasury' } });
                 if (centralTreasury) {
                     await tx.wallet.update({
