@@ -237,7 +237,7 @@ export class WithdrawalService {
         }
 
         let amountCalculated = 0;
-        let priceValue: number | null = null;
+        let priceValue: number | null = (wallet.type === 'earning') || (wallet.type === 'indirect') ? Number(settingsMap['gkwth_purchase_price'] || 0) : null;
 
         // 9. Wallet Specific Locks & Amount Calculation
         if (wallet.type === 'direct') {
@@ -254,8 +254,7 @@ export class WithdrawalService {
                 throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
             }
 
-            priceValue = Number(settingsMap['gkwth_purchase_price'] || 0);
-            amountCalculated = user.country === "Nigeria" ? input.amount * priceValue : input.amount * 10;
+            amountCalculated = user.country === "Nigeria" ? input.amount * priceValue! : input.amount * 10;
         }
 
         // 10. Transaction
@@ -280,7 +279,7 @@ export class WithdrawalService {
             });
 
             // Increment Central Treasury if indirect
-            if (wallet.type === 'indirect') {
+            if (wallet.type === 'indirect' || wallet.type === 'earning') {
                 const centralTreasury = await tx.wallet.findFirst({ where: { type: 'central_treasury' } });
                 if (centralTreasury) {
                     await tx.wallet.update({
@@ -322,7 +321,7 @@ export class WithdrawalService {
                     accountNumber: input.account_number,
                     accountName: input.account_name,
                     gkwthValue: priceValue,
-                    gkwthAmount: wallet.type === 'indirect' ? input.amount : null,
+                    gkwthAmount: (wallet.type === 'indirect' || wallet.type === 'earning') ? input.amount : null,
                     userEmail: email,
                     userType: userType as any,
                     oldBalance: oldBalanceStr,
