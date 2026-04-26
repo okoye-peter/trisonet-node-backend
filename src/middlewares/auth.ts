@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { AppError } from '../utils/AppError';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from './asyncHandler';
+import { getSafeUserWallets } from '../utils/prismaUtils';
 
 interface JwtPayload {
     id: string;
@@ -23,13 +24,18 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JwtPayload;
-        const currentUser = await prisma.user.findUnique({ where: { id: BigInt(decoded.id) } });
+        const userId = BigInt(decoded.id);
+        const [currentUser, wallets] = await Promise.all([
+            prisma.user.findUnique({ where: { id: userId } }),
+            getSafeUserWallets(userId)
+        ]);
+
         if (!currentUser) {
             return next(new AppError('The user belonging to this token does no longer exist.', 401));
         }
 
-        // Attach user to request
-        (req as any).user = currentUser;
+        // Attach user with wallets to request
+        (req as any).user = { ...currentUser, wallets };
         next();
     } catch (error) {
         return next(new AppError('Invalid token or token expired.', 401));

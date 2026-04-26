@@ -23,6 +23,7 @@ import notificationRouter from './routes/notification.route';
 import pagaTestRouter from './routes/paga_test.routes';
 import earningRouter from './routes/earning.route';
 import kycRouter from './routes/kyc.route';
+import patronRouter from './routes/patron.route';
 
 // Initialize background workers
 import './queue';
@@ -91,6 +92,7 @@ app.use('/api/notifications', notificationRouter);
 app.use('/api/paga-test', pagaTestRouter);
 app.use('/api/earnings', earningRouter);
 app.use('/api/kyc', kycRouter);
+app.use('/api/patrons', patronRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);

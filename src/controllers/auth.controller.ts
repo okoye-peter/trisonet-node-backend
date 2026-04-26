@@ -9,6 +9,8 @@ import { sendSuccess } from '../utils/responseWrapper';
 import { signAccessToken, signRefreshToken } from '../utils/jwt';
 import { createUser } from '../services/customer_registration.service';
 import { prisma } from '../config/prisma';
+import { ROLES } from '../config/constants';
+import { getSafeUserWallets } from '../utils/prismaUtils';
 
 export const register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userData = req.body;
@@ -24,11 +26,14 @@ export const register = asyncHandler(async (req: Request, res: Response, next: N
 });
 
 export const login = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
+    const { email, emailOrUsername, password } = req.body;
+    const identifier = email || emailOrUsername;
     const user = await prisma.user.findFirst({
         where: { 
-            email,
-            level: 2
+            OR: [
+                { email: identifier },
+                { username: identifier }
+            ]
         },
         omit: {
             withdrawalPinResetOtp: true,
@@ -76,6 +81,15 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
         return next(new AppError('Incorrect email or password', 401));
     }
 
+    const wallets = await getSafeUserWallets(user.id);
+    const userWithWallets = { ...user, wallets };
+
+    // Allow Patrons, Admins, and Super Admins to bypass the level 2 requirement
+    const bypassRoles = [ROLES.PATRON, ROLES.ADMIN, ROLES.SUPER_ADMIN];
+    if (user.level < 2 && !bypassRoles.includes(user.role as any)) {
+        return next(new AppError('Your account requires level 2 verification to login.', 403));
+    }
+
     const accessToken = signAccessToken(user.id.toString());
     const refreshToken = signRefreshToken(user.id.toString());
 
@@ -84,7 +98,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
         data: { refreshToken },
     });
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = userWithWallets;
 
     sendSuccess(res, 200, 'User logged in successfully', {
         user: userWithoutPassword,
@@ -207,7 +221,9 @@ export const handleAuthHandoff = asyncHandler(async (req: Request, res: Response
         data: { refreshToken },
     });
 
-    const { password: _, ...userWithoutPassword } = user;
+    const wallets = await getSafeUserWallets(user.id);
+    const userWithWallets = { ...user, wallets };
+    const { password: _, ...userWithoutPassword } = userWithWallets;
 
     return sendSuccess(res, 200, 'User logged in successfully', {
         user: userWithoutPassword,

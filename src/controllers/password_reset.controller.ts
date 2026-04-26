@@ -84,7 +84,7 @@ export const resetCustomerPassword = asyncHandler(async (req: Request, res: Resp
 
     await prisma.user.update({
         where: { id: user.id },
-        data: { password: password, passwordResetOtp: null, passwordResetOtpSentAt: null },
+        data: { password: hashedPassword, passwordResetOtp: null, passwordResetOtpSentAt: null },
     });
     sendSuccess(res, 200, 'Password reset successfully');
 });

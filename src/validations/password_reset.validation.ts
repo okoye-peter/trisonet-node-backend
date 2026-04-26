@@ -9,12 +9,12 @@ export const sendCustomerPasswordResetOtpSchema = z.object({
 export const resetCustomerPasswordSchema = z.object({
     body: z.object({
         username: z.string({ error: 'username is required' }).min(1, 'username is required'),
-        otp: z.string({ error: 'otp is required' }).min(1, 'otp is required'),
+        otp: z.string({ error: 'otp is required' }).length(6, 'otp must be 6 digits'),
         password: z.string({ error: 'password is required' }).min(8, 'password must be at least 8 characters long').max(255, 'password must be at most 255 characters long'),
-        confirm_password: z.string({ error: 'confirm password is required' }).min(8, 'confirm password must be at least 8 characters long').max(255, 'confirm password must be at most 255 characters long'),
-    }).refine((data) => data.password === data.confirm_password, {
+        confirmPassword: z.string({ error: 'confirm password is required' }).min(8, 'confirm password must be at least 8 characters long').max(255, 'confirm password must be at most 255 characters long'),
+    }).refine((data) => data.password === data.confirmPassword, {
         message: 'Passwords do not match',
-        path: ['confirm_password'],
+        path: ['confirmPassword'],
     }),
 });
 
