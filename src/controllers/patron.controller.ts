@@ -536,7 +536,6 @@ export const initiateFunding = asyncHandler(async (req: Request, res: Response, 
             walletId: wallet.id,
             amount: amount.toString(),
             receipt: reference,
-            description: `Patron group wallet funding for ${patronGroup.name}`
         }
     });
 

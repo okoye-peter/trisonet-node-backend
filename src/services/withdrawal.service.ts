@@ -254,7 +254,7 @@ export class WithdrawalService {
                 throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
             }
 
-            amountCalculated = user.country === "Nigeria" ? input.amount * priceValue : input.amount * 10;
+            amountCalculated = user.country === "Nigeria" ? input.amount * (priceValue ?? 0) : input.amount * 10;
         }
 
         // 10. Transaction
