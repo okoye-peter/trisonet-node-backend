@@ -22,13 +22,16 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
         // availableSlots Query
         prisma.$queryRaw<any[]>`
             SELECT 
-                FLOOR(ac.amount / ac.price_per_user) - COALESCE(t.numUsers, 0) AS "availableSlots"
+                FLOOR(ac.amount / ac.price_per_user) AS "totalSlots",
+                COALESCE(u.numUsers, 0) AS "usedSlots",
+                FLOOR(ac.amount / ac.price_per_user) - COALESCE(u.numUsers, 0) AS "availableSlots"
             FROM activation_cards ac
             LEFT JOIN (
                 SELECT activation_card_id, COUNT(*) AS numUsers
-                FROM activation_card_transactions
+                FROM users
+                WHERE activation_card_id IS NOT NULL
                 GROUP BY activation_card_id
-            ) t ON t.activation_card_id = ac.id
+            ) u ON u.activation_card_id = ac.id
             WHERE
                 ac.user_id = ${user.id}
                 AND ac.status = ${ACTIVATION_CARD_STATUSES.APPROVED}
@@ -64,13 +67,14 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
                     ac.amount,
                     ac.price_per_user AS "pricePerUser",
                     ac.created_at AS "createdAt",
-                    FLOOR(ac.amount / ac.price_per_user) - COALESCE(t.numUsers, 0) AS slots
+                    FLOOR(ac.amount / ac.price_per_user) - COALESCE(u.numUsers, 0) AS slots
                 FROM activation_cards ac
                 LEFT JOIN (
                     SELECT activation_card_id, COUNT(*) AS numUsers
-                    FROM activation_card_transactions
+                    FROM users
+                    WHERE activation_card_id IS NOT NULL
                     GROUP BY activation_card_id
-                ) t ON t.activation_card_id = ac.id
+                ) u ON u.activation_card_id = ac.id
                 WHERE
                     ac.user_id = ${user.id}
                     AND ac.status = ${ACTIVATION_CARD_STATUSES.APPROVED}
@@ -88,11 +92,15 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
         : 0;
 
     const availableSlots = Number(slotsResult[0]?.availableSlots ?? 0);
+    const usedSlots = Number(slotsResult[0]?.usedSlots ?? 0);
+    const totalSlots = Number(slotsResult[0]?.totalSlots ?? 0);
     const activeCard = activeCardResult[0] ?? null;
 
     return sendSuccess(res, 200, 'User cards summary fetched successfully', {
         totalCards,
         availableSlots,
+        usedSlots,
+        totalSlots,
         pendingCards,
         price,
         activeCard,
@@ -131,7 +139,7 @@ export const getUserCards = asyncHandler(async (req: any, res: Response) => {
             include: {
                 _count: {
                     select: {
-                        transactions: true
+                        usersWithCard: true
                     }
                 }
             },
