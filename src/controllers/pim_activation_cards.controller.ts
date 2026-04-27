@@ -21,12 +21,11 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
         }),
         // availableSlots Query
         prisma.$queryRaw<any[]>`
-            SELECT SUM(
-                FLOOR((ac.amount - COALESCE(t.totalSpent, 0)) / ac.price_per_user)
-            ) AS "availableSlots"
+            SELECT 
+                FLOOR(ac.amount / ac.price_per_user) - COALESCE(t.numUsers, 0) AS "availableSlots"
             FROM activation_cards ac
             LEFT JOIN (
-                SELECT activation_card_id, SUM(amount) AS totalSpent
+                SELECT activation_card_id, COUNT(*) AS numUsers
                 FROM activation_card_transactions
                 GROUP BY activation_card_id
             ) t ON t.activation_card_id = ac.id
@@ -34,6 +33,8 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
                 ac.user_id = ${user.id}
                 AND ac.status = ${ACTIVATION_CARD_STATUSES.APPROVED}
                 AND ac.price_per_user > 0
+            ORDER BY ac.created_at DESC
+            LIMIT 1
         `,
         // pendingCards Query
         prisma.activationCard.count({
@@ -54,7 +55,8 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
                 code,
                 amount,
                 pricePerUser,
-                createdAt
+                createdAt,
+                slots
             FROM (
                 SELECT
                     ac.id,
@@ -62,10 +64,10 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
                     ac.amount,
                     ac.price_per_user AS "pricePerUser",
                     ac.created_at AS "createdAt",
-                    FLOOR((ac.amount - COALESCE(t.totalSpent, 0)) / ac.price_per_user) AS slots
+                    FLOOR(ac.amount / ac.price_per_user) - COALESCE(t.numUsers, 0) AS slots
                 FROM activation_cards ac
                 LEFT JOIN (
-                    SELECT activation_card_id, SUM(amount) AS totalSpent
+                    SELECT activation_card_id, COUNT(*) AS numUsers
                     FROM activation_card_transactions
                     GROUP BY activation_card_id
                 ) t ON t.activation_card_id = ac.id
@@ -126,6 +128,13 @@ export const getUserCards = asyncHandler(async (req: any, res: Response) => {
         prisma.activationCard,
         {
             where: whereClause,
+            include: {
+                _count: {
+                    select: {
+                        transactions: true
+                    }
+                }
+            },
             orderBy: {
                 createdAt: 'desc'
             }
