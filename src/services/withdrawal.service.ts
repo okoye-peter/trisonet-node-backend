@@ -162,6 +162,11 @@ export class WithdrawalService {
             throw new AppError('Invalid wallet selected', 400);
         }
 
+        // Restriction: Patronage wallet is not withdrawable
+        if (wallet.type === 'patronage') {
+            throw new AppError('The patronage wallet is restricted to sponsorship and member activations and cannot be withdrawn directly.', 400);
+        }
+
         // New Rule: Max 50% withdrawal limit
         if (wallet.type == 'earning') {
             if (input.amount > (wallet.amount * 0.5)) throw new AppError(`Note: You can only withdraw up to 50% of your total balance. Current maximum: ₦${(wallet.amount * 0.5).toLocaleString()}`, 400);

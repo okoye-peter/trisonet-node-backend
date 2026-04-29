@@ -49,9 +49,25 @@ export const getWalletTransfers = asyncHandler(async (req: Request, res: Respons
 
 export const getAuthUserWallets = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const wallets = await getSafeUserWallets(user.id);
+    let wallets = await getSafeUserWallets(user.id);
 
-    sendSuccess(res, 200, 'wallet transfers fetched successfully', wallets);
+    // If member patron, also fetch parent's patronage wallet
+    if (user.patronId) {
+        const parentPatronageWallet = await prisma.wallet.findFirst({
+            where: {
+                userId: user.patronId,
+                type: 'patronage'
+            }
+        });
+
+        if (parentPatronageWallet) {
+            // Mark it as parent's so frontend knows
+            (parentPatronageWallet as any).isParentWallet = true;
+            wallets.push(parentPatronageWallet);
+        }
+    }
+
+    sendSuccess(res, 200, 'wallets fetched successfully', wallets);
 });
 
 

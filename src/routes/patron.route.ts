@@ -12,6 +12,7 @@ router.use(protect);
 router.use(restrictTo(ROLES.PATRON));
 
 router.get('/dashboard', patronController.getDashboard);
+router.get('/plans', patronController.getPlans);
 router.get('/members', patronController.getMembers);
 router.get('/beneficiaries', patronController.getBeneficiaries);
 
@@ -19,6 +20,12 @@ router.post(
     '/create-group',
     validate(patronValidation.createGroupSchema),
     patronController.createGroup
+);
+
+router.post(
+    '/add-co-patron',
+    validate(patronValidation.addMemberSchema),
+    patronController.createOrganizationCoPatron
 );
 
 router.post(
@@ -37,6 +44,11 @@ router.post(
     '/fund-group',
     validate(patronValidation.fundGroupSchema),
     patronController.initiateFunding
+);
+
+router.get(
+    '/funding-status/:reference',
+    patronController.checkFundingStatus
 );
 
 router.post(

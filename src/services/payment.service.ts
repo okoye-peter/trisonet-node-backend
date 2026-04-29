@@ -3,6 +3,7 @@ import { pagaLogger } from "../utils/logger.js";
 import { AppError } from "../utils/AppError.js";
 import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
+import { ROLES } from "../config/constants.js";
 
 export class PaymentService {
     /**
@@ -14,6 +15,14 @@ export class PaymentService {
         if (!['PAYMENT_COMPLETE', 'PARTIAL_PAYMENT'].includes(event)) {
             pagaLogger.error(`Paga webhook received for ref: ${externalReferenceNumber} with event: ${event} and status: ${status}. data: ${JSON.stringify(payload)}`);
             return { status: 'skipped' };
+        }
+
+        if (externalReferenceNumber.startsWith('PG_FUND')) {
+            return await this.processPatronGroupFunding(payload);
+        }
+
+        if (externalReferenceNumber.startsWith('ACTIVATION')) {
+            return await this.processUserActivation(payload);
         }
 
         // 1. Find the funding record
@@ -210,6 +219,88 @@ export class PaymentService {
         return { status: 'ok' };
     }
 
+    private async processPatronGroupFunding(payload: any) {
+        const { externalReferenceNumber, paymentAmount } = payload;
+        
+        const fundingRecord = await prisma.patronGroupTransaction.findFirst({
+            where: { reference: externalReferenceNumber, type: 'credit' },
+            include: { patronGroup: true }
+        });
+
+        if (!fundingRecord) {
+            pagaLogger.error(`Patron Group Funding transaction not found for ref: ${externalReferenceNumber}`);
+            return { status: 'not_found' };
+        }
+
+        if (paymentAmount && Number(fundingRecord.amount) > Number(paymentAmount)) {
+            pagaLogger.error(`Paga failed PG transaction due to amount mismatch. Expected: ${fundingRecord.amount}, Paid: ${paymentAmount}.`);
+            return { status: 'amount_mismatch' };
+        }
+
+        if (fundingRecord.status === 'success') {
+            return { status: 'already_processed' };
+        }
+
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            // 1. Update transaction status
+            await tx.patronGroupTransaction.update({
+                where: { id: fundingRecord.id },
+                data: { status: 'success' }
+            });
+            
+            // 2. Mark the group as funded
+            // Note: Dashboard logic depends on a successful credit transaction existing
+            
+            pagaLogger.info(`Patron Group Funding successful for group: ${fundingRecord.patronGroupId}, amount: ${paymentAmount}`);
+        });
+
+        return { status: 'ok' };
+    }
+
+    private async processUserActivation(payload: any) {
+        const { externalReferenceNumber, paymentAmount } = payload;
+
+        const activationRequest = await prisma.userActivationRequest.findUnique({
+            where: { reference: externalReferenceNumber },
+            include: { user: true }
+        });
+
+        if (!activationRequest) {
+            pagaLogger.error(`User Activation Request not found for ref: ${externalReferenceNumber}`);
+            return { status: 'not_found' };
+        }
+
+        if (paymentAmount && Number(activationRequest.amount) > Number(paymentAmount)) {
+            pagaLogger.error(`Paga failed activation due to amount mismatch. Expected: ${activationRequest.amount}, Paid: ${paymentAmount}.`);
+            return { status: 'amount_mismatch' };
+        }
+
+        if (activationRequest.status === 'approved') {
+            return { status: 'already_processed' };
+        }
+
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            // Update request status
+            await tx.userActivationRequest.update({
+                where: { id: activationRequest.id },
+                data: { 
+                    status: 'approved',
+                    confirmedAt: new Date()
+                }
+            });
+
+            // Activate user account
+            await tx.user.update({
+                where: { id: activationRequest.userId },
+                data: { state: 1 } // Assuming 1 is ACTIVE based on constants
+            });
+
+            pagaLogger.info(`User Activation successful for user: ${activationRequest.userId}, reference: ${externalReferenceNumber}`);
+        });
+
+        return { status: 'ok' };
+    }
+
     /**
      * Initiate GKWTH purchase
      */
@@ -272,6 +363,53 @@ export class PaymentService {
     }
 
     /**
+     * Initiate patronage wallet funding
+     */
+    async initiatePatronageWalletFunding(userId: bigint, amount: number, user: any) {
+        const wallet = await prisma.wallet.findFirst({
+            where: { userId: userId, type: 'patronage' }
+        });
+
+        if (!wallet) {
+            throw new AppError('Patronage wallet not found', 400);
+        }
+
+        const pagaService = new PagaService();
+        const ref = pagaService.generateReference('WALLET');
+
+        const response = await pagaService.generateVirtualAccount(
+            Number(amount),
+            user.name,
+            user.phone,
+            ref
+        );
+
+        if (!response.success) {
+            throw new AppError(response.error || 'Failed to generate virtual account', 400);
+        }
+
+        // Create a pending funding record
+        await prisma.manuallyFunding.create({
+            data: {
+                walletId: wallet.id,
+                amount: amount.toString(),
+                receipt: ref,
+            }
+        });
+
+        return {
+            reference: ref,
+            amount: response.data.amount,
+            account_detail: {
+                account_name: response.data.account_name,
+                bank_name: response.data.bank_name,
+                account_number: response.data.virtual_account,
+                expiry_date: response.data.expiry_date_full ? format(new Date(response.data.expiry_date_full), 'HH:mm') : format(addMinutes(new Date(), 28), 'HH:mm'),
+            }
+        };
+    }
+
+    /**
      * Initiate direct wallet funding
      */
     async initiateDirectWalletFunding(userId: bigint, amount: number, user: any) {
@@ -289,6 +427,11 @@ export class PaymentService {
 
         if (!wallet) {
             throw new AppError('Direct wallet not found', 400);
+        }
+
+        // Restriction: Patrons cannot fund their direct wallet
+        if (user.role === ROLES.PATRON) {
+            throw new AppError('Patrons are restricted from manually funding their direct wallet. Please fund your patronage wallet or organization balance instead.', 400);
         }
 
         const pagaService = new PagaService();

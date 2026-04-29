@@ -11,6 +11,7 @@ import { createUser } from '../services/customer_registration.service';
 import { prisma } from '../config/prisma';
 import { ROLES } from '../config/constants';
 import { getSafeUserWallets } from '../utils/prismaUtils';
+import WalletService from '../services/wallet.service';
 
 export const register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userData = req.body;
@@ -23,6 +24,55 @@ export const register = asyncHandler(async (req: Request, res: Response, next: N
     await createUser(userData)
 
     sendSuccess(res, 201, 'User registered successfully');
+});
+
+export const registerPatron = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { name, email, phone, password, patronType } = req.body;
+
+    const existingUser = await prisma.user.findFirst({ where: { email } });
+    if (existingUser) {
+        return next(new AppError('Email already in use', 400));
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const username = email.split('@')[0] + crypto.randomInt(1000, 9999);
+
+    const user = await prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+            data: {
+                name,
+                email,
+                phone,
+                password: hashedPassword,
+                username,
+                role: ROLES.PATRON,
+            }
+        });
+
+        if (patronType === 'group') {
+            const group = await tx.patronGroup.create({
+                data: {
+                    owner: { connect: { id: createdUser.id } },
+                    type: patronType
+                }
+            });
+
+            await tx.user.update({
+                where: { id: createdUser.id },
+                data: { 
+                    patronGroupId: group.id,
+                    pendingPatronType: 'group'
+                }
+            });
+        }
+
+        // Initialize wallets (direct and patronage)
+        await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx);
+
+        return createdUser;
+    });
+
+    sendSuccess(res, 201, 'Patron registered successfully');
 });
 
 export const login = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
