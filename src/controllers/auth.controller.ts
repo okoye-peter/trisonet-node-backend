@@ -61,7 +61,7 @@ export const registerPatron = asyncHandler(async (req: Request, res: Response, n
                 where: { id: createdUser.id },
                 data: { 
                     patronGroupId: group.id,
-                    pendingPatronType: 'group'
+                    pending_patron_type: 'group'
                 }
             });
         }

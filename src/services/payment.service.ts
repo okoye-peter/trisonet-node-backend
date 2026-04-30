@@ -292,7 +292,7 @@ export class PaymentService {
             // Activate user account
             await tx.user.update({
                 where: { id: activationRequest.userId },
-                data: { state: 1 } // Assuming 1 is ACTIVE based on constants
+                data: { accountState: 1 }
             });
 
             pagaLogger.info(`User Activation successful for user: ${activationRequest.userId}, reference: ${externalReferenceNumber}`);

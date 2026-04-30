@@ -355,7 +355,7 @@ export const createGroup = asyncHandler(async (req: Request, res: Response, next
                 where: { id: user.patronGroupId },
                 data: {
                     name: name.toLowerCase(),
-                    plan: planConfig ? { connect: { id: planConfig.id } } : undefined,
+                    ...(planConfig ? { plan: { connect: { id: planConfig.id } } } : {}),
                 }
             });
         } else {
@@ -365,7 +365,7 @@ export const createGroup = asyncHandler(async (req: Request, res: Response, next
                     name: name.toLowerCase(),
                     owner: { connect: { id: BigInt(user.id) } },
                     type: patronType,
-                    plan: planConfig ? { connect: { id: planConfig.id } } : undefined,
+                    ...(planConfig ? { plan: { connect: { id: planConfig.id } } } : {}),
                 }
             });
 
@@ -373,7 +373,7 @@ export const createGroup = asyncHandler(async (req: Request, res: Response, next
                 where: { id: user.id },
                 data: { 
                     patronGroupId: group.id,
-                    pendingPatronType: null
+                    pending_patron_type: null
                 }
             });
         }
