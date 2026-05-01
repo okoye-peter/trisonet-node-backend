@@ -660,7 +660,7 @@ export const initiateFunding = asyncHandler(async (req: Request, res: Response, 
 
     // Track this payment attempt for activation verification
     const activationPayment = await (prisma as any).patronActivationPayment.create({
-        data: { amount: (amount + serviceCharge), status: 0, reference: result.reference, charge: serviceCharge }
+        data: { amount: (amount + serviceCharge), status: 0, reference: result.reference, charges: serviceCharge }
     });
     await (prisma as any).userPatronActivationPivotTable.create({
         data: { userId: BigInt(user.id), patronActivationPaymentId: activationPayment.id }
