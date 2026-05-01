@@ -26,6 +26,7 @@ export const registerPatronSchema = z.object({
         phone: z.string({ error: 'phone is required' }).min(10, 'phone number must be at least 10 digits long').max(15, 'phone number must be at most 15 digits long'),
         password: z.string({ error: 'password is required' }).min(8, 'password must be at least 8 characters long').max(255, 'password must be at most 255 characters long'),
         patronType: z.enum(['individual', 'group'], { error: 'patronType must be individual or group' }),
+        planId: z.string({ error: 'planId must be a string' }).min(1, 'Please select a plan'),
     }),
 });
 export const loginSchema = z.object({

@@ -4,6 +4,7 @@ import { AppError } from '../utils/AppError';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from './asyncHandler';
 import { getSafeUserWallets } from '../utils/prismaUtils';
+import { ROLES } from '../config/constants';
 
 interface JwtPayload {
     id: string;
@@ -26,7 +27,10 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JwtPayload;
         const userId = BigInt(decoded.id);
         const [currentUser, wallets] = await Promise.all([
-            prisma.user.findUnique({ where: { id: userId } }),
+            (prisma as any).user.findUnique({
+                where: { id: userId },
+                include: { patronPlan: { select: { id: true, name: true, minAmount: true, maxAmount: true, earningPercentage: true } } }
+            }),
             getSafeUserWallets(userId)
         ]);
 
@@ -34,8 +38,21 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
             return next(new AppError('The user belonging to this token does no longer exist.', 401));
         }
 
+        let patronActivated = false;
+        if (Number(currentUser.role) === ROLES.PATRON) {
+            const activationPivot = await (prisma as any).userPatronActivationPivotTable.findFirst({
+                where: { userId: currentUser.id },
+                include: { patronActivationPayment: { select: { status: true, amount: true } } }
+            });
+            const payment = activationPivot?.patronActivationPayment;
+            const minAmount = currentUser.patronPlan?.minAmount;
+            patronActivated = !!minAmount &&
+                payment?.status === 1 &&
+                Number(payment.amount) >= Number(minAmount);
+        }
+
         // Attach user with wallets to request
-        (req as any).user = { ...currentUser, wallets };
+        (req as any).user = { ...currentUser, wallets, patronActivated };
         next();
     } catch (error) {
         return next(new AppError('Invalid token or token expired.', 401));

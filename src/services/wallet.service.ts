@@ -12,7 +12,7 @@ class WalletService {
             data.push({ userId, type: WalletType.direct });
             data.push({ userId, type: WalletType.indirect });
         } else if (role == ROLES.PATRON) {
-            data.push({ userId, type: WalletType.direct });
+            data.push({ userId, type: WalletType.indirect });
             data.push({ userId, type: WalletType.patronage });
         }
 

@@ -74,16 +74,12 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
             }
         }),
         getSafeUserWallets(user.id),
-        prisma.region.findFirst({
-            where: {
-                id: user.regionId
-            }
-        }),
-        prisma.user.count({
-            where: {
-                regionId: user.regionId
-            }
-        })
+        user.regionId
+            ? prisma.region.findFirst({ where: { id: user.regionId } })
+            : Promise.resolve(null),
+        user.regionId
+            ? prisma.user.count({ where: { regionId: user.regionId } })
+            : Promise.resolve(0)
     ])
 
     const assetDepot = MAX_ASSET_DEPOT - (totalSales % MAX_ASSET_DEPOT);

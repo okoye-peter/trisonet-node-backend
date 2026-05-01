@@ -26,8 +26,15 @@ export const register = asyncHandler(async (req: Request, res: Response, next: N
     sendSuccess(res, 201, 'User registered successfully');
 });
 
+export const getPublicPatronPlans = asyncHandler(async (req: Request, res: Response) => {
+    const plans = await (prisma as any).patronPlan.findMany({
+        orderBy: { minAmount: 'asc' },
+    });
+    return sendSuccess(res, 200, 'Patron plans retrieved successfully', plans);
+});
+
 export const registerPatron = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { name, email, phone, password, patronType } = req.body;
+    const { name, email, phone, password, patronType, planId } = req.body;
 
     const existingUser = await prisma.user.findFirst({ where: { email } });
     if (existingUser) {
@@ -46,20 +53,23 @@ export const registerPatron = asyncHandler(async (req: Request, res: Response, n
                 password: hashedPassword,
                 username,
                 role: ROLES.PATRON,
+                patronPlanId: planId ? BigInt(planId) : null,
             }
         });
 
         if (patronType === 'group') {
-            const group = await tx.patronGroup.create({
-                data: {
-                    owner: { connect: { id: createdUser.id } },
-                    type: patronType
-                }
-            });
+            const groupData: any = {
+                owner: { connect: { id: createdUser.id } },
+                type: patronType,
+            };
+            if (planId) {
+                groupData.plan = { connect: { id: BigInt(planId) } };
+            }
+            const group = await (tx as any).patronGroup.create({ data: groupData });
 
             await tx.user.update({
                 where: { id: createdUser.id },
-                data: { 
+                data: {
                     patronGroupId: group.id,
                     pending_patron_type: 'group'
                 }
@@ -72,7 +82,23 @@ export const registerPatron = asyncHandler(async (req: Request, res: Response, n
         return createdUser;
     });
 
-    sendSuccess(res, 201, 'Patron registered successfully');
+    const accessToken = signAccessToken(user.id.toString());
+    const refreshToken = signRefreshToken(user.id.toString());
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken },
+    });
+
+    const patronPlan = planId ? await (prisma as any).patronPlan.findUnique({ where: { id: BigInt(planId) } }) : null;
+    const wallets = await getSafeUserWallets(user.id);
+    const { password: _, ...userWithoutPassword } = user as any;
+
+    sendSuccess(res, 201, 'Patron registered successfully', {
+        user: { ...userWithoutPassword, wallets, patronPlan },
+        accessToken,
+        refreshToken,
+    });
 });
 
 export const login = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -132,7 +158,6 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     }
 
     const wallets = await getSafeUserWallets(user.id);
-    const userWithWallets = { ...user, wallets };
 
     // Allow Patrons, Admins, and Super Admins to bypass the level 2 requirement
     const bypassRoles = [ROLES.PATRON, ROLES.ADMIN, ROLES.SUPER_ADMIN];
@@ -148,10 +173,29 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
         data: { refreshToken },
     });
 
-    const { password: _, ...userWithoutPassword } = userWithWallets;
+    // Compute patron-specific fields
+    let patronActivated = false;
+    let patronPlan = null;
+    if (Number(user.role) === ROLES.PATRON) {
+        const [activationPivot, plan] = await Promise.all([
+            (prisma as any).userPatronActivationPivotTable.findFirst({
+                where: { userId: user.id },
+                include: { patronActivationPayment: { select: { status: true, amount: true } } }
+            }),
+            (user as any).patronPlanId
+                ? (prisma as any).patronPlan.findUnique({ where: { id: (user as any).patronPlanId } })
+                : null,
+        ]);
+        patronPlan = plan;
+        const payment = activationPivot?.patronActivationPayment;
+        const minAmount = plan?.minAmount;
+        patronActivated = !!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount);
+    }
+
+    const { password: _, ...userWithoutPassword } = user as any;
 
     sendSuccess(res, 200, 'User logged in successfully', {
-        user: userWithoutPassword,
+        user: { ...userWithoutPassword, wallets, patronPlan, patronActivated },
         accessToken,
         refreshToken,
     });

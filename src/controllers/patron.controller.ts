@@ -427,7 +427,7 @@ export const addMember = asyncHandler(async (req: Request, res: Response, next: 
     const { name, email, phone, password: providedPassword } = req.body;
 
     // Only top-level patrons (those without a patronId) can add members
-    if (user.role !== ROLES.PATRON || (!user.patronGroupId && !user.patronId)) {
+    if (user.role !== ROLES.PATRON || (user.patronId)) {
         return next(new AppError('Unauthorized. Only individual patrons or patrons with an organization can add members.', 403));
     }
 
@@ -653,8 +653,18 @@ export const initiateFunding = asyncHandler(async (req: Request, res: Response, 
         return next(new AppError('Minimum funding amount is ₦1,000', 400));
     }
 
+    const serviceCharge = 50000;
+
     const paymentService = new PaymentService();
-    const result = await paymentService.initiatePatronageWalletFunding(BigInt(user.id), amount, user);
+    const result = await paymentService.initiatePatronageWalletFunding(BigInt(user.id), (amount + serviceCharge), user);
+
+    // Track this payment attempt for activation verification
+    const activationPayment = await (prisma as any).patronActivationPayment.create({
+        data: { amount: (amount + serviceCharge), status: 0, reference: result.reference, charge: serviceCharge }
+    });
+    await (prisma as any).userPatronActivationPivotTable.create({
+        data: { userId: BigInt(user.id), patronActivationPaymentId: activationPayment.id }
+    });
 
     return sendSuccess(res, 200, 'Funding initiated', result);
 });
@@ -670,8 +680,17 @@ export const checkFundingStatus = asyncHandler(async (req: Request, res: Respons
         where: { receipt: reference }
     });
 
-    // 2. If record is gone, it might have been processed by webhook already
+    // 2. If record is gone, payment was processed — mark activation payment as confirmed
     if (!fundingRecord) {
+        const activationPayment = await (prisma as any).patronActivationPayment.findFirst({
+            where: { reference }
+        });
+        if (activationPayment && activationPayment.status !== 1) {
+            await (prisma as any).patronActivationPayment.update({
+                where: { id: activationPayment.id },
+                data: { status: 1 }
+            });
+        }
         return sendSuccess(res, 200, 'Transaction status checked', { status: 'success' });
     }
 

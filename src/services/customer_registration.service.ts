@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma, WalletType, User } from "../config/prisma.js";
 import RegionService from "./region.service.js";
-import { ROLES } from "../config/constants.js";
+import { ROLES, INFANT_FORM_FEE } from "../config/constants.js";
 import { handleReferral } from "./referral.service.js";
 import WalletService from "./wallet.service.js";
 import { AccountActivationService } from "./account_activation.service.js";
@@ -126,6 +126,7 @@ export const createUser = async (data: UserRequestData) => {
 
     await WalletService.createWallets(user.id, ROLES.CUSTOMER);
     await handleAdultSponsorship(user.id, referral_id);
+    await handlePatron(referral_id, user);
 
     return user;
 }
@@ -192,3 +193,46 @@ const handleAdultSponsorship = async (userId: bigint, username: string) => {
         }
     }
 }
+
+export const handlePatron = async (patronId: string | null | undefined, user: Pick<User, 'id' | 'sponsorId'>): Promise<void> => {
+    if (!patronId) return;
+
+    let patron = await prisma.user.findFirst({
+        where: { role: ROLES.PATRON, id: BigInt(patronId) },
+        include: { wallets: true },
+    });
+
+    if (!patron) return;
+
+    // If the patron belongs to a parent patron, use the parent for the wallet deduction
+    if (patron.patronId) {
+        patron = await prisma.user.findUnique({
+            where: { id: patron.patronId },
+            include: { wallets: true },
+        });
+        if (!patron) return;
+    }
+
+    const gkwthSalePrice = await prisma.setting.findUnique({ where: { key: 'gkwth_sale_price' } });
+    const activationFee = gkwthSalePrice ? parseFloat(gkwthSalePrice.value) : 0;
+    const amount = user.sponsorId ? activationFee : INFANT_FORM_FEE + activationFee;
+
+    const patronageWallet = patron.wallets.find((w: any) => w.type === WalletType.patronage);
+
+    if (!patronageWallet || Number(patronageWallet.amount) < amount) {
+        throw new Error('The selected patron has insufficient funds, please contact them to fund their patronage wallet to proceed with registration');
+    }
+
+    await prisma.wallet.update({
+        where: { id: patronageWallet.id },
+        data: { amount: { decrement: amount } },
+    });
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { patronId: patron.id },
+    });
+
+    await AccountActivationService.activateUserAccountOptimized(user.id);
+}
+
