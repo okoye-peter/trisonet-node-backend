@@ -97,11 +97,11 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
             }
         }),
         getSafeUserWallets(user.id),
+        user.region ? Promise.resolve(user.region) : (user.regionId
+            ? prisma.region.findUnique({ where: { id: BigInt(user.regionId) } })
+            : Promise.resolve(null)),
         user.regionId
-            ? prisma.region.findFirst({ where: { id: user.regionId } })
-            : Promise.resolve(null),
-        user.regionId
-            ? prisma.user.count({ where: { regionId: user.regionId } })
+            ? prisma.user.count({ where: { regionId: BigInt(user.regionId) } })
             : Promise.resolve(0)
     ])
 

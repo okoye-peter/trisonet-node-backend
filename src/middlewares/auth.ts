@@ -35,7 +35,10 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
         const [currentUser, wallets] = await Promise.all([
             (prisma as any).user.findUnique({
                 where: { id: userId },
-                include: { patronPlan: { select: { id: true, name: true, minAmount: true, maxAmount: true, earningPercentage: true } } }
+                include: { 
+                    patronPlan: { select: { id: true, name: true, minAmount: true, maxAmount: true, earningPercentage: true } },
+                    region: true
+                }
             }),
             getSafeUserWallets(userId)
         ]);
