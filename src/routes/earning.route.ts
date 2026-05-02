@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
-import { getAuthUserEarningTransactions } from "../controllers/earning.controller";
+import { convertEarnings, getAuthUserEarningTransactions, getConversionInfo } from "../controllers/earning.controller";
 
 const router = Router();
 
@@ -8,5 +8,7 @@ const router = Router();
 router.use(protect);
 
 router.get('/transactions', getAuthUserEarningTransactions);
+router.get('/conversion-info', getConversionInfo);
+router.post('/convert', convertEarnings);
 
 export default router;
