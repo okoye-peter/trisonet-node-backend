@@ -31,7 +31,7 @@ class WalletService {
             // 1. Verify Sender
             const sender = await tx.user.findUnique({
                 where: { id: senderId },
-                select: { 
+                select: {
                     id: true,
                     name: true, // Added
                     withdrawalPin: true,
@@ -65,7 +65,7 @@ class WalletService {
 
             // 2. Find Receiver
             const receiver = await tx.user.findFirst({
-                where: { 
+                where: {
                     transferId: receiverTransferId,
                     status: true,
                     accountState: 1,

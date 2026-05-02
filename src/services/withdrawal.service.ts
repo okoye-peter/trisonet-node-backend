@@ -439,7 +439,7 @@ export class WithdrawalService {
                     }
                 });
 
-                if(wallet.type === 'earning') {
+                if (wallet.type === 'earning') {
                     await tx.earningTransaction.create({
                         data: {
                             amount: request.amountRequested,
@@ -448,7 +448,7 @@ export class WithdrawalService {
                             walletId: wallet.id,
                             narration: 'withdrawal'
                         }
-                    });            
+                    });
                 }
                 // 4. Notify User
                 await NotificationService.createNotification(
@@ -461,15 +461,15 @@ export class WithdrawalService {
 
             });
         } catch (error: any) {
-                // If it's an AppError we threw, rethrow it
-                if (error instanceof AppError) throw error;
+            // If it's an AppError we threw, rethrow it
+            if (error instanceof AppError) throw error;
 
-                // Otherwise, revert status and throw
-                await prisma.withdrawalRequest.update({
-                    where: { id: requestId },
-                    data: { status: 'pending' }
-                });
-                throw new AppError(error.message || 'An error occurred during payout', 500);
-            }
+            // Otherwise, revert status and throw
+            await prisma.withdrawalRequest.update({
+                where: { id: requestId },
+                data: { status: 'pending' }
+            });
+            throw new AppError(error.message || 'An error occurred during payout', 500);
         }
+    }
 }

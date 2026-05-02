@@ -812,21 +812,17 @@ export const getTransactionsHistory = asyncHandler(async (req: Request, res: Res
 });
 
 /**
- * Get earning dashboard for top-level patrons
+ * Get earning dashboard for patrons
  */
 export const getEarningDashboard = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
     
-    if (user.patronId) {
-        throw new AppError('Only top-level patrons can access this feature', 403);
-    }
-
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     // Fetch earning wallet, indirect wallet (GKWTH), transactions, and last conversion
-    const [earningWallet, indirectWallet, transactions, totalTransactions, conversionRateSetting, lastConversion] = await Promise.all([
+    const [earningWallet, indirectWallet, transactions, totalTransactions, conversionRateSetting] = await Promise.all([
         prisma.wallet.findFirst({
             where: { userId: user.id, type: WalletType.earning }
         }),
@@ -844,27 +840,15 @@ export const getEarningDashboard = asyncHandler(async (req: Request, res: Respon
         }),
         prisma.setting.findUnique({
             where: { key: 'asset_gkwth_conversion_rate' }
-        }),
-        prisma.earningTransaction.findFirst({
-            where: { 
-                wallets: { userId: user.id },
-                type: 'debit',
-                narration: { contains: 'Conversion' }
-            },
-            orderBy: { createdAt: 'desc' }
         })
     ]);
 
     const conversionRate = Number(conversionRateSetting?.value) || 1;
     const assetBalance = Number(earningWallet?.amount) || 0;
     
-    // Calculate 50% limit and 7-day interval
-    const maxConvertibleAmount = assetBalance * 0.5;
-    let nextAllowedConversionDate = null;
-    if (lastConversion) {
-        const lastDate = new Date(lastConversion.createdAt!);
-        nextAllowedConversionDate = new Date(lastDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    }
+    // Limits removed for "everyone" version
+    const maxConvertibleAmount = assetBalance;
+    const nextAllowedConversionDate = null;
 
     return sendSuccess(res, 200, 'Earning dashboard retrieved successfully', {
         assetBalance,
@@ -889,32 +873,8 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
     const user = (req as any).user;
     const { amount } = req.body;
 
-    if (user.patronId) {
-        throw new AppError('Only top-level patrons can access this feature', 403);
-    }
-
     if (!amount || amount <= 0) {
         throw new AppError('Invalid amount to convert', 400);
-    }
-
-    // Check 7-day interval
-    const lastConversion = await prisma.earningTransaction.findFirst({
-        where: { 
-            wallets: { userId: user.id },
-            type: 'debit',
-            narration: { contains: 'Conversion' }
-        },
-        orderBy: { createdAt: 'desc' }
-    });
-
-    if (lastConversion) {
-        const lastDate = new Date(lastConversion.createdAt!);
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        if (lastDate > sevenDaysAgo) {
-            const nextDate = new Date(lastDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-            throw new AppError(`You can only convert once every 7 days. Next conversion available after ${nextDate.toLocaleString()}`, 400);
-        }
     }
 
     // Fetch conversion rate
@@ -940,12 +900,6 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
 
         if (!earningWallet || Number(earningWallet.amount) < Number(amount)) {
             throw new AppError('Insufficient asset balance', 400);
-        }
-
-        // Enforce 50% limit
-        const limit = Number(earningWallet.amount) * 0.5;
-        if (Number(amount) > limit) {
-            throw new AppError(`You can only convert up to 50% of your asset balance (${limit.toFixed(2)})`, 400);
         }
 
         // Debit earning wallet
