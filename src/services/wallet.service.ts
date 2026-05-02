@@ -4,11 +4,13 @@ import NotificationService from "./notification.service";
 import bcrypt from "bcryptjs";
 
 class WalletService {
-    static async createWallets(userId: bigint, role: number, tx?: Prisma.TransactionClient) {
+    static async createWallets(userId: bigint, role: number, tx?: Prisma.TransactionClient, walletTypes?: WalletType[]) {
         const client = tx || prisma;
         const data: { userId: bigint; type: WalletType }[] = [];
 
-        if (role == ROLES.CUSTOMER) {
+        if (walletTypes && walletTypes.length > 0) {
+            data.push(...walletTypes.map((type) => ({ userId, type })));
+        } else if (role == ROLES.CUSTOMER) {
             data.push({ userId, type: WalletType.direct });
             data.push({ userId, type: WalletType.indirect });
         } else if (role == ROLES.PATRON) {

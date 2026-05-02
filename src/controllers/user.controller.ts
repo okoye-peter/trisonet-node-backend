@@ -7,7 +7,6 @@ import { paginate } from "../utils/pagination"
 import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, ROLES } from "../config/constants"
 import bcrypt from "bcryptjs"
 import { AppError } from "../utils/AppError"
-import { differenceInMinutes } from "date-fns"
 import { getOrSetCache } from '../utils/cache';
 import { TermiiService } from '../services/termii.service';
 import { getSafeUserWallets } from "../utils/prismaUtils";
@@ -44,23 +43,47 @@ export const getUserReferrals = asyncHandler(async (req: any, res: Response, nex
 
 
 export const getAuthUser = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
-    const {
-        password, emailVerificationCode, referralId, passwordResetOtp,
-        passwordResetOtpSentAt, rememberToken, createdAt, updatedAt,
-        withdrawalPin, withdrawalPinResetOtp, withdrawalPinResetOtpSentAt,
-        referralActivateAt, infantGroupId, canWithdraw, canUseVtu,
-        deletedAt, canEarn, canOptOut, canWithdrawGkwth,
-        sponsorshipAcceptedAt, sponsorAgreement, sponsorshipStatus,
-        sponsorLoginOtp, sponsorLoginOtpCreatedAt, influencerId,
-        sponsorWithdrawalOtp, sponsorWithdrawalOtpSentAt, isDeactivated,
-        sponsorId, sponsorSlot, loginYearlyCount, schoolFeesPermittedAt,
-        withdrawalBypassAt, schoolId, address, sponsorClass,
-        blockedAt, influencerPromoPeriodId,
-        guardianId, guardianWardSlotId, patronGroupId,
-        activationCardId, bvn,
-        ...user
-    } = req.user;
-    sendSuccess(res, 200, 'User fetched successfully', user);
+    const user = { ...req.user };
+    
+    // Fields to exclude from response
+    const sensitiveFields = [
+        'password', 'emailVerificationCode', 'referralId', 'passwordResetOtp',
+        'passwordResetOtpSentAt', 'rememberToken', 'withdrawalPin', 
+        'withdrawalPinResetOtp', 'withdrawalPinResetOtpSentAt', 'bvn'
+    ];
+    sensitiveFields.forEach(field => delete user[field]);
+
+    const wallets = await getSafeUserWallets(user.id);
+
+    // Compute patron-specific fields
+    let patronActivated = false;
+    let patronPlan = null;
+
+    if (Number(user.role) === ROLES.PATRON) {
+        const [activationPivot, plan] = await Promise.all([
+            (prisma as any).userPatronActivationPivotTable.findFirst({
+                where: { userId: user.id },
+                include: { patronActivationPayment: { select: { status: true, amount: true } } }
+            }),
+            user.patronPlanId
+                ? (prisma as any).patronPlan.findUnique({ where: { id: user.patronPlanId } })
+                : user.patronGroupId
+                    ? (prisma as any).patronGroup.findUnique({
+                        where: { id: user.patronGroupId },
+                        include: { plan: true }
+                    }).then((group: any) => group?.plan || null)
+                    : null,
+        ]);
+
+        patronPlan = plan;
+        const payment = activationPivot?.patronActivationPayment;
+        const minAmount = plan?.minAmount;
+        patronActivated = !!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount);
+    }
+
+    sendSuccess(res, 200, 'User fetched successfully', {
+        user: { ...user, wallets, patronPlan, patronActivated }
+    });
 })
 
 export const getUserDashboardStats = asyncHandler(async (req: any, res: Response, next: NextFunction) => {

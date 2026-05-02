@@ -105,7 +105,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     const { email, emailOrUsername, password } = req.body;
     const identifier = email || emailOrUsername;
     const user = await prisma.user.findFirst({
-        where: { 
+        where: {
             OR: [
                 { email: identifier },
                 { username: identifier }
@@ -132,13 +132,10 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
             sponsorLoginOtpCreatedAt: true,
             sponsorWithdrawalOtp: true,
             sponsorWithdrawalOtpSentAt: true,
-            isDeactivated: true,
             sponsorSlot: true,
             loginYearlyCount: true,
             schoolFeesPermittedAt: true,
             withdrawalBypassAt: true,
-            isUnitLeader: true,
-            patronGroupId: true,
             activationCardId: true,
             blockedAt: true,
             bvn: true
@@ -152,7 +149,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
             }
         }
     });
-    
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401));
     }
@@ -184,11 +181,17 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
             }),
             (user as any).patronPlanId
                 ? (prisma as any).patronPlan.findUnique({ where: { id: (user as any).patronPlanId } })
-                : null,
+                : (user as any).patronGroupId
+                    ? (prisma as any).patronGroup.findUnique({
+                        where: { id: (user as any).patronGroupId },
+                        include: { plan: true }
+                    }).then((group: any) => group?.plan || null)
+                    : null,
         ]);
         patronPlan = plan;
         const payment = activationPivot?.patronActivationPayment;
         const minAmount = plan?.minAmount;
+
         patronActivated = !!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount);
     }
 
@@ -300,7 +303,8 @@ export const handleAuthHandoff = asyncHandler(async (req: Request, res: Response
                     name: true
                 }
             }
-        } });
+        }
+    });
 
     if (!user) {
         return next(new AppError('User not found', 404));

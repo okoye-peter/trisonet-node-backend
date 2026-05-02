@@ -15,6 +15,9 @@ router.get('/dashboard', patronController.getDashboard);
 router.get('/plans', patronController.getPlans);
 router.get('/members', patronController.getMembers);
 router.get('/beneficiaries', patronController.getBeneficiaries);
+router.get('/transactions', patronController.getTransactionsHistory);
+router.get('/earnings', patronController.getEarningDashboard);
+router.post('/convert-earnings', patronController.convertEarnings);
 
 router.post(
     '/create-group',

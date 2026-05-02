@@ -11,7 +11,8 @@ router.post('/handoff', handleAuthHandoff);
 router.get('/patron-plans', getPublicPatronPlans);
 router.post('/register', authLimiter, validate(registerSchema), register);
 router.post('/register/patron', authLimiter, validate(registerPatronSchema), registerPatron);
-router.post('/login', authLimiter, validate(loginSchema), login);
+//  authLimiter,
+router.post('/login', validate(loginSchema), login);
 router.post('/refresh-token', validate(refreshTokenSchema), getNewToken);
 
 export const authRouter = router;

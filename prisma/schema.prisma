@@ -154,6 +154,7 @@ model User {
     wallets                         Wallet[]
     wishlists                       Wishlist[]
     withDrawals                     WithDrawal[]
+    auditLogs                       AuditLog[]
     patronPlanId BigInt? @map("plan_id") @db.UnsignedBigInt
     patronPlan PatronPlan? @relation(fields: [patronPlanId], references: [id], onUpdate: NoAction, map: "users_patron_plan_id_foreign")
     patronActivationPivots UserPatronActivationPivotTable[]
@@ -1467,6 +1468,25 @@ model UserPatronActivationPivotTable {
     @@index([userId], map: "upapt_user_id_foreign")
     @@index([patronActivationPaymentId], map: "upapt_patron_activation_payment_id_foreign")
     @@map("user_patron_activation_pivot_table")
+}
+
+model AuditLog {
+    id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+    userId      BigInt?  @map("user_id") @db.UnsignedBigInt
+    action      String
+    model       String
+    modelId     String   @map("model_id")
+    oldValues   Json?    @map("old_values")
+    newValues   Json?    @map("new_values")
+    ipAddress   String?  @map("ip_address") @db.VarChar(45)
+    userAgent   String?  @map("user_agent") @db.Text
+    endpoint    String?  @db.VarChar(255)
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+    user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    @@index([model, modelId])
+    @@map("audit_logs")
 }
 
 enum AdminAction {

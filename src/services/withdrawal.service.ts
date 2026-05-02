@@ -162,6 +162,16 @@ export class WithdrawalService {
             throw new AppError('Invalid wallet selected', 400);
         }
 
+        // Rule for Patrons: with patronId -> direct, without patronId -> indirect
+        if (user.role === ROLES.PATRON) {
+            if (user.patronId !== null && wallet.type !== 'direct') {
+                throw new AppError('As a member patron, you can only withdraw from your direct wallet.', 400);
+            }
+            if (user.patronId === null && wallet.type !== 'indirect') {
+                throw new AppError('As a top-level patron, you can only withdraw from your indirect wallet.', 400);
+            }
+        }
+
         // Restriction: Patronage wallet is not withdrawable
         if (wallet.type === 'patronage') {
             throw new AppError('The patronage wallet is restricted to sponsorship and member activations and cannot be withdrawn directly.', 400);

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../config/prisma';
+import { WalletType, prisma } from '../config/prisma';
 import { asyncHandler } from '../middlewares/asyncHandler';
 import { AppError } from '../utils/AppError';
 import { sendSuccess, sendPaginated } from '../utils/responseWrapper';
@@ -118,10 +118,38 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response, nex
         prisma.user.count({ where: { patronId: user.id, role: ROLES.PATRON } })
     ]);
 
-    // Get total beneficiaries (direct recruits of my members + my direct recruits)
-    const memberIds = members.map(m => m.id);
+    // Get co-patrons (users in the same group with no patronId, excluding current user)
+    const coPatrons = await prisma.user.findMany({
+        where: { 
+            patronGroupId: user.patronGroupId, 
+            role: ROLES.PATRON, 
+            patronId: null,
+            id: { not: user.id }
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            createdAt: true
+        },
+        orderBy: { name: 'asc' }
+    });
+
+    // Get total patrons in the group (including logged in user)
+    const totalPatrons = await prisma.user.count({
+        where: { patronGroupId: user.patronGroupId, role: ROLES.PATRON }
+    });
+
+    // Get total beneficiaries for all patrons in the group
+    // First get all patron IDs in the group
+    const allPatronInGroup = await prisma.user.findMany({
+        where: { patronGroupId: user.patronGroupId, role: ROLES.PATRON },
+        select: { id: true }
+    });
+    const allPatronIds = allPatronInGroup.map(p => p.id);
     const totalBeneficiaries = await prisma.user.count({
-        where: { patronId: { in: [...memberIds, user.id] } }
+        where: { patronId: { in: allPatronIds }, role: ROLES.CUSTOMER }
     });
 
     return sendSuccess(res, 200, 'Dashboard data retrieved successfully', {
@@ -133,10 +161,12 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response, nex
             minRequirement
         } : null,
         members,
+        coPatrons,
         transactions,
         meta: {
             totalMembers: totalMembers,
-            totalBeneficiaries: totalBeneficiaries,
+            totalPatrons,
+            totalBeneficiaries,
             walletBalance: balance,
             members: {
                 total: totalMembers,
@@ -467,7 +497,7 @@ export const addMember = asyncHandler(async (req: Request, res: Response, next: 
         });
 
         // Create wallets for the member (direct and patronage)
-        await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx);
+        await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx, [WalletType.direct]);
 
         return createdUser;
     });
@@ -530,7 +560,7 @@ export const createOrganizationCoPatron = asyncHandler(async (req: Request, res:
                 phone,
                 username,
                 role: ROLES.PATRON,
-                patronId: user.id,
+                patronId: null,
                 patronGroupId: user.patronGroupId,
                 password: hashedPassword,
                 status: true,
@@ -539,7 +569,7 @@ export const createOrganizationCoPatron = asyncHandler(async (req: Request, res:
         });
 
         // Create wallets for the member (direct and patronage)
-        await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx);
+        await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx, [WalletType.indirect, WalletType.patronage, WalletType.earning]);
 
         return createdUser;
     });
@@ -736,4 +766,214 @@ export const getPlans = asyncHandler(async (req: Request, res: Response, next: N
     });
 
     return sendSuccess(res, 200, 'Patron plans retrieved successfully', plans);
+});
+
+/**
+ * Get unified transaction history for a patron
+ */
+export const getTransactionsHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const [transactions, total] = await Promise.all([
+        prisma.withDrawal.findMany({
+            where: { userId: user.id },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit
+        }),
+        prisma.withDrawal.count({
+            where: { userId: user.id }
+        })
+    ]);
+
+    const formattedTransactions = transactions.map(tx => ({
+        id: tx.id.toString(),
+        type: 'debit',
+        category: 'Withdrawal',
+        amount: Number(tx.amount),
+        description: `Withdrawal to ${tx.bankName} (${tx.accountNumber})`,
+        status: tx.isPaid === 1 ? 'success' : tx.isPaid === 2 ? 'pending' : 'failed',
+        createdAt: tx.createdAt,
+        reference: tx.reference || tx.paystackRef || tx.pagaRef
+    }));
+
+    return sendSuccess(res, 200, 'Withdrawal history retrieved successfully', {
+        transactions: formattedTransactions,
+        meta: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        }
+    });
+});
+
+/**
+ * Get earning dashboard for top-level patrons
+ */
+export const getEarningDashboard = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    
+    if (user.patronId) {
+        throw new AppError('Only top-level patrons can access this feature', 403);
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch earning wallet, indirect wallet (GKWTH), transactions, and last conversion
+    const [earningWallet, indirectWallet, transactions, totalTransactions, conversionRateSetting, lastConversion] = await Promise.all([
+        prisma.wallet.findFirst({
+            where: { userId: user.id, type: WalletType.earning }
+        }),
+        prisma.wallet.findFirst({
+            where: { userId: user.id, type: WalletType.indirect }
+        }),
+        prisma.earningTransaction.findMany({
+            where: { wallets: { userId: user.id } },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit
+        }),
+        prisma.earningTransaction.count({
+            where: { wallets: { userId: user.id } }
+        }),
+        prisma.setting.findUnique({
+            where: { key: 'asset_gkwth_conversion_rate' }
+        }),
+        prisma.earningTransaction.findFirst({
+            where: { 
+                wallets: { userId: user.id },
+                type: 'debit',
+                narration: { contains: 'Conversion' }
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+    ]);
+
+    const conversionRate = Number(conversionRateSetting?.value) || 1;
+    const assetBalance = Number(earningWallet?.amount) || 0;
+    
+    // Calculate 50% limit and 7-day interval
+    const maxConvertibleAmount = assetBalance * 0.5;
+    let nextAllowedConversionDate = null;
+    if (lastConversion) {
+        const lastDate = new Date(lastConversion.createdAt);
+        nextAllowedConversionDate = new Date(lastDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    }
+
+    return sendSuccess(res, 200, 'Earning dashboard retrieved successfully', {
+        assetBalance,
+        gkwthBalance: indirectWallet?.amount || 0,
+        conversionRate,
+        maxConvertibleAmount,
+        nextAllowedConversionDate,
+        transactions,
+        meta: {
+            total: totalTransactions,
+            page,
+            limit,
+            totalPages: Math.ceil(totalTransactions / limit)
+        }
+    });
+});
+
+/**
+ * Convert assets to GKWTH
+ */
+export const convertEarnings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    const { amount } = req.body;
+
+    if (user.patronId) {
+        throw new AppError('Only top-level patrons can access this feature', 403);
+    }
+
+    if (!amount || amount <= 0) {
+        throw new AppError('Invalid amount to convert', 400);
+    }
+
+    // Check 7-day interval
+    const lastConversion = await prisma.earningTransaction.findFirst({
+        where: { 
+            wallets: { userId: user.id },
+            type: 'debit',
+            narration: { contains: 'Conversion' }
+        },
+        orderBy: { createdAt: 'desc' }
+    });
+
+    if (lastConversion) {
+        const lastDate = new Date(lastConversion.createdAt);
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        if (lastDate > sevenDaysAgo) {
+            const nextDate = new Date(lastDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+            throw new AppError(`You can only convert once every 7 days. Next conversion available after ${nextDate.toLocaleString()}`, 400);
+        }
+    }
+
+    // Fetch conversion rate
+    const conversionRateSetting = await prisma.setting.findUnique({
+        where: { key: 'asset_gkwth_conversion_rate' }
+    });
+    const conversionRate = Number(conversionRateSetting?.value) || 1;
+    const convertedAmount = Number(amount) / conversionRate;
+
+    await prisma.$transaction(async (tx) => {
+        // Fetch wallets within transaction for locking
+        const earningWallet = await tx.wallet.findFirst({
+            where: { userId: user.id, type: WalletType.earning }
+        });
+
+        const indirectWallet = await tx.wallet.findFirst({
+            where: { userId: user.id, type: WalletType.indirect }
+        });
+
+        if (!indirectWallet) {
+            throw new AppError('GKWTH wallet not found', 404);
+        }
+
+        if (!earningWallet || Number(earningWallet.amount) < Number(amount)) {
+            throw new AppError('Insufficient asset balance', 400);
+        }
+
+        // Enforce 50% limit
+        const limit = Number(earningWallet.amount) * 0.5;
+        if (Number(amount) > limit) {
+            throw new AppError(`You can only convert up to 50% of your asset balance (${limit.toFixed(2)})`, 400);
+        }
+
+        // Debit earning wallet
+        await tx.wallet.update({
+            where: { id: earningWallet.id },
+            data: { amount: { decrement: Number(amount) } }
+        });
+
+        // Credit indirect wallet
+        await tx.wallet.update({
+            where: { id: indirectWallet.id },
+            data: { amount: { increment: convertedAmount } }
+        });
+
+        // Create earning transaction (debit)
+        await tx.earningTransaction.create({
+            data: {
+                walletId: earningWallet.id,
+                amount: Number(amount),
+                type: 'debit',
+                narration: `Conversion of ${amount} assets to ${convertedAmount.toFixed(2)} GKWTH`,
+                reference: `CONV-${Date.now()}`
+            }
+        });
+    });
+
+    return sendSuccess(res, 200, 'Assets converted to GKWTH successfully', {
+        convertedAmount,
+        conversionRate
+    });
 });

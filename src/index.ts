@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { morganMiddleware } from './middlewares/morganMiddleware';
 import { errorHandler } from './middlewares/errorHandler';
+import { auditContextMiddleware } from './middlewares/auditContext';
 
 import { authRouter } from './routes/auth.routes';
 import { uploadRouter } from './routes/upload.routes';
@@ -66,6 +67,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(auditContextMiddleware);
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 app.use(morganMiddleware);

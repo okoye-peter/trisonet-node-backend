@@ -6,6 +6,8 @@ import { asyncHandler } from './asyncHandler';
 import { getSafeUserWallets } from '../utils/prismaUtils';
 import { ROLES } from '../config/constants';
 
+import { setAuditUser } from './auditContext';
+
 interface JwtPayload {
     id: string;
 }
@@ -26,6 +28,10 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JwtPayload;
         const userId = BigInt(decoded.id);
+        
+        // Set user ID for auditing context
+        setAuditUser(userId);
+
         const [currentUser, wallets] = await Promise.all([
             (prisma as any).user.findUnique({
                 where: { id: userId },

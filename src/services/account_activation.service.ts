@@ -213,6 +213,24 @@ export class AccountActivationService {
                 }
             }
 
+            // patron commission
+            if (user.patronId && !user.activatedAt) {
+                const patron = await prisma.user.findUnique({
+                    where: { id: user.patronId },
+                    include: { wallets: true }
+                });
+
+                if (patron && patron.patronId) {
+                    const patWallet = patron.wallets.find((w: any) => w.type === WalletType.direct);
+                    if (patWallet) {
+                        await prisma.wallet.update({
+                            where: { id: patWallet.id },
+                            data: { amount: { increment: commission } }
+                        });
+                    }
+                }
+            }
+
             // Update user status
             await prisma.user.update({
                 where: { id: user.id },
