@@ -862,7 +862,7 @@ export const getEarningDashboard = asyncHandler(async (req: Request, res: Respon
     const maxConvertibleAmount = assetBalance * 0.5;
     let nextAllowedConversionDate = null;
     if (lastConversion) {
-        const lastDate = new Date(lastConversion.createdAt);
+        const lastDate = new Date(lastConversion.createdAt!);
         nextAllowedConversionDate = new Date(lastDate.getTime() + 7 * 24 * 60 * 60 * 1000);
     }
 
@@ -908,7 +908,7 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
     });
 
     if (lastConversion) {
-        const lastDate = new Date(lastConversion.createdAt);
+        const lastDate = new Date(lastConversion.createdAt!);
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         if (lastDate > sevenDaysAgo) {
