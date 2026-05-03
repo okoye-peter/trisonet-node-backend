@@ -85,10 +85,24 @@ export const getConversionInfo = asyncHandler(async (req: Request, res: Response
  */
 export const convertEarnings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
-    const { amount } = req.body;
+    const { amount, pin } = req.body;
 
     if (!amount || amount <= 0) {
         throw new AppError('Invalid amount to convert', 400);
+    }
+
+    if (!pin) {
+        throw new AppError('Withdrawal pin is required', 400);
+    }
+
+    // Verify withdrawal pin
+    if (!user.withdrawalPin) {
+        throw new AppError('Please set your withdrawal pin in your profile first', 400);
+    }
+
+    const isPinValid = await EarningService.verifyPin(pin, user.withdrawalPin);
+    if (!isPinValid) {
+        throw new AppError('Invalid withdrawal pin', 400);
     }
 
     // Fetch conversion rate

@@ -65,3 +65,30 @@ export const getWithdrawalRequests = asyncHandler(async (req: any, res: Response
 
     sendSuccess(res, 200, 'Withdrawal requests fetched successfully', requests);
 });
+
+export const getMyWithdrawalRequests = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { page, limit } = req.query;
+    const userEmail = user.email || user.username || '';
+
+    const requests = await paginate(
+        prisma.withdrawalRequest,
+        {
+            where: {
+                userEmail: userEmail
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            include: {
+                wallet: true
+            }
+        },
+        { 
+            page: typeof page === 'string' ? page : undefined, 
+            limit: typeof limit === 'string' ? limit : undefined 
+        }
+    );
+
+    sendSuccess(res, 200, 'My withdrawal requests fetched successfully', requests);
+});

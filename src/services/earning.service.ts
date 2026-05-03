@@ -34,6 +34,11 @@ class EarningService {
             options
         );
     }
+
+    static async verifyPin(rawPin: string, hashedPin: string): Promise<boolean> {
+        const bcrypt = await import('bcryptjs');
+        return await bcrypt.default.compare(rawPin, hashedPin);
+    }
 }
 
 export default EarningService;

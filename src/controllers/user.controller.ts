@@ -421,6 +421,22 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
     sendSuccess(res, 200, 'Verification code sent to your phone number');
 });
 
+export const verifyWithdrawalPinOtp = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const { otp } = req.body;
+    const user = await prisma.user.findFirst({
+        where: { id: req.user.id }
+    });
+
+    if (!user) return next(new AppError('User not found', 404));
+
+    if (user.withdrawalPinResetOtp !== otp) return next(new AppError('Invalid OTP', 400));
+
+    // 10 minutes max
+    if (user.withdrawalPinResetOtpSentAt && user.withdrawalPinResetOtpSentAt < new Date(Date.now() - 10 * 60 * 1000)) return next(new AppError('OTP expired', 400));
+
+    sendSuccess(res, 200, 'OTP verified successfully');
+});
+
 export const resetWithdrawalPin = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { otp, newPin } = req.body;
     const user = await prisma.user.findFirst({

@@ -130,11 +130,11 @@ export class WithdrawalService {
             throw new AppError('Withdrawal currently not available for this account, contact admin for assistance', 400);
         }
 
-        if (user.role !== ROLES.PATRON && (!user.bank || !user.accountNumber)) {
+        if (!user.bank || !user.accountNumber) {
             throw new AppError('Please update your bank details first', 400);
         }
 
-        const rolesRequiringPin = [ROLES.CUSTOMER, ROLES.SCHOOL, ROLES.INFLUENCER];
+        const rolesRequiringPin = [ROLES.CUSTOMER, ROLES.SCHOOL, ROLES.INFLUENCER, ROLES.PATRON];
         if (rolesRequiringPin.includes(user.role) && !user.withdrawalPin) {
             throw new AppError('Please update your transaction pin first', 400);
         }
@@ -211,21 +211,12 @@ export class WithdrawalService {
         }
 
         // 5. PIN Verification
-        if (user.role !== ROLES.PATRON) {
-            if (!input.withdrawal_pin) {
-                throw new AppError('Withdrawal PIN is required', 400);
-            }
-            const isPinValid = await bcrypt.compare(input.withdrawal_pin, user.withdrawalPin!);
-            if (!isPinValid) {
-                throw new AppError('Invalid withdrawal pin', 400);
-            }
+        if (!input.withdrawal_pin) {
+            throw new AppError('Withdrawal PIN is required', 400);
         }
-
-        // 6. OTP Verification for Patrons
-        if (user.role === ROLES.PATRON) {
-            if (!input.withdrawal_otp || Number(input.withdrawal_otp) !== user.sponsorWithdrawalOtp) {
-                throw new AppError('Invalid withdrawal OTP', 400);
-            }
+        const isPinValid = await bcrypt.compare(input.withdrawal_pin, user.withdrawalPin!);
+        if (!isPinValid) {
+            throw new AppError('Invalid withdrawal pin', 400);
         }
 
         // 7. Pending Request Check
