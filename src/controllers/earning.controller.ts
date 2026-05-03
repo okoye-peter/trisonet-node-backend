@@ -53,10 +53,23 @@ export const getConversionInfo = asyncHandler(async (req: Request, res: Response
     const conversionRate = Number(conversionRateSetting?.value) || 1;
     const assetBalance = Number(earningWallet?.amount) || 0;
     const gkwthBalance = Number(indirectWallet?.amount) || 0;
-    
-    // Limits removed for "everyone" version
-    const maxConvertibleAmount = assetBalance;
-    const nextAllowedConversionDate = null;
+
+    // Fetch last conversion for the 7-day check
+    const lastConversion = earningWallet ? await prisma.earningTransaction.findFirst({
+        where: { 
+            walletId: earningWallet.id,
+            reference: { startsWith: 'CONV-' }
+        },
+        orderBy: { createdAt: 'desc' }
+    }) : null;
+
+    // Calculate limits
+    const maxConvertibleAmount = assetBalance * 0.5;
+    let nextAllowedConversionDate = null;
+    if (lastConversion && lastConversion.createdAt) {
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+        nextAllowedConversionDate = new Date(new Date(lastConversion.createdAt).getTime() + sevenDaysInMs);
+    }
 
     return sendSuccess(res, 200, 'Conversion info retrieved successfully', {
         assetBalance,
@@ -94,8 +107,31 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
             where: { userId: user.id, type: WalletType.indirect }
         });
 
+
         if (!earningWallet || Number(earningWallet.amount) < Number(amount)) {
             throw new AppError('Insufficient asset balance', 400);
+        }
+
+        if (earningWallet && Number(amount) > (0.5 * Number(earningWallet.amount))) {
+            throw new AppError('You can only convert 50% of your asset balance at once', 400);
+        }
+
+        const lastTranx = await tx.earningTransaction.findFirst({
+            where: {
+                walletId: earningWallet.id, reference: {
+                    startsWith: 'CONV-'
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        console.log('Last conversion transaction:', lastTranx);
+        if (lastTranx && lastTranx.createdAt) {
+            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+            const nextAllowedDate = new Date(new Date(lastTranx.createdAt).getTime() + sevenDaysInMs);
+
+            if (new Date() < nextAllowedDate) {
+                throw new AppError(`You can only convert once every 7 days. Next conversion available after ${nextAllowedDate.toLocaleString()}`, 400);
+            }
         }
 
         if (!indirectWallet) {
@@ -121,7 +157,8 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
                 amount: Number(amount),
                 type: 'debit',
                 narration: `Conversion of ${amount} assets to ${convertedAmount.toFixed(2)} GKWTH`,
-                reference: `CONV-${Date.now()}`
+                reference: `CONV-${Date.now()}`,
+                createdAt: new Date()
             }
         });
     });

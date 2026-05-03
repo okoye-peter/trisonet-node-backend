@@ -846,9 +846,22 @@ export const getEarningDashboard = asyncHandler(async (req: Request, res: Respon
     const conversionRate = Number(conversionRateSetting?.value) || 1;
     const assetBalance = Number(earningWallet?.amount) || 0;
     
-    // Limits removed for "everyone" version
-    const maxConvertibleAmount = assetBalance;
-    const nextAllowedConversionDate = null;
+    // Fetch last conversion for the 7-day check
+    const lastConversion = earningWallet ? await prisma.earningTransaction.findFirst({
+        where: { 
+            walletId: earningWallet.id,
+            reference: { startsWith: 'CONV-' }
+        },
+        orderBy: { createdAt: 'desc' }
+    }) : null;
+
+    // Calculate limits
+    const maxConvertibleAmount = assetBalance * 0.5;
+    let nextAllowedConversionDate = null;
+    if (lastConversion && lastConversion.createdAt) {
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+        nextAllowedConversionDate = new Date(new Date(lastConversion.createdAt).getTime() + sevenDaysInMs);
+    }
 
     return sendSuccess(res, 200, 'Earning dashboard retrieved successfully', {
         assetBalance,
@@ -900,6 +913,30 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
 
         if (!earningWallet || Number(earningWallet.amount) < Number(amount)) {
             throw new AppError('Insufficient asset balance', 400);
+        }
+
+        // Enforce 50% limit
+        const limit = Number(earningWallet.amount) * 0.5;
+        if (Number(amount) > limit) {
+            throw new AppError(`You can only convert up to 50% of your asset balance (${limit.toFixed(2)})`, 400);
+        }
+
+        // Check 7-day interval
+        const lastTranx = await tx.earningTransaction.findFirst({
+            where: { 
+                walletId: earningWallet.id, 
+                reference: { startsWith: 'CONV-' } 
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (lastTranx && lastTranx.createdAt) {
+            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+            const nextAllowedDate = new Date(new Date(lastTranx.createdAt).getTime() + sevenDaysInMs);
+            
+            if (new Date() < nextAllowedDate) {
+                throw new AppError(`You can only convert once every 7 days. Next conversion available after ${nextAllowedDate.toLocaleString()}`, 400);
+            }
         }
 
         // Debit earning wallet
