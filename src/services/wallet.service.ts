@@ -16,6 +16,7 @@ class WalletService {
         } else if (role == ROLES.PATRON) {
             data.push({ userId, type: WalletType.indirect });
             data.push({ userId, type: WalletType.patronage });
+            data.push({ userId, type: WalletType.earning });
         }
 
         await client.wallet.createMany({
