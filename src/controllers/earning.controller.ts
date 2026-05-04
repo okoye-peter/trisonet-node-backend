@@ -102,7 +102,7 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
 
     const isPinValid = await EarningService.verifyPin(pin, user.withdrawalPin);
     if (!isPinValid) {
-        throw new AppError('Invalid withdrawal pin', 400);
+        throw new AppError('Sorry, that is not your transaction PIM. Please check and try again.', 400);
     }
 
     // Fetch conversion rate
@@ -138,7 +138,7 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
             },
             orderBy: { createdAt: 'desc' }
         });
-        console.log('Last conversion transaction:', lastTranx);
+        
         if (lastTranx && lastTranx.createdAt) {
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
             const nextAllowedDate = new Date(new Date(lastTranx.createdAt).getTime() + sevenDaysInMs);
