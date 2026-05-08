@@ -135,6 +135,68 @@ export const uploadKyc = asyncHandler(async (req: Request, res: Response, next: 
     }
 });
 
+export const faceVerification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { name } = req.body;
+    const user = req.user;
+    const username = user?.username || 'Unknown User';
+
+    if (!name) {
+        return next(new AppError('Please provide your full name', 400));
+    }
+
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    if (!files?.image?.[0]) {
+        return next(new AppError('Please provide the identification image.', 400));
+    }
+
+    const image_url = (files.image[0] as any).path;
+
+    const options = {
+        method: 'POST',
+        url: 'https://api.prembly.com/verification/biometrics/face/liveliness_check',
+        headers: {
+            accept: 'application/json',
+            'x-api-key': PREMBLY.API_KEY,
+            'content-type': 'application/json'
+        },
+        data: { image: image_url }
+    };
+
+    try {
+        const response = await axios.request(options);
+
+        // Prembly's Face Liveliness response might have a slightly different structure
+        // but usually follows the status: true/false pattern.
+        if (!response.data.status) {
+            cleanupCloudinary(image_url);
+            return next(new AppError(response.data.message || 'Face verification failed at provider.', 400));
+        }
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { 
+                hasVerifiedLevel2: true,
+                name
+            }
+        });
+
+        kycLogger.info('Face KYC Verification Successful', { userId: user.id, username });
+        return sendSuccess(res, 200, "Identity verification successful.");
+
+    } catch (error: any) {
+        cleanupCloudinary(image_url);
+
+        kycLogger.error('Prembly Face API Error', { 
+            username,
+            error: error.response?.data || error.message,
+            stack: error.stack
+        });
+
+        const errorMessage = error.response?.data?.message || 'Identity verification failed. Please ensure images are clear and retry.';
+        return next(new AppError(errorMessage, 500));
+    }
+});
+
 export const updateUserBvnHash = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const users = await prisma.user.findMany({
         where: {

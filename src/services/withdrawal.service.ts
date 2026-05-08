@@ -251,12 +251,12 @@ export class WithdrawalService {
                 throw new AppError('Cash withdrawal currently not available. Try again later.', 400);
             }
             amountCalculated = input.amount;
-        } else if (wallet.type === 'indirect') {
+        } else if (wallet.type === 'indirect' || wallet.type === 'earning') {
             if (settingsMap['lock_indirect_withdrawal'] === '1') {
                 throw new AppError('Attention!, Asset Buyers Are Not Available At the Moment, Please Try Again Later', 400);
             }
 
-            if (wallet.amount - input.amount < 1) {
+            if (wallet.type === 'indirect' && wallet.amount - input.amount < 1) {
                 throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
             }
 
@@ -433,7 +433,7 @@ export class WithdrawalService {
                 if (wallet.type === 'earning') {
                     await tx.earningTransaction.create({
                         data: {
-                            amount: request.amountRequested,
+                            amount: request.gkwthAmount || 0,
                             type: 'debit',
                             reference: payoutResponse.reference,
                             walletId: wallet.id,
