@@ -19,6 +19,7 @@ jobs:
           script: |
             cd /var/www/api.trisonet.com
             pm2 stop express-api
+            git pull origin main
             npm install
             npm run build
             pm2 restart express-api
