@@ -197,6 +197,105 @@ export const faceVerification = asyncHandler(async (req: Request, res: Response,
     }
 });
 
+export const ninVerification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { nin, name } = req.body;
+    const user = req.user;
+    const username = user?.username || 'Unknown User';
+
+    // Basic NIN Validation
+    if (!nin || nin.length !== 11 || !/^\d+$/.test(nin)) {
+        return next(new AppError('Please provide a valid 11-digit NIN.', 400));
+    }
+
+    const parts = name.trim().split(/\s+/);
+    if (parts.length < 2 || parts.some((part: string) => part.length < 3)) {
+        return next(new AppError('Please provide your full name', 400));
+    }
+
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+    if (!files?.image?.[0]) {
+        return next(new AppError('Please provide the identification image.', 400));
+    }
+
+    const image_url = (files.image[0] as any).path;
+
+    const options = {
+        method: 'POST',
+        url: 'https://api.prembly.com/verification/nin_w_face',
+        headers: {
+            accept: 'application/json',
+            'x-api-key': PREMBLY.API_KEY,
+            'content-type': 'application/json'
+        },
+        data: { number: nin, image: image_url }
+    };
+
+    try {
+        const response = await axios.request(options);
+
+        if (!response.data.status) {
+            cleanupCloudinary(image_url);
+            return next(new AppError(response.data.message || 'NIN verification failed at provider.', 400));
+        }
+
+        const { firstname, surname } = response.data.data;
+        
+
+        // Verify if names match the user's registered name
+        if (verifyNameMatch(name || '', firstname, surname)) {
+            // Check if NIN is already used by another user
+            const ninHash = hashString(nin);
+            const existingNinUser = await prisma.user.findFirst({
+                where: { 
+                    ninHash,
+                    id: { not: user.id }
+                }
+            });
+
+            if (existingNinUser) {
+                cleanupCloudinary(image_url);
+                return next(new AppError('This NIN is already used by another verified user.', 400));
+            }
+
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { 
+                    hasVerifiedLevel2: true,
+                    nin: encryptText(nin),
+                    ninHash,
+                    name
+                }
+            });
+
+            kycLogger.info('NIN KYC Verification Successful', { userId: user.id, username, nin });
+            return sendSuccess(res, 200, "Identity verification successful.");
+        } else {
+            cleanupCloudinary(image_url);
+            kycLogger.warn('NIN KYC Name Mismatch', { 
+                userId: user.id, 
+                username, 
+                registeredName: user?.name, 
+                receivedNames: { firstname, surname } 
+            });
+            return next(new AppError('Identity verification failed. Your name does not match the name on your NIN.', 400));
+        }
+
+    } catch (error: any) {
+        cleanupCloudinary(image_url);
+
+        kycLogger.error('Prembly NIN API Error', { 
+            username,
+            nin, 
+            error: error.response?.data || error.message,
+            stack: error.stack
+        });
+
+        const errorMessage = error.response?.data?.message || 'Identity verification failed. Please ensure images are clear and retry.';
+        return next(new AppError(errorMessage, 500));
+    }
+});
+
 export const updateUserBvnHash = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const users = await prisma.user.findMany({
         where: {
