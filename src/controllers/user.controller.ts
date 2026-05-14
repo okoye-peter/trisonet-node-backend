@@ -573,14 +573,14 @@ export const verifyEmailOtp = asyncHandler(async (req: any, res: Response, next:
     }
 
     const duplicate = await prisma.user.findFirst({
-        where: { email: pendingEmail, id: { not: userId } }
+        where: { email: pendingEmail!, id: { not: userId } }
     });
     if (duplicate) return next(new AppError('This email is already used by another account', 400));
 
     await prisma.user.update({
         where: { id: userId },
         data: {
-            email: pendingEmail,
+            email: pendingEmail!,
             emailVerifiedAt: new Date(),
             emailVerificationCode: null,
             emailVerificationCodeSentAt: null

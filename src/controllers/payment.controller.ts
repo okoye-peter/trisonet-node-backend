@@ -134,7 +134,7 @@ export const activateByCode = asyncHandler(async (req: Request, res: Response, n
 });
 
 export const checkActivationStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { reference } = req.params;
+    const reference = req.params.reference as string;
     const request = await prisma.userActivationRequest.findUnique({
         where: { reference }
     });
@@ -166,7 +166,7 @@ export const submitActivationProof = asyncHandler(async (req: Request, res: Resp
         where: { id: request.id },
         data: {
             prove: req.file.path,
-            cloudinary_public_id: (req.file as any).filename // multer-storage-cloudinary uses filename for public_id
+            cloudinaryPublicId: (req.file as any).filename // multer-storage-cloudinary uses filename for public_id
         }
     });
 
