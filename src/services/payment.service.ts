@@ -3,7 +3,8 @@ import { pagaLogger } from "../utils/logger.js";
 import { AppError } from "../utils/AppError.js";
 import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
-import { ROLES } from "../config/constants.js";
+import { AccountActivationService } from './account_activation.service.js';
+import { ROLES, PAGA } from "../config/constants.js";
 
 export class PaymentService {
     /**
@@ -657,5 +658,235 @@ export class PaymentService {
                 reference: ref
             }
         };
+    }
+
+    /**
+     * Initiate activation payment (Card/SDK)
+     */
+    async initiateActivationPayment(userId: bigint, teamMateIds: string[], user: any) {
+        const pagaService = new PagaService();
+        
+        // 1. Calculate price
+        const [priceSetting, chargeSetting, infantFeeSetting] = await Promise.all([
+            prisma.setting.findFirst({ where: { key: 'gkwth_sale_price' } }),
+            prisma.setting.findFirst({ where: { key: 'paga_charges' } }),
+            prisma.setting.findFirst({ where: { key: 'infant_form_fee' } })
+        ]);
+
+        const activationPrice = Number(priceSetting?.value || 0);
+        const activationCharge = Number(chargeSetting?.value || 0.008062); // Fallback to PAGA charge rate
+        const infantFormFee = Number(infantFeeSetting?.value || 30000);
+
+        // Current user cost
+        const userBase = activationPrice + (user.isInfant && !user.sponsorId ? infantFormFee : 0);
+        
+        // Team mates cost
+        let teamMatesBase = 0;
+        if (teamMateIds.length > 0) {
+            const teamMates = await prisma.user.findMany({
+                where: { id: { in: teamMateIds.map(id => BigInt(id)) } }
+            });
+            
+            for (const mate of teamMates) {
+                teamMatesBase += activationPrice + (mate.isInfant && !mate.sponsorId ? infantFormFee : 0);
+            }
+        }
+
+        const totalBase = userBase + teamMatesBase;
+        // Formula matching legacy: price * (1 + charge * (1 + vat))
+        // Here we simplify as base * (1 + charge_with_vat) where charge_with_vat = charge * 1.075
+        const totalWithCharge = totalBase * (1 + activationCharge * 1.075);
+
+        const ref = pagaService.generateReference('ACTIVATION');
+
+        // 2. Create activation request
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            const request = await tx.userActivationRequest.create({
+                data: {
+                    userId,
+                    amount: totalWithCharge.toFixed(2),
+                    charge: Math.round(totalWithCharge - totalBase),
+                    status: 'pending',
+                    reference: ref
+                }
+            });
+
+            if (teamMateIds.length > 0) {
+                await tx.activationTeamMateUser.createMany({
+                    data: teamMateIds.map(mateId => ({
+                        userActivationRequestId: request.id,
+                        userId: BigInt(mateId)
+                    }))
+                });
+            }
+        });
+
+        return {
+            reference: ref,
+            amount: totalWithCharge,
+            publicKey: PAGA.USERNAME,
+            email: user.email,
+            phoneNumber: user.phone || ''
+        };
+    }
+
+    /**
+     * Generate virtual account for activation request (Transfer)
+     */
+    async generateActivationRequestVirtualAccount(userId: bigint, teamMateIds: string[], inputAmount: number, user: any) {
+        if (user.status) {
+            throw new AppError('Your account is already activated', 400);
+        }
+
+        const pagaService = new PagaService();
+        
+        // 1. Calculate price
+        const [priceSetting, chargeSetting, infantFeeSetting] = await Promise.all([
+            prisma.setting.findFirst({ where: { key: 'gkwth_sale_price' } }),
+            prisma.setting.findFirst({ where: { key: 'paga_charges' } }),
+            prisma.setting.findFirst({ where: { key: 'infant_form_fee' } })
+        ]);
+
+        const activationPrice = Number(priceSetting?.value || 0);
+        const activationCharge = Number(chargeSetting?.value || 0.008062);
+        const infantFormFee = Number(infantFeeSetting?.value || 30000);
+
+        if (!activationPrice) {
+            throw new AppError('Configuration error: price not set', 500);
+        }
+
+        // Current user cost
+        const userBase = (user.username === 'dev_user' || user.username === 'tes_commission') ? 100 : activationPrice;
+        const userTotal = userBase + (user.isInfant && !user.sponsorId ? infantFormFee : 0);
+        
+        // Team mates cost
+        let teamMatesTotal = 0;
+        if (teamMateIds.length > 0) {
+            const teamMates = await prisma.user.findMany({
+                where: { id: { in: teamMateIds.map(id => BigInt(id)) } }
+            });
+            
+            for (const mate of teamMates) {
+                teamMatesTotal += activationPrice + (mate.isInfant && !mate.sponsorId ? infantFormFee : 0);
+            }
+        }
+
+        const total = userTotal + teamMatesTotal;
+        const charge = pagaService.calculateCharge(total);
+        const totalWithCharge = Math.round((total + charge) * 100) / 100;
+
+        // Validate amount (only for non-dev users)
+        if (user.username !== 'dev_user' && user.username !== 'tes_commission' && Number(inputAmount) !== totalWithCharge) {
+            throw new AppError(`Inaccurate amount inputted. Expected: ${totalWithCharge}`, 400);
+        }
+
+        const ref = pagaService.generateReference('ACTIVATION');
+
+        // 2. Generate virtual account
+        const names = (user.name || '').trim().split(' ');
+        const firstName = names[0] || 'User';
+        const lastName = names[1] || firstName;
+
+        const response = await pagaService.generateVirtualAccount(
+            totalWithCharge,
+            `${firstName} ${lastName}`,
+            user.phone || '',
+            ref
+        );
+
+        if (!response.success) {
+            throw new AppError(response.error || 'Failed to generate virtual account', 400);
+        }
+
+        // 3. Create or update activation request
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            // Clean up old pending requests
+            await tx.userActivationRequest.deleteMany({
+                where: {
+                    userId,
+                    status: 'pending',
+                    reference: { not: ref }
+                }
+            });
+
+            const request = await tx.userActivationRequest.create({
+                data: {
+                    userId,
+                    amount: totalWithCharge.toFixed(2),
+                    charge: Math.round(charge),
+                    status: 'pending',
+                    reference: ref,
+                    bankName: response.data.bank_name,
+                    accountName: response.data.account_name,
+                    bankAccount: response.data.virtual_account
+                }
+            });
+
+            if (teamMateIds.length > 0) {
+                await tx.activationTeamMateUser.createMany({
+                    data: teamMateIds.map(mateId => ({
+                        userActivationRequestId: request.id,
+                        userId: BigInt(mateId)
+                    }))
+                });
+            }
+        });
+
+        return {
+            status: true,
+            account_detail: {
+                account_name: response.data.account_name,
+                bank_name: response.data.bank_name,
+                account_number: response.data.virtual_account,
+                bank_code: null,
+                expires_at: response.data.expiry_date_full ? format(new Date(response.data.expiry_date_full), 'HH:mm') : format(addMinutes(new Date(), 28), 'HH:mm'),
+                reference: ref
+            }
+        };
+    }
+
+    async activateByCode(userId: bigint, code: string, teamMateIds: string[]) {
+        const card = await prisma.activationCard.findUnique({
+            where: { code },
+            include: { _count: { select: { usersWithCard: true } } }
+        });
+
+        if (!card) {
+            throw new AppError('Invalid activation code', 400);
+        }
+
+        if (card.status !== 1) {
+            throw new AppError('Activation code is not active or has not been approved', 400);
+        }
+
+        const maxUses = Math.round(card.amount / card.pricePerUser);
+        const usedCount = card._count.usersWithCard;
+        const requiredUses = 1 + teamMateIds.length;
+
+        if (usedCount + requiredUses > maxUses) {
+            throw new AppError(`This activation code only has ${maxUses - usedCount} uses left. You requested ${requiredUses}.`, 400);
+        }
+
+        const userIdsToActivate = [userId, ...teamMateIds.map(id => BigInt(id))];
+
+        return await prisma.$transaction(async (tx) => {
+            for (const id of userIdsToActivate) {
+                // Update user with card reference
+                await tx.user.update({
+                    where: { id },
+                    data: { activationCardId: card.id }
+                });
+
+                // Activate user
+                await AccountActivationService.activateUserAccountOptimized(id);
+            }
+
+            return {
+                status: true,
+                message: 'Accounts activated successfully using PIM card'
+            };
+        }, {
+            timeout: 30000 // Increase timeout for complex multi-user activation
+        });
     }
 }

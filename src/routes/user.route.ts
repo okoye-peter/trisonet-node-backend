@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
-import { getUserReferrals, getAuthUser, getUserDashboardStats, updateProfile, updateBankDetails, updatePassword, getUserWards, getUserWardStats, getWardsSchoolFees, getUserByTransferId, resetWithdrawalPin, verifyWithdrawalPinOtp, sendOtpForWithdrawalPinReset, getUserAwards } from "../controllers/user.controller";
+import { getUserReferrals, getAuthUser, getUserDashboardStats, updateProfile, updateBankDetails, updatePassword, getUserWards, getUserWardStats, getWardsSchoolFees, getUserByTransferId, resetWithdrawalPin, verifyWithdrawalPinOtp, sendOtpForWithdrawalPinReset, getUserAwards, getActivationCandidates, sendEmailVerificationOtp, verifyEmailOtp } from "../controllers/user.controller";
 import { validate } from "../middlewares/validateRequest";
 import { changePasswordSchema } from "../validations/password_reset.validation";
 import { otpLimiter } from "../middlewares/rateLimiter";
@@ -20,8 +20,11 @@ router.get('/wards', getUserWards);
 router.get('/wards-stats', getUserWardStats);
 router.get('/wards-school-fees', getWardsSchoolFees);
 router.get('/lookup/:transferId', getUserByTransferId);
+router.get('/activation-candidates', getActivationCandidates);
 router.post('/reset-withdrawal-pin', resetWithdrawalPin);
 router.post('/verify-withdrawal-pin-otp', verifyWithdrawalPinOtp);
 router.post('/send-withdrawal-pin-otp', otpLimiter, sendOtpForWithdrawalPinReset);
+router.post('/send-email-verification-otp', otpLimiter, sendEmailVerificationOtp);
+router.post('/verify-email-otp', verifyEmailOtp);
 
 export default router;

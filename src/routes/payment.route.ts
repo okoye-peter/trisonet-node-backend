@@ -9,8 +9,14 @@ import {
     initiateDirectWalletFunding,
     initiateGkwthPurchase,
     getAssetLoans,
-    verifyWardSlotPurchase
+    verifyWardSlotPurchase,
+    initiateActivationPayment,
+    generateActivationRequestVirtualAccount,
+    activateByCode,
+    checkActivationStatus,
+    submitActivationProof
 } from "../controllers/payment.controller";
+import { upload } from "../config/cloudinary";
 import { validate } from "../middlewares/validateRequest";
 import { initiateDirectWalletFundingSchema, initiateGkwthPurchaseSchema } from "../validations/wallet.validation";
 
@@ -30,5 +36,10 @@ router.post('/wards/purchase/verify', verifyWardSlotPurchase);
 router.post('/gkwth/purchase', purchaseGkwth);
 router.post('/gkwth/loan-request', requestAssetLoan);
 router.get('/gkwth/loans', getAssetLoans);
+router.post('/activation/initiate', initiateActivationPayment);
+router.post('/activation/virtual-account', generateActivationRequestVirtualAccount);
+router.post('/activation/code', activateByCode);
+router.get('/activation/status/:reference', checkActivationStatus);
+router.post('/activation/proof', upload.single('prove'), submitActivationProof);
 
 export default router;

@@ -28,8 +28,7 @@ export class PagaService {
         this.publicKey = PAGA.USERNAME || '';
         this.secretKey = PAGA.SECRET_KEY || '';
         this.hashKey = PAGA.HMAC_KEY || '';
-        // this.testMode = PAGA.TEST_MODE;
-        this.testMode = false;
+        this.testMode = PAGA.TEST_MODE;
         this.businessPublicId = PAGA.BUSINESS_PUBLIC_ID || '';
         this.businessPassword = PAGA.BUSINESS_PASSWORD || '';
 
@@ -575,7 +574,7 @@ export class PagaService {
      */
     generateHash(params: string[]): string {
         const stringToHash = params
-            .filter(param => param !== null && param !== '')
+            .map(param => param ?? '')
             .join('') + this.hashKey;
 
         return crypto.createHash('sha512').update(stringToHash).digest('hex');

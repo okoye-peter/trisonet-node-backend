@@ -81,15 +81,19 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         patronActivated = !!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount);
     }
 
+    const isPendingLevel2Migration = await prisma.pending_level2_migrations.findFirst({
+        where: { user_id: user.id }
+    }).then(m => !!m);
+
     sendSuccess(res, 200, 'User fetched successfully', {
-        user: { ...user, wallets, patronPlan, patronActivated }
+        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration }
     });
-})
+});
 
 export const getUserDashboardStats = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
 
-    const [totalSales, wallets, region, regionTotalUsers] = await Promise.all([
+    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting] = await Promise.all([
         prisma.user.count({
             where: {
                 referralId: user.id,
@@ -102,18 +106,76 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
             : Promise.resolve(null)),
         user.regionId
             ? prisma.user.count({ where: { regionId: BigInt(user.regionId) } })
-            : Promise.resolve(0)
+            : Promise.resolve(0),
+        prisma.setting.findFirst({
+            where: { key: 'gkwth_sale_price' }
+        })
     ])
 
+    const activationPrice = Number(assetPriceSetting?.value) || 2500;
+    const pagaCharges = 0.008062;
+    const pagaVat = 0.075;
+    const activationCharge = pagaCharges * (1 + pagaVat);
+    const infantFormFee = 30000;
+
     const assetDepot = MAX_ASSET_DEPOT - (totalSales % MAX_ASSET_DEPOT);
+
+    const baseTotal = activationPrice + (user.isInfant && !user.sponsorId ? infantFormFee : 0);
+    const totalWithCharge = baseTotal * (1 + activationCharge);
 
     sendSuccess(res, 200, 'User dashboard stats fetched successfully', {
         totalSales,
         wallets,
         region,
         regionTotalUsers,
-        assetDepot
+        assetDepot,
+        activation: {
+            price: activationPrice,
+            charge: activationCharge,
+            infantFormFee,
+            total: totalWithCharge
+        }
     });
+})
+
+export const getActivationCandidates = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const user = req.user;
+
+    // Only inactive customers can fetch candidates according to PHP logic
+    if (user.role !== ROLES.CUSTOMER || user.status !== false) {
+        return sendSuccess(res, 200, 'Activation candidates fetched successfully', []);
+    }
+
+    const candidates = await prisma.user.findMany({
+        where: {
+            role: ROLES.CUSTOMER,
+            status: false,
+            id: { not: user.id },
+            userActivationRequests: {
+                none: {
+                    status: 'pending'
+                }
+            },
+            activationTeamMates: {
+                none: {
+                    userActivationRequest: {
+                        status: 'pending'
+                    }
+                }
+            }
+        },
+        select: {
+            id: true,
+            name: true,
+            username: true,
+            status: true,
+            isInfant: true,
+            role: true,
+            sponsorId: true
+        }
+    });
+
+    sendSuccess(res, 200, 'Activation candidates fetched successfully', candidates);
 })
 
 
@@ -460,6 +522,72 @@ export const resetWithdrawalPin = asyncHandler(async (req: any, res: Response, n
     });
 
     sendSuccess(res, 200, 'Withdrawal pin reset successfully');
+});
+
+export const sendEmailVerificationOtp = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    const userId = req.user.id;
+
+    if (!email) return next(new AppError('Email is required', 400));
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return next(new AppError('Invalid email format', 400));
+
+    const duplicate = await prisma.user.findFirst({
+        where: { email: email.toLowerCase(), id: { not: userId } }
+    });
+    if (duplicate) return next(new AppError('This email is already used by another account', 400));
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: {
+            emailVerificationCode: `${otp}|${email.toLowerCase()}`,
+            emailVerificationCodeSentAt: new Date()
+        }
+    });
+
+    await TermiiService.sendMailWithTermii(email, otp);
+
+    sendSuccess(res, 200, 'Verification code sent to your email');
+});
+
+export const verifyEmailOtp = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const { otp } = req.body;
+    const userId = req.user.id;
+
+    if (!otp) return next(new AppError('OTP is required', 400));
+
+    const user = await prisma.user.findFirst({ where: { id: userId } });
+    if (!user) return next(new AppError('User not found', 404));
+
+    if (!user.emailVerificationCode) return next(new AppError('No pending email verification. Please request a new code.', 400));
+
+    const [storedOtp, pendingEmail] = user.emailVerificationCode.split('|');
+
+    if (storedOtp !== otp) return next(new AppError('Invalid verification code', 400));
+
+    if (user.emailVerificationCodeSentAt && user.emailVerificationCodeSentAt < new Date(Date.now() - 10 * 60 * 1000)) {
+        return next(new AppError('Verification code expired. Please request a new one.', 400));
+    }
+
+    const duplicate = await prisma.user.findFirst({
+        where: { email: pendingEmail, id: { not: userId } }
+    });
+    if (duplicate) return next(new AppError('This email is already used by another account', 400));
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: {
+            email: pendingEmail,
+            emailVerifiedAt: new Date(),
+            emailVerificationCode: null,
+            emailVerificationCodeSentAt: null
+        }
+    });
+
+    sendSuccess(res, 200, 'Email verified successfully');
 });
 
 export const getUserAwards = asyncHandler(async (req: any, res: Response, next: NextFunction) => {

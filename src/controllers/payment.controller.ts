@@ -112,3 +112,63 @@ export const getAssetLoans = asyncHandler(async (req: any, res: Response, next: 
 
     sendSuccess(res, 200, 'Asset loans fetched successfully', loans);
 });
+export const initiateActivationPayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const { teamMateIds } = req.body;
+    const result = await paymentService.initiateActivationPayment(BigInt(req.user.id), teamMateIds || [], req.user);
+    return sendSuccess(res, 200, 'Activation payment initiated', result);
+});
+
+export const generateActivationRequestVirtualAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const { amount, teamMateIds } = req.body;
+    const result = await paymentService.generateActivationRequestVirtualAccount(BigInt(req.user.id), teamMateIds || [], Number(amount), req.user);
+    return sendSuccess(res, 200, 'Virtual account generated', result);
+});
+
+export const activateByCode = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const { activation_code, teamMateIds } = req.body;
+    const result = await paymentService.activateByCode(BigInt(req.user.id), activation_code, teamMateIds || []);
+    return sendSuccess(res, 200, 'Account activated successfully', result);
+});
+
+export const checkActivationStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { reference } = req.params;
+    const request = await prisma.userActivationRequest.findUnique({
+        where: { reference }
+    });
+
+    if (!request) {
+        throw new AppError('Activation request not found', 404);
+    }
+
+    return sendSuccess(res, 200, 'Activation status fetched', { status: request.status });
+});
+
+export const submitActivationProof = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { reference } = req.body;
+    if (!req.file) {
+        throw new AppError('No proof of payment uploaded', 400);
+    }
+
+    const request = await prisma.userActivationRequest.findUnique({
+        where: { reference }
+    });
+
+    if (!request) {
+        // Clean up uploaded file if request not found
+        // (Optional: add utility to delete from cloudinary)
+        throw new AppError('Activation request not found', 404);
+    }
+
+    const updatedRequest = await prisma.userActivationRequest.update({
+        where: { id: request.id },
+        data: {
+            prove: req.file.path,
+            cloudinary_public_id: (req.file as any).filename // multer-storage-cloudinary uses filename for public_id
+        }
+    });
+
+    return sendSuccess(res, 200, 'Proof of payment submitted successfully', updatedRequest);
+});
