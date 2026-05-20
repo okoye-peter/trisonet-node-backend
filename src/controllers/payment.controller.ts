@@ -172,3 +172,32 @@ export const submitActivationProof = asyncHandler(async (req: Request, res: Resp
 
     return sendSuccess(res, 200, 'Proof of payment submitted successfully', updatedRequest);
 });
+
+export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const result = await paymentService.processPagaCardWebhook(req.body);
+    return res.status(200).json(result);
+});
+
+export const handleOnePipeWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const result = await paymentService.processOnePipeWebhook(req.body);
+    return res.status(200).json(result);
+});
+
+export const generatePukVirtualAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const result = await paymentService.generatePukVirtualAccount(BigInt(req.user.id), req.user);
+    return sendSuccess(res, 200, 'Virtual account generated successfully', result);
+});
+
+export const unblockWithPuk = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const paymentService = new PaymentService();
+    const { puk } = req.body;
+    if (!puk) {
+        throw new AppError('PUK code is required', 400);
+    }
+    const result = await paymentService.unblockWithPuk(BigInt(req.user.id), puk);
+    return sendSuccess(res, 200, 'Account unblocked successfully', result);
+});
+

@@ -1,12 +1,12 @@
 
 import { NextFunction, Request, Response } from 'express';
-import { ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, INFANT_FORM_FEE } from "../config/constants";
+import { ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, INFANT_FORM_FEE, ROLES } from "../config/constants";
 import { prisma } from "../config/prisma";
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { paginate } from '../utils/pagination';
 import { PagaService } from '../services/paga.service';
 import { sendSuccess } from '../utils/responseWrapper';
-import { addMinutes, format } from 'date-fns';
+import { addMinutes, format, subYears } from 'date-fns';
 
 export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) => {
     const user = req.user;
@@ -137,6 +137,17 @@ export const getUserCards = asyncHandler(async (req: any, res: Response) => {
         {
             where: whereClause,
             include: {
+                usersWithCard: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        isInfant: true,
+                        sponsorId: true,
+                        birthDate: true,
+                        createdAt: true,
+                    }
+                },
                 _count: {
                     select: {
                         usersWithCard: true
@@ -153,7 +164,38 @@ export const getUserCards = asyncHandler(async (req: any, res: Response) => {
         }
     );
 
-    return sendSuccess(res, 200, 'User cards fetched successfully', paginationResult);
+    const data = paginationResult.data.map((card: any) => {
+        let totalUsedAmount = 0;
+        const users = card.usersWithCard.map((u: any) => {
+            const isIndependentInfant = !u.sponsorId && u.birthDate && new Date(u.birthDate) > subYears(card.createdAt, 18);
+            const extraFee = isIndependentInfant ? INFANT_FORM_FEE : 0;
+            const amountUsed = Number(card.pricePerUser) + extraFee;
+            totalUsedAmount += amountUsed;
+            return {
+                ...u,
+                id: u.id.toString(),
+                sponsorId: u.sponsorId?.toString(),
+                amountUsed
+            };
+        });
+
+        const amountLeft = Number(card.amount) - totalUsedAmount;
+        const slotsLeft = Math.floor(amountLeft / Number(card.pricePerUser));
+
+        return {
+            ...card,
+            id: card.id.toString(),
+            userId: card.userId.toString(),
+            usersWithCard: users,
+            amountLeft,
+            slotsLeft
+        };
+    });
+
+    return sendSuccess(res, 200, 'User cards fetched successfully', {
+        ...paginationResult,
+        data
+    });
 })
 
 
@@ -278,14 +320,40 @@ export const verifyCardPurchasePayment = asyncHandler(async (req: Request, res: 
     //     return sendSuccess(res, 400, 'Virtual account is not active');
     // }
 
+    // Generate a random unique 10-character code
+    let code = '';
+    let isUnique = false;
+    while (!isUnique) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < 10; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        code = result;
+
+        const existing = await prisma.activationCard.findUnique({
+            where: { code }
+        });
+        if (!existing) {
+            isUnique = true;
+        }
+    }
+
+    // Find the super admin's user ID
+    const superAdmin = await prisma.user.findFirst({
+        where: { role: ROLES.SUPER_ADMIN }
+    });
+
     await prisma.activationCard.update({
         where: {
             id: activationCard.id
         },
         data: {
+            code,
+            approvedBy: superAdmin?.id ?? null,
             status: ACTIVATION_CARD_STATUSES.APPROVED
         }
     });
 
-    return sendSuccess(res, 200, 'Card purchase verified successfully');
+    return sendSuccess(res, 200, 'Card purchase verified successfully', { code });
 });

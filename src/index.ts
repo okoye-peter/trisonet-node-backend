@@ -25,6 +25,11 @@ import pagaTestRouter from './routes/paga_test.routes';
 import earningRouter from './routes/earning.route';
 import kycRouter from './routes/kyc.route';
 import patronRouter from './routes/patron.route';
+import talkzoneRouter from './routes/talkzone.route';
+import reelRouter from './routes/reel.route';
+import gistsRouter from './routes/gists.route';
+import { Server as SocketIOServer } from 'socket.io';
+import { setupSockets } from './sockets';
 
 // Initialize background workers
 import './queue';
@@ -95,6 +100,9 @@ app.use('/api/paga-test', pagaTestRouter);
 app.use('/api/earnings', earningRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/patrons', patronRouter);
+app.use('/api/talkzone', talkzoneRouter);
+app.use('/api/reels', reelRouter);
+app.use('/api/gists', gistsRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);
@@ -120,6 +128,16 @@ import { decryptEncryptedText, encryptText } from './utils/crypto';
 const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
+const io = new SocketIOServer(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        credentials: true
+    }
+});
+
+setupSockets(io);
 
 let isShuttingDown = false;
 

@@ -93,7 +93,7 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
 export const getUserDashboardStats = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
 
-    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting] = await Promise.all([
+    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting, pendingActivation] = await Promise.all([
         prisma.user.count({
             where: {
                 referralId: user.id,
@@ -109,6 +109,21 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
             : Promise.resolve(0),
         prisma.setting.findFirst({
             where: { key: 'gkwth_sale_price' }
+        }),
+        prisma.userActivationRequest.findFirst({
+            where: {
+                OR: [
+                    { userId: user.id },
+                    {
+                        activationTeamMates: {
+                            some: {
+                                userId: user.id
+                            }
+                        }
+                    }
+                ],
+                status: 'pending'
+            }
         })
     ])
 
@@ -129,6 +144,7 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
         region,
         regionTotalUsers,
         assetDepot,
+        hasPendingActivation: pendingActivation !== null,
         activation: {
             price: activationPrice,
             charge: activationCharge,

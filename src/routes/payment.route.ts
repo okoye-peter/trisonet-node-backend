@@ -14,7 +14,11 @@ import {
     generateActivationRequestVirtualAccount,
     activateByCode,
     checkActivationStatus,
-    submitActivationProof
+    submitActivationProof,
+    handlePagaCardWebhook,
+    handleOnePipeWebhook,
+    generatePukVirtualAccount,
+    unblockWithPuk
 } from "../controllers/payment.controller";
 import { upload } from "../config/cloudinary";
 import { validate } from "../middlewares/validateRequest";
@@ -24,9 +28,13 @@ const router = Router();
 
 // Public routes
 router.post('/webhook/paga', handlePagaWebhook);
+router.post('/webhook/paga-card', handlePagaCardWebhook);
+router.post('/webhook/onepipe', handleOnePipeWebhook);
 
 // Protected routes
 router.use(protect);
+router.post('/puk/generate-virtual-account', generatePukVirtualAccount);
+router.post('/puk/unblock-with-puk', unblockWithPuk);
 router.post('/wallet/direct/funding', validate(initiateDirectWalletFundingSchema),initiateDirectWalletFunding);
 router.post('/wallet/indirect/funding', validate(initiateGkwthPurchaseSchema),initiateGkwthPurchase);
 

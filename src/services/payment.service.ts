@@ -4,7 +4,9 @@ import { AppError } from "../utils/AppError.js";
 import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
-import { ROLES, PAGA } from "../config/constants.js";
+import { ROLES, PAGA, ACTIVATION_CARD_STATUSES } from "../config/constants.js";
+import { TermiiService } from './termii.service.js';
+
 
 export class PaymentService {
     /**
@@ -22,8 +24,20 @@ export class PaymentService {
             return await this.processPatronGroupFunding(payload);
         }
 
-        if (externalReferenceNumber.startsWith('ACTIVATION')) {
+        if (externalReferenceNumber.startsWith('ACTIVATION') && !externalReferenceNumber.startsWith('ACTIVATIONCARD')) {
             return await this.processUserActivation(payload);
+        }
+
+        if (externalReferenceNumber.startsWith('PUK')) {
+            return await this.processPukUnblocking(payload);
+        }
+
+        if (externalReferenceNumber.startsWith('WARDSLOT')) {
+            return await this.processWardSlotPurchase(payload);
+        }
+
+        if (externalReferenceNumber.startsWith('ACTIVATIONCARD')) {
+            return await this.processActivationCardPurchase(payload);
         }
 
         // 1. Find the funding record
@@ -263,7 +277,14 @@ export class PaymentService {
 
         const activationRequest = await prisma.userActivationRequest.findUnique({
             where: { reference: externalReferenceNumber },
-            include: { user: true }
+            include: { 
+                user: true,
+                activationTeamMates: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
         });
 
         if (!activationRequest) {
@@ -280,6 +301,14 @@ export class PaymentService {
             return { status: 'already_processed' };
         }
 
+        const teammateUserIds: bigint[] = [];
+        if (activationRequest.activationTeamMates && activationRequest.activationTeamMates.length > 0) {
+            for (const teammateRelation of activationRequest.activationTeamMates) {
+                teammateUserIds.push(teammateRelation.userId);
+            }
+        }
+        const recipientIds = Array.from(new Set([activationRequest.userId, ...teammateUserIds]));
+
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Update request status
             await tx.userActivationRequest.update({
@@ -290,14 +319,45 @@ export class PaymentService {
                 }
             });
 
-            // Activate user account
+            // Activate primary user
             await tx.user.update({
                 where: { id: activationRequest.userId },
                 data: { accountState: 1 }
             });
 
-            pagaLogger.info(`User Activation successful for user: ${activationRequest.userId}, reference: ${externalReferenceNumber}`);
+            // Activate team members
+            for (const mateId of teammateUserIds) {
+                await tx.user.update({
+                    where: { id: mateId },
+                    data: { accountState: 1 }
+                });
+            }
+
+            // Create notification
+            const notification = await tx.notification.create({
+                data: {
+                    title: 'Activation Request',
+                    body: 'Hello, this is to inform you that your application for activation of account has been approved',
+                }
+            });
+
+            // Attach notification to primary user + teammates
+            for (const recipientId of recipientIds) {
+                await tx.notificationUser.create({
+                    data: {
+                        userId: recipientId,
+                        notificationId: notification.id
+                    }
+                });
+            }
+
+            pagaLogger.info(`User Activation database records updated for user: ${activationRequest.userId}, teammates count: ${teammateUserIds.length}, reference: ${externalReferenceNumber}`);
         });
+
+        // Run sequential optimized activations outside the transaction to prevent database lock competition deadlocks
+        for (const recipientId of recipientIds) {
+            await AccountActivationService.activateUserAccountOptimized(recipientId);
+        }
 
         return { status: 'ok' };
     }
@@ -869,24 +929,440 @@ export class PaymentService {
 
         const userIdsToActivate = [userId, ...teamMateIds.map(id => BigInt(id))];
 
-        return await prisma.$transaction(async (tx) => {
+        // 1. Assign activation card reference within the transaction (very fast, short locks)
+        await prisma.$transaction(async (tx) => {
             for (const id of userIdsToActivate) {
-                // Update user with card reference
                 await tx.user.update({
                     where: { id },
                     data: { activationCardId: card.id }
                 });
-
-                // Activate user
-                await AccountActivationService.activateUserAccountOptimized(id);
             }
+        });
 
-            return {
-                status: true,
-                message: 'Accounts activated successfully using PIM card'
-            };
-        }, {
-            timeout: 30000 // Increase timeout for complex multi-user activation
+        // 2. Perform actual account activations outside the transaction to prevent lock competition deadlocks
+        for (const id of userIdsToActivate) {
+            await AccountActivationService.activateUserAccountOptimized(id);
+        }
+
+        return {
+            status: true,
+            message: 'Accounts activated successfully using PIM card'
+        };
+    }
+
+    private async processPukUnblocking(payload: any) {
+        const { externalReferenceNumber, paymentAmount } = payload;
+
+        const unblockingPayment = await prisma.unblockingPayment.findFirst({
+            where: { reference: externalReferenceNumber },
+            include: { user: { include: { guardianUser: true } } }
+        });
+
+        if (!unblockingPayment) {
+            pagaLogger.error(`PUK Unblocking payment not found for ref: ${externalReferenceNumber}`);
+            return { status: 'not_found' };
+        }
+
+        if (paymentAmount && Number(unblockingPayment.amount) > Number(paymentAmount)) {
+            pagaLogger.error(`PUK unblocking amount mismatch. Expected: ${unblockingPayment.amount}, Paid: ${paymentAmount}`);
+            return { status: 'amount_mismatch' };
+        }
+
+        if (unblockingPayment.status) {
+            return { status: 'already_processed' };
+        }
+
+        const user = unblockingPayment.user;
+        const phone = user.phone || user.guardianUser?.phone;
+
+        if (!phone) {
+            pagaLogger.error(`User ${user.id} does not have a valid phone number to receive PUK code`);
+            return { status: 'missing_phone' };
+        }
+
+        // Generate unique 10-digit random code
+        const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+        await prisma.$transaction(async (tx) => {
+            // Update unblocking payment status
+            await tx.unblockingPayment.update({
+                where: { id: unblockingPayment.id },
+                data: { status: true }
+            });
+
+            // Set unblocking code on user
+            await tx.user.update({
+                where: { id: user.id },
+                data: { unblockingCode: code }
+            });
+        });
+
+        // Send SMS/Email notifications
+        const nameCapitalized = user.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : 'User';
+        const isWard = !user.phone && user.guardianUser;
+        const message = `Hello ${nameCapitalized} this is your ${isWard ? "ward's " + nameCapitalized + " PIM" : "PIM"} activation puk code: ${code}`;
+
+        try {
+            await TermiiService.sendSms(phone, message);
+        } catch (smsError) {
+            pagaLogger.error(`Failed to send PUK SMS to ${phone}:`, smsError);
+        }
+
+        if (user.email) {
+            try {
+                await TermiiService.sendMailWithTermii(user.email, code);
+            } catch (mailError) {
+                pagaLogger.error(`Failed to send PUK email to ${user.email}:`, mailError);
+            }
+        }
+
+        pagaLogger.info(`PUK unblocking payment approved and code sent for user: ${user.id}, reference: ${externalReferenceNumber}`);
+        return { status: 'ok' };
+    }
+
+    private async processWardSlotPurchase(payload: any) {
+        const { externalReferenceNumber, paymentAmount } = payload;
+
+        const slotPurchase = await prisma.guardianWardSlotPurchase.findUnique({
+            where: { reference: externalReferenceNumber }
+        });
+
+        if (!slotPurchase) {
+            pagaLogger.error(`Ward slot purchase record not found for ref: ${externalReferenceNumber}`);
+            return { status: 'not_found' };
+        }
+
+        const totalExpected = slotPurchase.price + (slotPurchase.charges || 0);
+
+        if (paymentAmount && Number(totalExpected) > Number(paymentAmount)) {
+            pagaLogger.error(`Ward slot purchase amount mismatch. Expected: ${totalExpected}, Paid: ${paymentAmount}`);
+            return { status: 'amount_mismatch' };
+        }
+
+        if (slotPurchase.status === 'success') {
+            return { status: 'already_processed' };
+        }
+
+        await prisma.guardianWardSlotPurchase.update({
+            where: { id: slotPurchase.id },
+            data: { status: 'success' }
+        });
+
+        pagaLogger.info(`Ward slot purchase successful for user: ${slotPurchase.userId}, reference: ${externalReferenceNumber}`);
+        return { status: 'ok' };
+    }
+
+    private async processActivationCardPurchase(payload: any) {
+        const { externalReferenceNumber, paymentAmount } = payload;
+
+        const card = await prisma.activationCard.findFirst({
+            where: { 
+                proofOfPayment: externalReferenceNumber,
+                status: ACTIVATION_CARD_STATUSES.PENDING
+            }
+        });
+
+        if (!card) {
+            pagaLogger.error(`Activation card request not found for ref: ${externalReferenceNumber}`);
+            return { status: 'not_found' };
+        }
+
+        if (paymentAmount && Number(card.amount) > Number(paymentAmount)) {
+            pagaLogger.error(`Activation card amount mismatch. Expected: ${card.amount}, Paid: ${paymentAmount}`);
+            return { status: 'amount_mismatch' };
+        }
+
+        // Generate a random unique 10-character code
+        let code = '';
+        let isUnique = false;
+        while (!isUnique) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 10; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            code = result;
+
+            const existing = await prisma.activationCard.findUnique({
+                where: { code }
+            });
+            if (!existing) {
+                isUnique = true;
+            }
+        }
+
+        // Find the super admin's user ID
+        const superAdmin = await prisma.user.findFirst({
+            where: { role: ROLES.SUPER_ADMIN }
+        });
+
+        await prisma.activationCard.update({
+            where: { id: card.id },
+            data: {
+                code,
+                approvedBy: superAdmin?.id ?? null,
+                status: ACTIVATION_CARD_STATUSES.APPROVED
+            }
+        });
+
+        pagaLogger.info(`Activation card purchase approved for user: ${card.userId}, card ID: ${card.id}, code: ${code}`);
+        return { status: 'ok' };
+    }
+
+    async processOnePipeWebhook(payload: any) {
+        const details = payload?.details;
+        const meta = details?.meta;
+        const reference = meta?.payment_id;
+        const amount = Number(details?.amount || 0) / 100;
+        const status = details?.status?.toLowerCase() === 'successful';
+
+        if (!status) {
+            pagaLogger.info(`OnePipe webhook: transaction was not successful. Status: ${details?.status}`);
+            return { status: 'skipped' };
+        }
+
+        if (!reference) {
+            pagaLogger.error('OnePipe webhook missing payment_id in meta');
+            return { status: 'missing_reference' };
+        }
+
+        const fullReference = 'ACTIVATION' + reference;
+
+        const activationRequest = await prisma.userActivationRequest.findUnique({
+            where: { reference: fullReference }
+        });
+
+        if (!activationRequest) {
+            pagaLogger.error(`OnePipe webhook activation request not found for reference: ${fullReference}`);
+            return { status: 'not_found' };
+        }
+
+        // Delegate to our robust processUserActivation
+        return await this.processUserActivation({
+            externalReferenceNumber: fullReference,
+            event: 'PAYMENT_COMPLETE',
+            status: 'SUCCESSFUL',
+            paymentAmount: amount
         });
     }
+
+    async processPagaCardWebhook(payload: any) {
+        const reference = payload?.paymentReference;
+        const amountPaid = Number(payload?.amount || 0);
+        const statusMessage = payload?.statusMessage;
+
+        if (statusMessage !== 'SUCCESS') {
+            pagaLogger.error(`Paga card webhook status is not success: ${statusMessage}`);
+            return { status: 'skipped' };
+        }
+
+        if (!reference) {
+            pagaLogger.error('Paga card webhook missing reference');
+            return { status: 'missing_reference' };
+        }
+
+        pagaLogger.info(`Paga card webhook received: reference=${reference}, amount=${amountPaid}`);
+
+        // Route based on reference prefix
+        if (reference.startsWith('ACTIVATION')) {
+            // Check if user activation request exists
+            const request = await prisma.userActivationRequest.findUnique({
+                where: { reference }
+            });
+
+            if (request) {
+                return await this.processUserActivation({
+                    externalReferenceNumber: reference,
+                    event: 'PAYMENT_COMPLETE',
+                    status: 'SUCCESSFUL',
+                    paymentAmount: amountPaid
+                });
+            } else {
+                pagaLogger.error(`Paga card activation request not found for ref: ${reference}`);
+                return { status: 'not_found' };
+            }
+        }
+
+        if (reference.startsWith('PUK')) {
+            const unblockingPayment = await prisma.unblockingPayment.findFirst({
+                where: { reference }
+            });
+
+            if (unblockingPayment) {
+                return await this.processPukUnblocking({
+                    externalReferenceNumber: reference,
+                    event: 'PAYMENT_COMPLETE',
+                    status: 'SUCCESSFUL',
+                    paymentAmount: amountPaid
+                });
+            } else {
+                pagaLogger.error(`Paga card unblocking payment not found for ref: ${reference}`);
+                return { status: 'not_found' };
+            }
+        }
+
+        if (reference.startsWith('WARDSLOT')) {
+            const slotPurchase = await prisma.guardianWardSlotPurchase.findUnique({
+                where: { reference }
+            });
+
+            if (slotPurchase) {
+                return await this.processWardSlotPurchase({
+                    externalReferenceNumber: reference,
+                    event: 'PAYMENT_COMPLETE',
+                    status: 'SUCCESSFUL',
+                    paymentAmount: amountPaid
+                });
+            } else {
+                pagaLogger.error(`Paga card ward slot purchase not found for ref: ${reference}`);
+                return { status: 'not_found' };
+            }
+        }
+
+        if (reference.startsWith('ACTIVATIONCARD')) {
+            const card = await prisma.activationCard.findFirst({
+                where: { proofOfPayment: reference }
+            });
+
+            if (card) {
+                return await this.processActivationCardPurchase({
+                    externalReferenceNumber: reference,
+                    event: 'PAYMENT_COMPLETE',
+                    status: 'SUCCESSFUL',
+                    paymentAmount: amountPaid
+                });
+            } else {
+                pagaLogger.error(`Paga card activation card not found for ref: ${reference}`);
+                return { status: 'not_found' };
+            }
+        }
+
+        if (reference.startsWith('DIRECTWALLET') || reference.startsWith('INDIRECTWALLET') || reference.startsWith('WALLET')) {
+            const fundingRecord = await prisma.manuallyFunding.findFirst({
+                where: { receipt: reference },
+                include: { wallet: { include: { user: true } } }
+            });
+
+            if (fundingRecord) {
+                return await this.processPagaWebhook({
+                    externalReferenceNumber: reference,
+                    event: 'PAYMENT_COMPLETE',
+                    status: 'SUCCESS',
+                    paymentAmount: amountPaid
+                });
+            } else {
+                pagaLogger.error(`Paga card funding record not found for ref: ${reference}`);
+                return { status: 'not_found' };
+            }
+        }
+
+        pagaLogger.error(`Paga card webhook reference prefix not handled: ${reference}`);
+        return { status: 'unhandled_prefix' };
+    }
+
+    async generatePukVirtualAccount(userId: bigint, user: any) {
+        if (!user.blockedAt) {
+            throw new AppError('Your account is not blocked', 400);
+        }
+
+        // Throttle check (10 minutes)
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        const lastPending = await prisma.unblockingPayment.findFirst({
+            where: {
+                userId,
+                status: false,
+                createdAt: { gte: tenMinutesAgo }
+            }
+        });
+
+        if (lastPending) {
+            const minutesLeft = Math.ceil((lastPending.createdAt!.getTime() + 10 * 60 * 1000 - Date.now()) / (60 * 1000));
+            throw new AppError(`Please wait ${minutesLeft} minute(s) before creating a new PUK request`, 400);
+        }
+
+        // Get PUK price setting
+        const priceSetting = await prisma.setting.findFirst({
+            where: { key: 'puk_price' }
+        });
+        const baseAmount = priceSetting ? Number(priceSetting.value) : 1000; // default to 1000 if not set
+
+        const pagaService = new PagaService();
+        const ref = pagaService.generateReference('PUK');
+        const charge = pagaService.calculateCharge(baseAmount);
+        const totalWithCharge = baseAmount + charge;
+
+        // Generate paga virtual account
+        const response = await pagaService.generateVirtualAccount(
+            baseAmount,
+            user.name || 'User',
+            user.phone || '08000000000',
+            ref
+        );
+
+        if (!response.success) {
+            throw new AppError(response.error || 'Failed to generate virtual account', 400);
+        }
+
+        // Delete any old pending unblocking payments
+        await prisma.unblockingPayment.deleteMany({
+            where: {
+                userId,
+                status: false
+            }
+        });
+
+        // Save unblocking payment record
+        await prisma.unblockingPayment.create({
+            data: {
+                userId,
+                bank: response.data.bank_name || 'Paga',
+                accountNumber: response.data.virtual_account,
+                accountName: response.data.account_name,
+                reference: ref,
+                amount: totalWithCharge,
+                status: false,
+                cloudinaryPublicId: ''
+            }
+        });
+
+        return {
+            status: true,
+            account_detail: {
+                account_name: response.data.account_name,
+                bank_name: response.data.bank_name,
+                account_number: response.data.virtual_account,
+                expires_at: response.data.expiry_date_full ? format(new Date(response.data.expiry_date_full), 'HH:mm') : format(addMinutes(new Date(), 28), 'HH:mm'),
+                amount: totalWithCharge,
+                reference: ref
+            }
+        };
+    }
+
+    async unblockWithPuk(userId: bigint, puk: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+
+        if (user.unblockingCode !== puk) {
+            throw new AppError('invalid PUK code', 400);
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                blockedAt: null,
+                lastSeen: new Date()
+            }
+        });
+
+        return {
+            status: true,
+            message: 'Your account has been unblocked successfully!'
+        };
+    }
 }
+

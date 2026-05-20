@@ -158,9 +158,9 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
 
     // Allow Patrons, Admins, and Super Admins to bypass the level 2 requirement
     const bypassRoles = [ROLES.PATRON, ROLES.ADMIN, ROLES.SUPER_ADMIN];
-    if (user.level < 2 && !bypassRoles.includes(user.role as any)) {
-        return next(new AppError('Your account requires level 2 verification to login.', 403));
-    }
+    // if (user.level < 2 && !bypassRoles.includes(user.role as any)) {
+    //     return next(new AppError('Your account requires level 2 verification to login.', 403));
+    // }
 
     const accessToken = signAccessToken(user.id.toString());
     const refreshToken = signRefreshToken(user.id.toString());
