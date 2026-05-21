@@ -9,9 +9,10 @@ export class AccountActivationService {
      */
     static async activateUserAccountOptimized(
         userId: bigint,
-        context: { commission?: number; superAdminId?: bigint } = {}
+        context: { commission?: number; superAdminId?: bigint; tx?: any } = {}
     ) {
-        const user = await prisma.user.findUnique({
+        const client = context.tx || prisma;
+        const user = await client.user.findUnique({
             where: { id: userId },
             include: { wallets: true },
         });
@@ -21,13 +22,13 @@ export class AccountActivationService {
         // Fetch settings or use context
         let commission = context.commission;
         if (commission === undefined) {
-            const commissionStr = await prisma.setting.findUnique({ where: { key: 'commission_price' } });
+            const commissionStr = await client.setting.findUnique({ where: { key: 'commission_price' } });
             commission = commissionStr ? parseFloat(commissionStr.value) : 0;
         }
 
         let superAdminId = context.superAdminId;
         if (superAdminId === undefined) {
-            const superAdminObj = await prisma.user.findFirst({
+            const superAdminObj = await client.user.findFirst({
                 where: { role: ROLES.SUPER_ADMIN },
                 select: { id: true, wallets: true }
             });
@@ -36,12 +37,12 @@ export class AccountActivationService {
 
         // Handle school compensation
         if (user.isInfant && user.schoolId) {
-            const compensation = await prisma.schoolCompensation.findFirst({
+            const compensation = await client.schoolCompensation.findFirst({
                 where: { infantId: user.id, isPaid: false }
             });
 
             if (compensation) {
-                const schoolUser = await prisma.user.findUnique({
+                const schoolUser = await client.user.findUnique({
                     where: { id: user.schoolId },
                     include: { wallets: true }
                 });
@@ -50,12 +51,12 @@ export class AccountActivationService {
                     const schoolDirectWallet = schoolUser.wallets.find((w: any) => w.type === WalletType.direct);
 
                     if (schoolDirectWallet) {
-                        await prisma.wallet.update({
+                        await client.wallet.update({
                             where: { id: schoolDirectWallet.id },
                             data: { amount: { increment: compensation.amount } }
                         });
                     } else {
-                        await prisma.wallet.create({
+                        await client.wallet.create({
                             data: {
                                 userId: user.schoolId,
                                 type: WalletType.direct,
@@ -64,7 +65,7 @@ export class AccountActivationService {
                         });
                     }
 
-                    await prisma.schoolCompensation.update({
+                    await client.schoolCompensation.update({
                         where: { id: compensation.id },
                         data: { isPaid: true }
                     });
@@ -76,7 +77,7 @@ export class AccountActivationService {
         let indirectWallet = user.wallets.find((w: any) => w.type === WalletType.indirect);
 
         if (!indirectWallet) {
-            indirectWallet = await prisma.wallet.create({
+            indirectWallet = await client.wallet.create({
                 data: {
                     userId: user.id,
                     type: WalletType.indirect,
@@ -87,14 +88,14 @@ export class AccountActivationService {
         }
 
         if (indirectWallet.amount < 1) {
-            await prisma.wallet.update({
+            await client.wallet.update({
                 where: { id: indirectWallet.id },
                 data: { amount: { increment: 1 } }
             });
 
             // REFERRAL PATH
             if (user.referralId && !user.activatedAt) {
-                const referral = await prisma.user.findUnique({
+                const referral = await client.user.findUnique({
                     where: { id: user.referralId },
                     include: { wallets: true }
                 });
@@ -110,7 +111,7 @@ export class AccountActivationService {
             } else {
                 let ref = null;
                 if (user.regionId) {
-                    ref = await prisma.user.findFirst({
+                    ref = await client.user.findFirst({
                         where: { regionId: user.regionId, role: ROLES.CUSTOMER },
                         orderBy: { createdAt: 'asc' },
                         include: { wallets: true }
@@ -133,25 +134,25 @@ export class AccountActivationService {
                     }
 
                     if (ref.wallets.length === 0) {
-                        const newDirect = await prisma.wallet.create({ data: { userId: ref.id, type: WalletType.direct, amount: 0 } });
-                        const newIndirect = await prisma.wallet.create({ data: { userId: ref.id, type: WalletType.indirect, amount: 0 } });
+                        const newDirect = await client.wallet.create({ data: { userId: ref.id, type: WalletType.direct, amount: 0 } });
+                        const newIndirect = await client.wallet.create({ data: { userId: ref.id, type: WalletType.indirect, amount: 0 } });
                         ref.wallets.push(newDirect, newIndirect);
                     }
 
                     const targetWallet = ref.wallets.find((w: any) => w.type === typeValue);
                     if (targetWallet) {
-                        await prisma.wallet.update({
+                        await client.wallet.update({
                             where: { id: targetWallet.id },
                             data: { amount: { increment: amountValue } }
                         });
                     }
 
-                    await prisma.user.update({
+                    await client.user.update({
                         where: { id: ref.id },
                         data: { referralActivateAt: new Date() }
                     });
 
-                    await prisma.user.update({
+                    await client.user.update({
                         where: { id: user.id },
                         data: { referralId: ref.id }
                     });
@@ -160,32 +161,32 @@ export class AccountActivationService {
 
             // Influencer logic
             if (user.influencerId && !user.activatedAt) {
-                const influencer = await prisma.user.findUnique({
+                const influencer = await client.user.findUnique({
                     where: { id: user.influencerId },
                     include: { wallets: true }
                 });
 
                 if (influencer) {
                     if (user.influencerPromoPeriodId) {
-                        const promoPeriod = await prisma.influencerPromoPeriod.findUnique({
+                        const promoPeriod = await client.influencerPromoPeriod.findUnique({
                             where: { id: user.influencerPromoPeriodId }
                         });
 
                         if (promoPeriod) {
                             let unitLeader = null;
                             if (influencer.influencerId) {
-                                unitLeader = await prisma.user.findUnique({ where: { id: influencer.influencerId } });
+                                unitLeader = await client.user.findUnique({ where: { id: influencer.influencerId } });
                             } else {
                                 unitLeader = influencer;
                             }
 
                             if (unitLeader) {
-                                const facilitatorIds = await prisma.user.findMany({
+                                const facilitatorIds = await client.user.findMany({
                                     where: { influencerId: unitLeader.id, role: ROLES.INFLUENCER, status: true },
                                     select: { id: true }
                                 }).then((f: any) => f.map((u: any) => u.id));
 
-                                const slotCount = await prisma.user.count({
+                                const slotCount = await client.user.count({
                                     where: {
                                         influencerPromoPeriodId: promoPeriod.id,
                                         createdAt: { gte: promoPeriod.startDate, lte: promoPeriod.endDate },
@@ -194,7 +195,7 @@ export class AccountActivationService {
                                 });
 
                                 if (slotCount >= promoPeriod.target) {
-                                    await prisma.user.update({
+                                    await client.user.update({
                                         where: { id: user.id },
                                         data: { influencerPromoPeriodId: null }
                                     });
@@ -205,7 +206,7 @@ export class AccountActivationService {
 
                     const infWallet = influencer.wallets.find((w: any) => w.type === WalletType.direct);
                     if (infWallet) {
-                        await prisma.wallet.update({
+                        await client.wallet.update({
                             where: { id: infWallet.id },
                             data: { amount: { increment: commission } }
                         });
@@ -215,7 +216,7 @@ export class AccountActivationService {
 
             // patron commission
             if (user.patronId && !user.activatedAt) {
-                const patron = await prisma.user.findUnique({
+                const patron = await client.user.findUnique({
                     where: { id: user.patronId },
                     include: { wallets: true }
                 });
@@ -223,7 +224,7 @@ export class AccountActivationService {
                 if (patron && patron.patronId) {
                     const patWallet = patron.wallets.find((w: any) => w.type === WalletType.direct);
                     if (patWallet) {
-                        await prisma.wallet.update({
+                        await client.wallet.update({
                             where: { id: patWallet.id },
                             data: { amount: { increment: commission } }
                         });
@@ -232,7 +233,7 @@ export class AccountActivationService {
             }
 
             // Update user status
-            await prisma.user.update({
+            await client.user.update({
                 where: { id: user.id },
                 data: {
                     status: true,
@@ -243,7 +244,7 @@ export class AccountActivationService {
 
             // Give commission to super admin
             if (superAdminId) {
-                const superAdmin = await prisma.user.findUnique({
+                const superAdmin = await client.user.findUnique({
                     where: { id: superAdminId },
                     include: { wallets: true }
                 });
@@ -251,7 +252,7 @@ export class AccountActivationService {
                 if (superAdmin) {
                     const superDirect = superAdmin.wallets.find((w: any) => w.type === WalletType.direct);
                     if (superDirect) {
-                        await prisma.wallet.update({
+                        await client.wallet.update({
                             where: { id: superDirect.id },
                             data: { amount: { increment: commission } }
                         });
@@ -259,7 +260,7 @@ export class AccountActivationService {
 
                     const superCentral = superAdmin.wallets.find((w: any) => w.type === WalletType.central_treasury);
                     if (superCentral) {
-                        await prisma.wallet.update({
+                        await client.wallet.update({
                             where: { id: superCentral.id },
                             data: { amount: { increment: 1 } }
                         });

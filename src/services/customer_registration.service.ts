@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { prisma, WalletType, User } from "../config/prisma.js";
+import { prisma, WalletType, User, Prisma } from "../config/prisma.js";
 import RegionService from "./region.service.js";
 import { ROLES, INFANT_FORM_FEE } from "../config/constants.js";
 import { handleReferral } from "./referral.service.js";
@@ -68,76 +68,80 @@ export const createUser = async (data: UserRequestData) => {
 
     const { referralId, influencerId, influencerPromoPeriodId } = referral;
 
-    const user = await prisma.user.create({
-        data: {
-            name,
-            username,
-            email,
-            phone,
-            regionId: BigInt(region_id),
-            country,
-            password: hashedPassword,
-            referralId,
-            influencerId,
-            influencerPromoPeriodId,
-            pictureUrl: picture_url ?? null,
-        },
-        omit: {
-            withdrawalPinResetOtp: true,
-            withdrawalPinResetOtpSentAt: true,
-            emailVerificationCode: true,
-            emailVerificationCodeSentAt: true,
-            password: true,
-            passwordResetOtp: true,
-            passwordResetOtpSentAt: true,
-            referralActivateAt: true,
-            activatedAt: true,
-            lastSeen: true,
-            canWithdraw: true,
-            canUseVtu: true,
-            canEarn: true,
-            canOptOut: true,
-            canWithdrawGkwth: true,
-            sponsorshipAcceptedAt: true,
-            sponsorAgreement: true,
-            sponsorLoginOtp: true,
-            sponsorLoginOtpCreatedAt: true,
-            sponsorWithdrawalOtp: true,
-            sponsorWithdrawalOtpSentAt: true,
-            isDeactivated: true,
-            sponsorSlot: true,
-            loginYearlyCount: true,
-            schoolFeesPermittedAt: true,
-            withdrawalBypassAt: true,
-            isUnitLeader: true,
-            patronGroupId: true,
-            activationCardId: true,
-            blockedAt: true,
-        },
-        include: {
-            region: {
-                select: {
-                    id: true,
-                    name: true
+    const user = await prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+            data: {
+                name,
+                username,
+                email,
+                phone,
+                regionId: BigInt(region_id),
+                country,
+                password: hashedPassword,
+                referralId,
+                influencerId,
+                influencerPromoPeriodId,
+                pictureUrl: picture_url ?? null,
+            },
+            omit: {
+                withdrawalPinResetOtp: true,
+                withdrawalPinResetOtpSentAt: true,
+                emailVerificationCode: true,
+                emailVerificationCodeSentAt: true,
+                password: true,
+                passwordResetOtp: true,
+                passwordResetOtpSentAt: true,
+                referralActivateAt: true,
+                activatedAt: true,
+                lastSeen: true,
+                canWithdraw: true,
+                canUseVtu: true,
+                canEarn: true,
+                canOptOut: true,
+                canWithdrawGkwth: true,
+                sponsorshipAcceptedAt: true,
+                sponsorAgreement: true,
+                sponsorLoginOtp: true,
+                sponsorLoginOtpCreatedAt: true,
+                sponsorWithdrawalOtp: true,
+                sponsorWithdrawalOtpSentAt: true,
+                isDeactivated: true,
+                sponsorSlot: true,
+                loginYearlyCount: true,
+                schoolFeesPermittedAt: true,
+                withdrawalBypassAt: true,
+                isUnitLeader: true,
+                patronGroupId: true,
+                activationCardId: true,
+                blockedAt: true,
+            },
+            include: {
+                region: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
                 }
             }
-        }
-    });
+        });
 
-    await WalletService.createWallets(user.id, ROLES.CUSTOMER);
-    await handleAdultSponsorship(user.id, referral_id);
-    await handlePatron(referral_id, user);
+        await WalletService.createWallets(createdUser.id, ROLES.CUSTOMER, tx);
+        await handleAdultSponsorship(createdUser.id, referral_id, tx);
+        await handlePatron(referral_id, createdUser, tx);
+
+        return createdUser;
+    });
 
     return user;
 }
 
-const handleAdultSponsorship = async (userId: bigint, username: string) => {
+const handleAdultSponsorship = async (userId: bigint, username: string, tx: Prisma.TransactionClient) => {
     username = username.trim();
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await tx.user.findUnique({ where: { id: userId } });
     if (!user || user.role !== ROLES.CUSTOMER || user.isInfant || !username) return;
 
-    const patron = await prisma.user.findFirst({
+    const patron = await tx.user.findFirst({
         where: { username, role: ROLES.PATRON },
         include: { wallets: true },
     });
@@ -148,7 +152,7 @@ const handleAdultSponsorship = async (userId: bigint, username: string) => {
     const targetPatronId = patron.patronId || patron.id;
 
     // Find patronage wallet for this target patron
-    const wallet = await prisma.wallet.findFirst({
+    const wallet = await tx.wallet.findFirst({
         where: {
             type: WalletType.patronage,
             userId: targetPatronId,
@@ -157,35 +161,35 @@ const handleAdultSponsorship = async (userId: bigint, username: string) => {
 
     if (!wallet) return;
 
-    const gkwthSalePriceStr = await prisma.setting.findUnique({
+    const gkwthSalePriceStr = await tx.setting.findUnique({
         where: { key: 'gkwth_sale_price' },
     });
     const activationFee = gkwthSalePriceStr ? parseFloat(gkwthSalePriceStr.value) : 0;
 
     if (wallet.amount > activationFee) {
         // Update user's patron_id
-        await prisma.user.update({
+        await tx.user.update({
             where: { id: user.id },
             data: { patronId: patron.id },
         });
 
-        await AccountActivationService.activateUserAccountOptimized(user.id);
+        await AccountActivationService.activateUserAccountOptimized(user.id, { tx });
 
         // Deduct from wallet
-        await prisma.wallet.update({
+        await tx.wallet.update({
             where: { id: wallet.id },
             data: { amount: { decrement: activationFee } },
         });
 
         if (patron.patronId) {
-            const commissionPriceStr = await prisma.setting.findUnique({
+            const commissionPriceStr = await tx.setting.findUnique({
                 where: { key: 'commission_price' },
             });
             const commission = commissionPriceStr ? parseFloat(commissionPriceStr.value) : 0;
 
             const directWallet = patron.wallets.find((w: any) => w.type === WalletType.direct);
             if (directWallet) {
-                await prisma.wallet.update({
+                await tx.wallet.update({
                     where: { id: directWallet.id },
                     data: { amount: { increment: commission } },
                 });
@@ -194,11 +198,11 @@ const handleAdultSponsorship = async (userId: bigint, username: string) => {
     }
 }
 
-export const handlePatron = async (patronId: string | null | undefined, user: Pick<User, 'id' | 'sponsorId'>): Promise<void> => {
+export const handlePatron = async (patronId: string | null | undefined, user: Pick<User, 'id' | 'sponsorId'>, tx: Prisma.TransactionClient): Promise<void> => {
     if (!patronId) return;
 
-    let patron = await prisma.user.findFirst({
-        where: { role: ROLES.PATRON, id: BigInt(patronId) },
+    let patron = await tx.user.findFirst({
+        where: { role: ROLES.PATRON, username: patronId },
         include: { wallets: true },
     });
 
@@ -206,14 +210,14 @@ export const handlePatron = async (patronId: string | null | undefined, user: Pi
 
     // If the patron belongs to a parent patron, use the parent for the wallet deduction
     if (patron.patronId) {
-        patron = await prisma.user.findUnique({
+        patron = await tx.user.findUnique({
             where: { id: patron.patronId },
             include: { wallets: true },
         });
         if (!patron) return;
     }
 
-    const gkwthSalePrice = await prisma.setting.findUnique({ where: { key: 'gkwth_sale_price' } });
+    const gkwthSalePrice = await tx.setting.findUnique({ where: { key: 'gkwth_sale_price' } });
     const activationFee = gkwthSalePrice ? parseFloat(gkwthSalePrice.value) : 0;
     const amount = user.sponsorId ? activationFee : INFANT_FORM_FEE + activationFee;
 
@@ -223,16 +227,16 @@ export const handlePatron = async (patronId: string | null | undefined, user: Pi
         throw new Error('The selected patron has insufficient funds, please contact them to fund their patronage wallet to proceed with registration');
     }
 
-    await prisma.wallet.update({
+    await tx.wallet.update({
         where: { id: patronageWallet.id },
         data: { amount: { decrement: amount } },
     });
 
-    await prisma.user.update({
+    await tx.user.update({
         where: { id: user.id },
         data: { patronId: patron.id },
     });
 
-    await AccountActivationService.activateUserAccountOptimized(user.id);
+    await AccountActivationService.activateUserAccountOptimized(user.id, { tx });
 }
 
