@@ -1,4 +1,4 @@
-import { prisma, Prisma, GuardianSlotType } from "../config/prisma.js";
+import { prisma, Prisma, GuardianSlotType, User } from "../config/prisma.js";
 import { pagaLogger } from "../utils/logger.js";
 import { AppError } from "../utils/AppError.js";
 import { PagaService } from "./paga.service.js";
@@ -723,7 +723,7 @@ export class PaymentService {
     /**
      * Initiate activation payment (Card/SDK)
      */
-    async initiateActivationPayment(userId: bigint, teamMateIds: string[], user: any) {
+    async initiateActivationPayment(userId: bigint, teamMateIds: string[], user: User) {
         const pagaService = new PagaService();
         
         // 1. Calculate price
@@ -793,7 +793,7 @@ export class PaymentService {
     /**
      * Generate virtual account for activation request (Transfer)
      */
-    async generateActivationRequestVirtualAccount(userId: bigint, teamMateIds: string[], inputAmount: number, user: any) {
+    async generateActivationRequestVirtualAccount(userId: bigint, teamMateIds: string[], inputAmount: number, user: User) {
         if (user.status) {
             throw new AppError('Your account is already activated', 400);
         }
@@ -854,6 +854,7 @@ export class PaymentService {
             ref
         );
 
+
         if (!response.success) {
             throw new AppError(response.error || 'Failed to generate virtual account', 400);
         }
@@ -900,7 +901,8 @@ export class PaymentService {
                 account_number: response.data.virtual_account,
                 bank_code: null,
                 expires_at: response.data.expiry_date_full ? format(new Date(response.data.expiry_date_full), 'HH:mm') : format(addMinutes(new Date(), 28), 'HH:mm'),
-                reference: ref
+                reference: ref,
+                response: response
             }
         };
     }

@@ -6,7 +6,7 @@ import { logger, pagaLogger } from '../utils/logger';
 import { AppError } from '../utils/AppError';
 import { getOrSetCache } from '../utils/cache';
 
-interface PagaResponse {
+export interface PagaResponse {
     success: boolean;
     data?: any;
     error?: string;
