@@ -90,10 +90,16 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
     });
 });
 
+// Migration constants — mirrors the frontend NEW_REFERRAL_SYSTEM constant
+const NEW_REFERRAL_SYSTEM = {
+    start_date: new Date('2026-04-01'),
+    target: 10,
+} as const;
+
 export const getUserDashboardStats = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
 
-    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting, pendingActivation] = await Promise.all([
+    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting, pendingActivation, migrationSales, isPendingLevel2Migration] = await Promise.all([
         prisma.user.count({
             where: {
                 referralId: user.id,
@@ -124,7 +130,19 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
                 ],
                 status: 'pending'
             }
-        })
+        }),
+        // Count referrals since the new referral system start date
+        prisma.user.count({
+            where: {
+                referralId: user.id,
+                status: true,
+                createdAt: { gte: NEW_REFERRAL_SYSTEM.start_date }
+            }
+        }),
+        // Check if user is pending level 2 migration
+        prisma.pending_level2_migrations.findFirst({
+            where: { user_id: user.id }
+        }).then(m => !!m)
     ])
 
     const activationPrice = Number(assetPriceSetting?.value) || 2500;
@@ -140,6 +158,8 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
 
     sendSuccess(res, 200, 'User dashboard stats fetched successfully', {
         totalSales,
+        migrationSales,
+        isPendingLevel2Migration,
         wallets,
         region,
         regionTotalUsers,
@@ -153,6 +173,7 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
         }
     });
 })
+
 
 export const getActivationCandidates = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
