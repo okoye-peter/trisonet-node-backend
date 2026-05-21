@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma, WalletType, User, Prisma } from "../config/prisma.js";
 import RegionService from "./region.service.js";
-import { ROLES, INFANT_FORM_FEE } from "../config/constants.js";
+import { ROLES, INFANT_FORM_FEE, NEW_REFERRAL_SYSTEM } from "../config/constants.js";
 import { handleReferral } from "./referral.service.js";
 import WalletService from "./wallet.service.js";
 import { AccountActivationService } from "./account_activation.service.js";
@@ -64,6 +64,22 @@ export const createUser = async (data: UserRequestData) => {
 
     if (!referral.referralId && referral_id) {
         throw new Error('Referral ID is invalid');
+    }
+
+    // Block registration if the referral link has reached its target since the new system start date
+    if (referral.referralId) {
+        const salesSinceStart = await prisma.user.count({
+            where: {
+                referralId: referral.referralId,
+                status: true,
+                isInfant: false,
+                createdAt: { gte: NEW_REFERRAL_SYSTEM.start_date },
+            },
+        });
+        if (salesSinceStart >= NEW_REFERRAL_SYSTEM.target) {
+            const startDate = NEW_REFERRAL_SYSTEM.start_date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            throw new Error(`The partnership link used is exhausted and can't be used again as of ${startDate}`);
+        }
     }
 
     const { referralId, influencerId, influencerPromoPeriodId } = referral;

@@ -4,7 +4,7 @@ import { prisma } from "../config/prisma"
 import { sendSuccess } from '../utils/responseWrapper'
 import { NextFunction, Request, Response } from "express"
 import { paginate } from "../utils/pagination"
-import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, ROLES } from "../config/constants"
+import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, NEW_REFERRAL_SYSTEM, ROLES } from "../config/constants"
 import bcrypt from "bcryptjs"
 import { AppError } from "../utils/AppError"
 import { getOrSetCache } from '../utils/cache';
@@ -90,11 +90,6 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
     });
 });
 
-// Migration constants — mirrors the frontend NEW_REFERRAL_SYSTEM constant
-const NEW_REFERRAL_SYSTEM = {
-    start_date: new Date('2026-04-01'),
-    target: 10,
-} as const;
 
 export const getUserDashboardStats = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
@@ -131,11 +126,12 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
                 status: 'pending'
             }
         }),
-        // Count referrals since the new referral system start date
+        // Count adult referrals since the new referral system start date
         prisma.user.count({
             where: {
                 referralId: user.id,
                 status: true,
+                isInfant: false,
                 createdAt: { gte: NEW_REFERRAL_SYSTEM.start_date }
             }
         }),
