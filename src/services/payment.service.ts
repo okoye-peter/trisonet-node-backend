@@ -272,7 +272,7 @@ export class PaymentService {
         return { status: 'ok' };
     }
 
-    private async processUserActivation(payload: any) {
+    async processUserActivation(payload: any) {
         const { externalReferenceNumber, paymentAmount } = payload;
 
         const activationRequest = await prisma.userActivationRequest.findUnique({
@@ -1054,7 +1054,7 @@ export class PaymentService {
         return { status: 'ok' };
     }
 
-    private async processActivationCardPurchase(payload: any) {
+    async processActivationCardPurchase(payload: any) {
         const { externalReferenceNumber, paymentAmount } = payload;
 
         const card = await prisma.activationCard.findFirst({

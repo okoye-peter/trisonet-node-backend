@@ -31,6 +31,7 @@ import gistsRouter from './routes/gists.route';
 import webhookRouter from './routes/webhook.route';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSockets } from './sockets';
+import './cron';
 
 // Initialize background workers
 import './queue';
