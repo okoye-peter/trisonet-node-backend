@@ -1,9 +1,8 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
-import { 
-    generateVirtualAccountForWardSlotPurchase, 
-    purchaseGkwth, 
-    handlePagaWebhook,
+import {
+    generateVirtualAccountForWardSlotPurchase,
+    purchaseGkwth,
     requestAssetLoan,
     checkFundingStatus,
     initiateDirectWalletFunding,
@@ -15,8 +14,6 @@ import {
     activateByCode,
     checkActivationStatus,
     submitActivationProof,
-    handlePagaCardWebhook,
-    handleOnePipeWebhook,
     generatePukVirtualAccount,
     unblockWithPuk
 } from "../controllers/payment.controller";
@@ -25,11 +22,6 @@ import { validate } from "../middlewares/validateRequest";
 import { initiateDirectWalletFundingSchema, initiateGkwthPurchaseSchema } from "../validations/wallet.validation";
 
 const router = Router();
-
-// Public routes
-router.post('/webhook/paga', handlePagaWebhook);
-router.post('/webhook/paga-card', handlePagaCardWebhook);
-router.post('/webhook/onepipe', handleOnePipeWebhook);
 
 // Protected routes
 router.use(protect);

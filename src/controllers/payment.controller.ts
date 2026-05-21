@@ -82,12 +82,6 @@ export const checkFundingStatus = asyncHandler(async (req: Request, res: Respons
     return sendSuccess(res, 200, 'Transaction status checked', { status: 'pending' });
 });
 
-export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const paymentService = new PaymentService();
-    const result = await paymentService.processPagaWebhook(req.body);
-    return res.status(200).json(result);
-});
-
 export const requestAssetLoan = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const loanService = new LoanService();
     const loan = await loanService.createLoanRequest(req.user.id, req.body.quantity, req.user);
@@ -171,18 +165,6 @@ export const submitActivationProof = asyncHandler(async (req: Request, res: Resp
     });
 
     return sendSuccess(res, 200, 'Proof of payment submitted successfully', updatedRequest);
-});
-
-export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const paymentService = new PaymentService();
-    const result = await paymentService.processPagaCardWebhook(req.body);
-    return res.status(200).json(result);
-});
-
-export const handleOnePipeWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const paymentService = new PaymentService();
-    const result = await paymentService.processOnePipeWebhook(req.body);
-    return res.status(200).json(result);
 });
 
 export const generatePukVirtualAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
