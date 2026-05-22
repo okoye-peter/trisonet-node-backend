@@ -1,9 +1,18 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middlewares/asyncHandler';
 import { PaymentService } from '../services/payment.service';
+import { PagaService } from '../services/paga.service';
 import { pagaLogger } from '../utils/logger';
 
 const paymentService = new PaymentService();
+const pagaService = new PagaService();
+
+function verifyPagaSignature(req: Request, referenceNumber: string): boolean {
+    const receivedHash = req.headers['hash'] as string | undefined;
+    if (!receivedHash) return false;
+    const expectedHash = pagaService.generateHash([referenceNumber]);
+    return receivedHash === expectedHash;
+}
 
 /**
  * Paga virtual-account / bank-transfer webhook
@@ -16,9 +25,16 @@ const paymentService = new PaymentService();
  *   WALLET* / DIRECT_WALLET* / DIRECTWALLET* / INDIRECTWALLET* / GK_PURCHASE* → wallet / GKWTH funding
  */
 export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response) => {
-    if (req.method !== 'POST') {
-        pagaLogger.error('Paga webhook called with non-POST method');
-        return res.status(200).json({ status: 'ok' });
+    const { externalReferenceNumber } = req.body;
+
+    pagaLogger.info(`[webhook] Paga bank-transfer webhook received`, {
+        reference: externalReferenceNumber,
+        body: req.body,
+    });
+
+    if (!verifyPagaSignature(req, externalReferenceNumber)) {
+        pagaLogger.warn(`[webhook] Paga signature verification failed`, { reference: externalReferenceNumber });
+        return res.status(401).json({ status: 'unauthorized' });
     }
 
     const result = await paymentService.processPagaWebhook(req.body);
@@ -31,6 +47,18 @@ export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response
  * but the payload shape differs (paymentReference, amount, statusMessage).
  */
 export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Response) => {
+    const { paymentReference } = req.body;
+
+    pagaLogger.info(`[webhook] Paga card webhook received`, {
+        reference: paymentReference,
+        body: req.body,
+    });
+
+    if (!verifyPagaSignature(req, paymentReference)) {
+        pagaLogger.warn(`[webhook] Paga card signature verification failed`, { reference: paymentReference });
+        return res.status(401).json({ status: 'unauthorized' });
+    }
+
     const result = await paymentService.processPagaCardWebhook(req.body);
     return res.status(200).json(result);
 });
@@ -41,6 +69,8 @@ export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Resp
  * Payload: { details: { meta: { payment_id }, amount, status } }
  */
 export const handleOnePipeWebhook = asyncHandler(async (req: Request, res: Response) => {
+    pagaLogger.info(`[webhook] OnePipe webhook received`, { body: req.body });
+
     const result = await paymentService.processOnePipeWebhook(req.body);
     return res.status(200).json(result);
 });
