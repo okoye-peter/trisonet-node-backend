@@ -12,6 +12,8 @@ const paymentService = new PaymentService();
 const MIN_AGE_MINUTES = 30;
 // Records older than this have virtual accounts that are long-expired
 const MAX_AGE_HOURS = 2;
+// Crucial batch limit to prevent event-loop starvation and server unresponsiveness
+const BATCH_LIMIT = 20;
 
 // Concurrency lock to prevent overlapping cron execution
 let isCronRunning = false;
@@ -29,6 +31,7 @@ function ageWindow() {
 async function verifyPendingActivationRequests() {
     const window = ageWindow();
 
+    // Added page chunking limit to avoid heavy blocking IO
     const pending = await prisma.userActivationRequest.findMany({
         where: {
             status: 'pending',
@@ -36,6 +39,7 @@ async function verifyPendingActivationRequests() {
             createdAt: window,
         },
         select: { id: true, reference: true, amount: true },
+        take: BATCH_LIMIT, 
     });
 
     if (pending.length === 0) return;
@@ -73,6 +77,7 @@ async function verifyPendingActivationRequests() {
 async function verifyPendingActivationCards() {
     const window = ageWindow();
 
+    // Added page chunking limit to avoid heavy blocking IO
     const pending = await prisma.activationCard.findMany({
         where: {
             status: ACTIVATION_CARD_STATUSES.PENDING,
@@ -80,6 +85,7 @@ async function verifyPendingActivationCards() {
             createdAt: window,
         },
         select: { id: true, proofOfPayment: true, amount: true },
+        take: BATCH_LIMIT,
     });
 
     if (pending.length === 0) return;
@@ -115,11 +121,9 @@ async function verifyPendingActivationCards() {
 // ─── Job 3: Cleanup Stale Unpaid Records ─────────────────────────────────────
 
 async function cleanupStaleRecords() {
-    // e.g., delete records older than 2hr + 10min to be safe
     const expirationThreshold = new Date(Date.now() - (MAX_AGE_HOURS * 60 + 10) * 60 * 1000);
 
     try {
-        // Only delete Paga-originated pending requests that have no manual proof of payment
         const deletedRequests = await prisma.userActivationRequest.deleteMany({
             where: {
                 status: 'pending',
@@ -129,7 +133,6 @@ async function cleanupStaleRecords() {
             },
         });
 
-        // Only delete Paga-originated pending cards (proofOfPayment = Paga reference)
         const deletedCards = await prisma.activationCard.deleteMany({
             where: {
                 status: ACTIVATION_CARD_STATUSES.PENDING,
@@ -143,38 +146,38 @@ async function cleanupStaleRecords() {
                 `[cron] Cleanup complete. Deleted ${deletedRequests.count} stale activation request(s) and ${deletedCards.count} stale card(s).`
             );
         }
-        
-        /* 
-        // Note: If you prefer keeping an audit trail instead of hard deleting, use this instead:
-        await prisma.userActivationRequest.updateMany({
-            where: { status: 'pending', createdAt: { lt: expirationThreshold } },
-            data: { status: 'failed' }
-        });
-        */
     } catch (err: any) {
         pagaLogger.error(`[cron] Error running stale records cleanup: ${err.message}`);
     }
 }
 
-// ─── Schedule: Every 5 Minutes ───────────────────────────────────────────────
+// ─── Schedule Deployment: Multi-Instance Cluster Safe ───────────────────────
 
-cron.schedule('*/5 * * * *', async () => {
-    if (isCronRunning) {
-        pagaLogger.warn('[cron] Previous verification cycle is still running. Skipping this execution tick.');
-        return;
-    }
+// PM2 gives every process an incremental index string ('0', '1', etc.) via NODE_APP_INSTANCE
+const isPrimaryCluster = !process.env.NODE_APP_INSTANCE || process.env.NODE_APP_INSTANCE === '0';
 
-    isCronRunning = true;
-    pagaLogger.info('[cron] Starting pending activation verification and cleanup pipeline...');
+if (isPrimaryCluster) {
+    pagaLogger.info('[cron] Primary cluster instance detected. Registering core automation routines.');
 
-    try {
-        // Executed sequentially to prevent cross-db transaction failures or edge cases
-        await verifyPendingActivationRequests();
-        await verifyPendingActivationCards();
-        await cleanupStaleRecords();
-    } catch (err: any) {
-        pagaLogger.error(`[cron] Critical unhandled pipeline error: ${err.message}`);
-    } finally {
-        isCronRunning = false;
-    }
-});
+    cron.schedule('*/5 * * * *', async () => {
+        if (isCronRunning) {
+            pagaLogger.warn('[cron] Previous verification cycle is still running. Skipping this execution tick.');
+            return;
+        }
+
+        isCronRunning = true;
+        pagaLogger.info('[cron] Starting pending activation verification and cleanup pipeline...');
+
+        try {
+            await verifyPendingActivationRequests();
+            await verifyPendingActivationCards();
+            await cleanupStaleRecords();
+        } catch (err: any) {
+            pagaLogger.error(`[cron] Critical unhandled pipeline error: ${err.message}`);
+        } finally {
+            isCronRunning = false;
+        }
+    });
+} else {
+    pagaLogger.info(`[cron] Secondary cluster worker index (${process.env.NODE_APP_INSTANCE}) isolated: skipping scheduler binding.`);
+}
