@@ -25,7 +25,7 @@ function verifyPagaSignature(req: Request, referenceNumber: string): boolean {
  *   WALLET* / DIRECT_WALLET* / DIRECTWALLET* / INDIRECTWALLET* / GK_PURCHASE* → wallet / GKWTH funding
  */
 export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response) => {
-    const { externalReferenceNumber } = req.body;
+    const externalReferenceNumber = req.body?.externalReferenceNumber;
 
     pagaLogger.info(`[webhook] Paga bank-transfer webhook received`, {
         reference: externalReferenceNumber,
@@ -47,7 +47,7 @@ export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response
  * but the payload shape differs (paymentReference, amount, statusMessage).
  */
 export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Response) => {
-    const { paymentReference } = req.body;
+    const paymentReference = req.body?.paymentReference;
 
     pagaLogger.info(`[webhook] Paga card webhook received`, {
         reference: paymentReference,
