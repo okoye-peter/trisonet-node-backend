@@ -32,7 +32,7 @@ export const registerPatronSchema = z.object({
 });
 export const loginSchema = z.object({
     body: z.object({
-        email: z.string({ error: 'Email is required' }).email('Please provide a valid email address'),
+        emailOrUsername: z.string({ error: 'Email or username is required' }).min(1, 'Email or username is required'),
         password: z.string({ error: 'Password is required' }).min(1, 'Password is required'),
     }),
 });
