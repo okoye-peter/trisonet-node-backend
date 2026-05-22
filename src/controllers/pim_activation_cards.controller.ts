@@ -312,7 +312,7 @@ export const verifyCardPurchasePayment = asyncHandler(async (req: Request, res: 
         return sendSuccess(res, 400, response?.error || 'Failed to verify payment');
     }
 
-    if (response.data.amount !== activationCard.amount) {
+    if (Number(response.amount) !== Number(activationCard.amount)) {
         return sendSuccess(res, 400, 'Amount is less than the required amount (including charges)');
     }
 
