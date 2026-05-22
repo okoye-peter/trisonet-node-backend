@@ -105,7 +105,7 @@ app.use('/api/patrons', patronRouter);
 app.use('/api/talkzone', talkzoneRouter);
 app.use('/api/reels', reelRouter);
 app.use('/api/gists', gistsRouter);
-app.use('/api/webhooks', webhookRouter);
+app.use('/webhooks', webhookRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);
