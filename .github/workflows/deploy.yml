@@ -19,7 +19,8 @@ jobs:
           script: |
             git config --global --add safe.directory /var/www/api.trisonet.com
             cd /var/www/api.trisonet.com
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             npm install
             npm run build
             su - apiuser -c "pm2 restart express-api"
