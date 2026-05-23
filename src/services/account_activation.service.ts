@@ -151,11 +151,13 @@ export class AccountActivationService {
             user.wallets.push(indirectWallet); // For subsequent logic
         }
 
-        if (indirectWallet.amount < 1) {
-            await client.wallet.update({
-                where: { id: indirectWallet.id },
-                data: { amount: { increment: 1 } }
-            });
+        if (!user.activatedAt) {
+            if (indirectWallet.amount < 1) {
+                await client.wallet.update({
+                    where: { id: indirectWallet.id },
+                    data: { amount: { increment: 1 } }
+                });
+            }
 
             // REFERRAL PATH
             if (user.referralId && !user.activatedAt) {

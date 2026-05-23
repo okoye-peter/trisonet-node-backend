@@ -29,6 +29,7 @@ import talkzoneRouter from './routes/talkzone.route';
 import reelRouter from './routes/reel.route';
 import gistsRouter from './routes/gists.route';
 import webhookRouter from './routes/webhook.route';
+import queueRouter from './routes/queue.route';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSockets } from './sockets';
 
@@ -105,6 +106,7 @@ app.use('/api/talkzone', talkzoneRouter);
 app.use('/api/reels', reelRouter);
 app.use('/api/gists', gistsRouter);
 app.use('/api/webhooks', webhookRouter);
+app.use('/api/queues', queueRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);
