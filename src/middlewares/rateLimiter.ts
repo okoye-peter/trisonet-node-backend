@@ -43,7 +43,7 @@ export const rateLimiter = (options: RateLimitOptions) => {
 // Common reusable limiters
 export const otpLimiter = rateLimiter({
     windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 3,
+    max: 5,
     message: "Too many OTP requests. Please try again after 10 minutes.",
     keyPrefix: "otp-limit"
 });
