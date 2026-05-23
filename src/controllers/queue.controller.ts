@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Queue } from 'bullmq';
+import { Queue, Job } from 'bullmq';
 import { referralQueue } from '../queue/referral.queue.js';
 import { smsQueue } from '../queue/sms.queue.js';
 import { asyncHandler } from '../middlewares/asyncHandler.js';
@@ -12,7 +12,19 @@ const QUEUES: Record<string, Queue> = {
 };
 
 const JOB_STATUSES = ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'] as const;
-type JobStatus = typeof JOB_STATUSES[number];
+type JobStatus = (typeof JOB_STATUSES)[number];
+
+// Express v5 params are typed as string | string[] | undefined — extract safely
+function param(req: Request, key: string): string {
+    const val = req.params[key];
+    return Array.isArray(val) ? (val[0] ?? '') : (val ?? '');
+}
+
+function resolveQueue(name: string): Queue | undefined {
+    return Object.prototype.hasOwnProperty.call(QUEUES, name)
+        ? (QUEUES[name] as Queue)
+        : undefined;
+}
 
 export const getAllQueues = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const results = await Promise.all(
@@ -27,8 +39,8 @@ export const getAllQueues = asyncHandler(async (req: Request, res: Response, nex
 });
 
 export const getQueueJobs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { queueName } = req.params;
-    const queue = QUEUES[queueName];
+    const queueName = param(req, 'queueName');
+    const queue = resolveQueue(queueName);
 
     if (!queue) {
         return next(new AppError(`Queue "${queueName}" not found`, 404));
@@ -49,7 +61,7 @@ export const getQueueJobs = asyncHandler(async (req: Request, res: Response, nex
         queue.getJobCounts(...JOB_STATUSES),
     ]);
 
-    const serialized = jobs.map(job => ({
+    const serialized = jobs.map((job: Job) => ({
         id: job.id,
         name: job.name,
         data: job.data,
@@ -73,8 +85,9 @@ export const getQueueJobs = asyncHandler(async (req: Request, res: Response, nex
 });
 
 export const retryJob = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { queueName, jobId } = req.params;
-    const queue = QUEUES[queueName];
+    const queueName = param(req, 'queueName');
+    const jobId = param(req, 'jobId');
+    const queue = resolveQueue(queueName);
 
     if (!queue) {
         return next(new AppError(`Queue "${queueName}" not found`, 404));
@@ -91,8 +104,9 @@ export const retryJob = asyncHandler(async (req: Request, res: Response, next: N
 });
 
 export const removeJob = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { queueName, jobId } = req.params;
-    const queue = QUEUES[queueName];
+    const queueName = param(req, 'queueName');
+    const jobId = param(req, 'jobId');
+    const queue = resolveQueue(queueName);
 
     if (!queue) {
         return next(new AppError(`Queue "${queueName}" not found`, 404));
