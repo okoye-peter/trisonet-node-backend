@@ -24,7 +24,7 @@ router.get('/activation-candidates', getActivationCandidates);
 router.post('/reset-withdrawal-pin', resetWithdrawalPin);
 router.post('/verify-withdrawal-pin-otp', verifyWithdrawalPinOtp);
 router.post('/send-withdrawal-pin-otp', otpLimiter, sendOtpForWithdrawalPinReset);
-router.post('/send-email-verification-otp', otpLimiter, sendEmailVerificationOtp);
+router.post('/send-email-verification-otp', sendEmailVerificationOtp);
 router.post('/verify-email-otp', verifyEmailOtp);
 
 export default router;
