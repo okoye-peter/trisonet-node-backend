@@ -87,9 +87,8 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
     ]);
 
     const pagaService = new PagaService();
-    const price = cardPrice
-        ? Number(cardPrice.value) + pagaService.calculateCharge(Number(cardPrice.value))
-        : 0;
+    const basePrice = cardPrice ? Number(cardPrice.value) : 0;
+    const price = basePrice ? basePrice + pagaService.calculateCharge(basePrice) : 0;
 
     const availableSlots = Number(slotsResult[0]?.availableSlots ?? 0);
     const usedSlots = Number(slotsResult[0]?.usedSlots ?? 0);
@@ -103,6 +102,7 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
         totalSlots,
         pendingCards,
         price,
+        basePrice,
         activeCard,
         status: ACTIVATION_CARD_STATUSES
     });
