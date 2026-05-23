@@ -1166,7 +1166,7 @@ export class PaymentService {
         pagaLogger.info(`Paga card webhook received: reference=${reference}, amount=${amountPaid}`);
 
         // Route based on reference prefix
-        if (reference.startsWith('ACTIVATION')) {
+        if (reference.startsWith('ACTIVATION') && !reference.startsWith('ACTIVATIONCARD')) {
             // Check if user activation request exists
             const request = await prisma.userActivationRequest.findUnique({
                 where: { reference }
