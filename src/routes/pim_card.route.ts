@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
-import { generateVirtualAccountForCardPurchase, getUserCards, getUserCardsSummary, verifyCardPurchasePayment } from "../controllers/pim_activation_cards.controller";
+import { generateVirtualAccountForCardPurchase, getUserCards, getUserCardsSummary, initiateCardPurchasePayment, verifyCardPurchasePayment } from "../controllers/pim_activation_cards.controller";
 import { validate } from "../middlewares/validateRequest";
 import { cardPurchaseSchema } from "../validations/pim_card.validation";
 
@@ -11,6 +11,7 @@ router.use(protect)
 router.get('/summary', getUserCardsSummary);
 router.get('/', getUserCards);
 router.post('/verify-payment/', verifyCardPurchasePayment);
+router.post('/initiate-payment', validate(cardPurchaseSchema), initiateCardPurchasePayment);
 router.post('/', validate(cardPurchaseSchema), generateVirtualAccountForCardPurchase);
 
 export default router;

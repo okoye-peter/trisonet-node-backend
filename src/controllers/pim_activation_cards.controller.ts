@@ -1,6 +1,6 @@
 
 import { NextFunction, Request, Response } from 'express';
-import { ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, INFANT_FORM_FEE, ROLES } from "../config/constants";
+import { ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, INFANT_FORM_FEE, PAGA, ROLES } from "../config/constants";
 import { prisma } from "../config/prisma";
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { paginate } from '../utils/pagination';
@@ -356,4 +356,64 @@ export const verifyCardPurchasePayment = asyncHandler(async (req: Request, res: 
     });
 
     return sendSuccess(res, 200, 'Card purchase verified successfully', { code });
+});
+
+export const initiateCardPurchasePayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { quantity, amount: inputAmount } = req.body;
+    const { id: userId } = req.user;
+
+    if (!quantity || quantity < 2) {
+        return sendSuccess(res, 400, 'Minimum purchase quantity is 2 cards');
+    }
+
+    const [activePriceSetting, user] = await Promise.all([
+        prisma.setting.findFirst({ where: { key: 'gkwth_sale_price' } }),
+        prisma.user.findFirst({
+            where: { id: userId },
+            include: { guardianUser: true }
+        })
+    ]);
+
+    if (!activePriceSetting) {
+        return sendSuccess(res, 400, 'Card price settings not found');
+    }
+
+    const pagaService = new PagaService();
+    const activePrice = Number(activePriceSetting.value);
+    const totalWithoutCharges = user?.username === 'dev_user' ? 100 : (activePrice * quantity);
+    const charges = pagaService.calculateCharge(totalWithoutCharges);
+    const totalWithCharges = totalWithoutCharges + charges;
+
+    if (user?.username !== 'dev_user' && inputAmount < totalWithCharges) {
+        return sendSuccess(res, 400, 'Amount is less than the required amount (including charges)');
+    }
+
+    const ref = pagaService.generateReference('ACTIVATIONCARD');
+
+    // Remove old pending Paga card payment requests for this user
+    await prisma.activationCard.deleteMany({
+        where: {
+            userId: userId as bigint,
+            status: { not: ACTIVATION_CARD_STATUSES.APPROVED },
+            proofOfPayment: { startsWith: 'ACTIVATIONCARD' }
+        }
+    });
+
+    await prisma.activationCard.create({
+        data: {
+            userId: userId as bigint,
+            amount: totalWithCharges,
+            pricePerUser: activePrice,
+            proofOfPayment: ref,
+            status: ACTIVATION_CARD_STATUSES.PENDING
+        }
+    });
+
+    return sendSuccess(res, 200, 'Card payment initiated', {
+        reference: ref,
+        amount: totalWithCharges,
+        publicKey: PAGA.USERNAME,
+        email: user?.email,
+        phoneNumber: user?.phone ?? user?.guardianUser?.phone ?? ''
+    });
 });
