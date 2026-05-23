@@ -274,92 +274,7 @@ export class PaymentService {
 
     async processUserActivation(payload: any) {
         const { externalReferenceNumber, paymentAmount } = payload;
-
-        const activationRequest = await prisma.userActivationRequest.findUnique({
-            where: { reference: externalReferenceNumber },
-            include: { 
-                user: true,
-                activationTeamMates: {
-                    include: {
-                        user: true
-                    }
-                }
-            }
-        });
-
-        if (!activationRequest) {
-            pagaLogger.error(`User Activation Request not found for ref: ${externalReferenceNumber}`);
-            return { status: 'not_found' };
-        }
-
-        if (paymentAmount && Number(activationRequest.amount) > Number(paymentAmount)) {
-            pagaLogger.error(`Paga failed activation due to amount mismatch. Expected: ${activationRequest.amount}, Paid: ${paymentAmount}.`);
-            return { status: 'amount_mismatch' };
-        }
-
-        if (activationRequest.status === 'approved') {
-            return { status: 'already_processed' };
-        }
-
-        const teammateUserIds: bigint[] = [];
-        if (activationRequest.activationTeamMates && activationRequest.activationTeamMates.length > 0) {
-            for (const teammateRelation of activationRequest.activationTeamMates) {
-                teammateUserIds.push(teammateRelation.userId);
-            }
-        }
-        const recipientIds = Array.from(new Set([activationRequest.userId, ...teammateUserIds]));
-
-        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            // Update request status
-            await tx.userActivationRequest.update({
-                where: { id: activationRequest.id },
-                data: { 
-                    status: 'approved',
-                    confirmedAt: new Date()
-                }
-            });
-
-            // Activate primary user
-            await tx.user.update({
-                where: { id: activationRequest.userId },
-                data: { accountState: 1 }
-            });
-
-            // Activate team members
-            for (const mateId of teammateUserIds) {
-                await tx.user.update({
-                    where: { id: mateId },
-                    data: { accountState: 1 }
-                });
-            }
-
-            // Create notification
-            const notification = await tx.notification.create({
-                data: {
-                    title: 'Activation Request',
-                    body: 'Hello, this is to inform you that your application for activation of account has been approved',
-                }
-            });
-
-            // Attach notification to primary user + teammates
-            for (const recipientId of recipientIds) {
-                await tx.notificationUser.create({
-                    data: {
-                        userId: recipientId,
-                        notificationId: notification.id
-                    }
-                });
-            }
-
-            pagaLogger.info(`User Activation database records updated for user: ${activationRequest.userId}, teammates count: ${teammateUserIds.length}, reference: ${externalReferenceNumber}`);
-        });
-
-        // Run sequential optimized activations outside the transaction to prevent database lock competition deadlocks
-        for (const recipientId of recipientIds) {
-            await AccountActivationService.activateUserAccountOptimized(recipientId);
-        }
-
-        return { status: 'ok' };
+        return await AccountActivationService.processActivationPayment(externalReferenceNumber, Number(paymentAmount || 0));
     }
 
     /**
@@ -1177,22 +1092,7 @@ export class PaymentService {
 
         // Route based on reference prefix
         if (reference.startsWith('ACTIVATION') && !reference.startsWith('ACTIVATIONCARD')) {
-            // Check if user activation request exists
-            const request = await prisma.userActivationRequest.findUnique({
-                where: { reference }
-            });
-
-            if (request) {
-                return await this.processUserActivation({
-                    externalReferenceNumber: reference,
-                    event: 'PAYMENT_COMPLETE',
-                    status: 'SUCCESSFUL',
-                    paymentAmount: amountPaid
-                });
-            } else {
-                pagaLogger.error(`Paga card activation request not found for ref: ${reference}`);
-                return { status: 'not_found' };
-            }
+            return await AccountActivationService.processActivationPayment(reference, amountPaid);
         }
 
         if (reference.startsWith('PUK')) {

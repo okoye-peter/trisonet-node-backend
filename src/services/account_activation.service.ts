@@ -5,6 +5,70 @@ import { logger } from "../utils/logger";
 
 export class AccountActivationService {
     /**
+     * Full activation payment flow: validates the request, updates DB in a transaction,
+     * then runs the optimized per-user activation for the primary user and all teammates.
+     */
+    static async processActivationPayment(reference: string, amountPaid: number): Promise<{ status: string }> {
+        const activationRequest = await prisma.userActivationRequest.findUnique({
+            where: { reference },
+            include: {
+                user: true,
+                activationTeamMates: { include: { user: true } }
+            }
+        });
+
+        if (!activationRequest) {
+            logger.error(`Activation request not found for ref: ${reference}`);
+            return { status: 'not_found' };
+        }
+
+        if (amountPaid && Number(activationRequest.amount) > amountPaid) {
+            logger.error(`Activation amount mismatch. Expected: ${activationRequest.amount}, Paid: ${amountPaid}`);
+            return { status: 'amount_mismatch' };
+        }
+
+        if (activationRequest.status === 'approved') {
+            return { status: 'already_processed' };
+        }
+
+        const teammateUserIds: bigint[] = (activationRequest.activationTeamMates ?? []).map((t: any) => t.userId);
+        const recipientIds = Array.from(new Set([activationRequest.userId, ...teammateUserIds]));
+
+        await prisma.$transaction(async (tx: any) => {
+            await tx.userActivationRequest.update({
+                where: { id: activationRequest.id },
+                data: { status: 'approved', confirmedAt: new Date() }
+            });
+
+            for (const id of recipientIds) {
+                await tx.user.update({ where: { id }, data: { accountState: 1 } });
+            }
+
+            const notification = await tx.notification.create({
+                data: {
+                    title: 'Activation Request',
+                    body: 'Hello, this is to inform you that your application for activation of account has been approved',
+                }
+            });
+
+            for (const recipientId of recipientIds) {
+                await tx.notificationUser.create({
+                    data: { userId: recipientId, notificationId: notification.id }
+                });
+            }
+
+            logger.info(`Activation DB updated for user: ${activationRequest.userId}, teammates: ${teammateUserIds.length}, ref: ${reference}`);
+        });
+
+        // Run outside the transaction to avoid lock contention
+        for (const recipientId of recipientIds) {
+            await AccountActivationService.activateUserAccountOptimized(recipientId);
+        }
+
+        return { status: 'ok' };
+    }
+
+    /**
      * Optimized version of ActivateUserAccount
      */
     static async activateUserAccountOptimized(
