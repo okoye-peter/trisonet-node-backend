@@ -815,25 +815,27 @@ export class PaymentService {
             throw new AppError('Configuration error: price not set', 500);
         }
 
+        const isDevUser = user.username === 'dev_user' || user.username === 'tes_commission';
+
         // Current user cost
-        const userBase = (user.username === 'dev_user' || user.username === 'tes_commission') ? 100 : activationPrice;
+        const userBase = isDevUser ? 100 : activationPrice;
         const userTotal = userBase + (user.isInfant && !user.sponsorId ? infantFormFee : 0);
-        
+
         // Team mates cost
         let teamMatesTotal = 0;
         if (teamMateIds.length > 0) {
             const teamMates = await prisma.user.findMany({
                 where: { id: { in: teamMateIds.map(id => BigInt(id)) } }
             });
-            
+
             for (const mate of teamMates) {
                 teamMatesTotal += activationPrice + (mate.isInfant && !mate.sponsorId ? infantFormFee : 0);
             }
         }
 
-        const total = userTotal + teamMatesTotal;
-        const charge = pagaService.calculateCharge(total);
-        const totalWithCharge = Math.round((total + charge) * 100) / 100;
+        const total = isDevUser ? 100 : (userTotal + teamMatesTotal);
+        const charge = isDevUser ? 0.87 : pagaService.calculateCharge(total);
+        const totalWithCharge = isDevUser ? 100.87 : Math.round((total + charge) * 100) / 100;
 
         // Validate amount (only for non-dev users)
         if (user.username !== 'dev_user' && user.username !== 'tes_commission' && Number(inputAmount) !== totalWithCharge) {
@@ -847,8 +849,13 @@ export class PaymentService {
         const firstName = names[0] || 'User';
         const lastName = names[1] || firstName;
 
+        // Pass base `total` (without charges) — Paga adds its own fee on top via
+        // payerCollectionFeeShare:1, so the user ends up paying ≈ totalWithCharge.
+        // Passing totalWithCharge here would cause Paga to add fees on top of an
+        // already-charged amount, making the required payment higher than what the
+        // frontend shows the user → underpayment → Paga reverses the transfer.
         const response = await pagaService.generateVirtualAccount(
-            totalWithCharge,
+            total,
             `${firstName} ${lastName}`,
             user.phone || '',
             ref
@@ -901,6 +908,7 @@ export class PaymentService {
                 account_number: response.data.virtual_account,
                 bank_code: null,
                 expires_at: response.data.expiry_date_full ? format(new Date(response.data.expiry_date_full), 'HH:mm') : format(addMinutes(new Date(), 28), 'HH:mm'),
+                amount: totalWithCharge,
                 reference: ref,
                 response: response
             }

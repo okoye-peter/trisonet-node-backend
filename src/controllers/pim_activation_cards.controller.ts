@@ -222,13 +222,14 @@ export const generateVirtualAccountForCardPurchase = asyncHandler(async (req: Re
     }
 
     const activePrice = Number(activePriceSetting.value);
-    const totalWithoutCharges = user?.username === 'dev_user' ? 100 : (activePrice * quantity);
-    
-    const pagaService = new PagaService();
-    const charges = pagaService.calculateCharge(totalWithoutCharges);
-    const totalWithCharges = totalWithoutCharges + charges;
+    const isDevUser = user?.username === 'dev_user';
+    const totalWithoutCharges = isDevUser ? 100 : (activePrice * quantity);
 
-    if (user?.username !== 'dev_user' && inputAmount < totalWithCharges) {
+    const pagaService = new PagaService();
+    const charges = isDevUser ? 0.87 : pagaService.calculateCharge(totalWithoutCharges);
+    const totalWithCharges = isDevUser ? 100.87 : totalWithoutCharges + charges;
+
+    if (!isDevUser && inputAmount < totalWithCharges) {
         return sendSuccess(res, 400, 'Amount is less than the required amount (including charges)');
     }
 
@@ -380,11 +381,12 @@ export const initiateCardPurchasePayment = asyncHandler(async (req: Request, res
 
     const pagaService = new PagaService();
     const activePrice = Number(activePriceSetting.value);
-    const totalWithoutCharges = user?.username === 'dev_user' ? 100 : (activePrice * quantity);
-    const charges = pagaService.calculateCharge(totalWithoutCharges);
-    const totalWithCharges = totalWithoutCharges + charges;
+    const isDevUser = user?.username === 'dev_user';
+    const totalWithoutCharges = isDevUser ? 100 : (activePrice * quantity);
+    const charges = isDevUser ? 0.87 : pagaService.calculateCharge(totalWithoutCharges);
+    const totalWithCharges = isDevUser ? 100.87 : totalWithoutCharges + charges;
 
-    if (user?.username !== 'dev_user' && inputAmount < totalWithCharges) {
+    if (!isDevUser && inputAmount < totalWithCharges) {
         return sendSuccess(res, 400, 'Amount is less than the required amount (including charges)');
     }
 
