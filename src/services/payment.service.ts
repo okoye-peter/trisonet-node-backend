@@ -1161,7 +1161,7 @@ export class PaymentService {
     async processPagaCardWebhook(payload: any) {
         const reference = payload?.paymentReference;
         const amountPaid = Number(payload?.amount || 0);
-        const statusMessage = payload?.statusMessage;
+        const statusMessage = (payload?.statusMessage as string | undefined)?.toUpperCase();
 
         if (statusMessage !== 'SUCCESS') {
             pagaLogger.error(`Paga card webhook status is not success: ${statusMessage}`);

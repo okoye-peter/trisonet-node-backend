@@ -47,7 +47,9 @@ export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response
  * but the payload shape differs (paymentReference, amount, statusMessage).
  */
 export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Response) => {
-    const paymentReference = req.body?.paymentReference;
+    // Paga card webhooks wrap the actual payload in a nested `body` key
+    const cardPayload = req.body?.body ?? req.body;
+    const paymentReference = cardPayload?.paymentReference;
 
     pagaLogger.info(`[webhook] Paga card webhook received`, {
         reference: paymentReference,
@@ -59,7 +61,7 @@ export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Resp
     //     return res.status(401).json({ status: 'unauthorized' });
     // }
 
-    const result = await paymentService.processPagaCardWebhook(req.body);
+    const result = await paymentService.processPagaCardWebhook(cardPayload);
     return res.status(200).json(result);
 });
 
