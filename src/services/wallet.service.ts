@@ -2,11 +2,27 @@ import { prisma, Prisma, WalletType } from "../config/prisma.js";
 import { ROLES } from "../config/constants.js";
 import NotificationService from "./notification.service";
 import bcrypt from "bcryptjs";
+import { AppError } from "../utils/AppError.js";
 
 class WalletService {
     static async createWallets(userId: bigint, role: number, tx?: Prisma.TransactionClient, walletTypes?: WalletType[]) {
         const client = tx || prisma;
         const data: { userId: bigint; type: WalletType }[] = [];
+
+        if(role == ROLES.CUSTOMER) {
+            const user = await prisma.user.findFirst({
+                where: {
+                    role: ROLES.CUSTOMER,
+                    level: {
+                        gte: 2
+                    },
+                    id: userId
+                }
+            })
+            if(!user) {
+                throw new AppError('only user that has migrated can make transfer', 400);
+            }
+        }
 
         if (walletTypes && walletTypes.length > 0) {
             data.push(...walletTypes.map((type) => ({ userId, type })));

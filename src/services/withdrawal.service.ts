@@ -242,6 +242,10 @@ export class WithdrawalService {
             }
         }
 
+        if(user.level < 2) {
+            throw new AppError('only users that has migrated can withdraw', 400);
+        }
+
         let amountCalculated = 0;
         let priceValue: number | null = (wallet.type === 'earning') || (wallet.type === 'indirect') ? Number(settingsMap['gkwth_purchase_price'] || 0) : null;
 
