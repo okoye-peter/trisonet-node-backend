@@ -111,12 +111,12 @@ export class FundReferralsService {
 
     private static async isUserOwing(tx: any, userId: bigint): Promise<boolean> {
         const result: { count: bigint }[] = await tx.$queryRaw`
-            SELECT COUNT(*) as count FROM "loans"
-            WHERE "user_id" = ${userId}
-              AND "status" IN (${LoanStatus.pending}, ${LoanStatus.granted})
-              AND "quantity_granted" > "quantity_repaid"
-              AND "quantity_granted" != 0
-              AND "isPaid" = true
+            SELECT COUNT(*) as count FROM loans
+            WHERE user_id = ${userId}
+              AND status IN (${LoanStatus.pending}, ${LoanStatus.granted})
+              AND quantity_granted > quantity_repaid
+              AND quantity_granted != 0
+              AND isPaid = true
         `;
         const firstRow = result[0];
         return firstRow ? firstRow.count > 0 : false;
@@ -127,12 +127,15 @@ export class FundReferralsService {
             where: { userId, type }
         });
 
-        if (wallet) {
-            await tx.wallet.update({
-                where: { id: wallet.id },
-                data: { amount: { increment: amount } }
-            });
+        if (!wallet) {
+            logger.warn('[FundReferralsService] No wallet found for credit', { userId, type, amount });
+            return;
         }
+
+        await tx.wallet.update({
+            where: { id: wallet.id },
+            data: { amount: { increment: amount } }
+        });
     }
 
     private static async processLoanRepayment(tx: any, userId: bigint, amount: number, type: typeof WalletType[keyof typeof WalletType]): Promise<void> {
@@ -159,12 +162,13 @@ export class FundReferralsService {
     private static async getActiveLoan(tx: any, userId: bigint) {
         // Fetch the first granted loan where quantityGranted > quantityRepaid
         // using Prisma raw query since column-to-column comparison isn't fully supported via Prisma's typed API yet
-        const loans = await tx.$queryRaw`
-            SELECT * FROM "loans"
-            WHERE "user_id" = ${userId}
-              AND "status" = 'granted'
-              AND "quantity_granted" > "quantity_repaid"
-            ORDER BY "created_at" DESC
+        const loans: any[] = await tx.$queryRaw`
+            SELECT id, quantity_granted as quantityGranted, quantity_repaid as quantityRepaid, gkwth_price as gkwthPrice
+            FROM loans
+            WHERE user_id = ${userId}
+              AND status = 'granted'
+              AND quantity_granted > quantity_repaid
+            ORDER BY created_at DESC
             LIMIT 1
         `;
 
