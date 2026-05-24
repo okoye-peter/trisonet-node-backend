@@ -150,7 +150,7 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
         }
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || !(await bcrypt.compare(password, user.password)) || user.isInfant) {
         return next(new AppError('Incorrect email or password', 401));
     }
 
