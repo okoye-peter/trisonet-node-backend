@@ -9,8 +9,8 @@ const router = Router();
 
 router.post('/handoff', handleAuthHandoff);
 router.get('/patron-plans', getPublicPatronPlans);
-router.post('/register', authLimiter, validate(registerSchema), register);
-router.post('/register/patron', authLimiter, validate(registerPatronSchema), registerPatron);
+router.post('/register', validate(registerSchema), register);
+router.post('/register/patron', validate(registerPatronSchema), registerPatron);
 //  authLimiter,
 router.post('/login', validate(loginSchema), login);
 router.post('/refresh-token', validate(refreshTokenSchema), getNewToken);

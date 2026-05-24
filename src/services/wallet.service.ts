@@ -9,21 +9,6 @@ class WalletService {
         const client = tx || prisma;
         const data: { userId: bigint; type: WalletType }[] = [];
 
-        if(role == ROLES.CUSTOMER) {
-            const user = await prisma.user.findFirst({
-                where: {
-                    role: ROLES.CUSTOMER,
-                    level: {
-                        gte: 2
-                    },
-                    id: userId
-                }
-            })
-            if(!user) {
-                throw new AppError('only user that has migrated can make transfer', 400);
-            }
-        }
-
         if (walletTypes && walletTypes.length > 0) {
             data.push(...walletTypes.map((type) => ({ userId, type })));
         } else if (role == ROLES.CUSTOMER) {
@@ -43,6 +28,21 @@ class WalletService {
     static async transferFunds(senderId: bigint, receiverTransferId: string, senderWalletId: bigint, amount: number, pin: string) {
         let receiverData: any;
         let senderData: any;
+
+        
+        const user = await prisma.user.findFirst({
+            where: {
+                role: ROLES.CUSTOMER,
+                level: {
+                    gte: 2
+                },
+                id: senderId
+            }
+        })
+        if(!user) {
+            throw new AppError('only user that has migrated can make transfer', 400);
+        }
+        
 
         const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 1. Verify Sender

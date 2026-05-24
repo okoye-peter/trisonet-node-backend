@@ -29,6 +29,11 @@ export class WithdrawalService {
         }
 
         if (user.role === ROLES.CUSTOMER) {
+            
+            if(!user || user.level < 2) {
+                throw new AppError('only user that has migrated can request for withdrawal', 400);
+            }
+
             const activeReferralsCount = await prisma.user.count({
                 where: {
                     referralId: user.id,
