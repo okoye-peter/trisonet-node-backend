@@ -9,7 +9,7 @@ const pagaService = new PagaService();
 const paymentService = new PaymentService();
 
 // Records younger than this haven't had time for the webhook to fire yet
-const MIN_AGE_MINUTES = 30;
+const MIN_AGE_MINUTES = 3;
 // Records older than this have virtual accounts that are long-expired
 const MAX_AGE_HOURS = 2;
 // Crucial batch limit to prevent event-loop starvation and server unresponsiveness

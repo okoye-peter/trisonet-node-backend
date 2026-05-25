@@ -4,7 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
-import { ROLES, PAGA, ACTIVATION_CARD_STATUSES } from "../config/constants.js";
+import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS } from "../config/constants.js";
 import { TermiiService } from './termii.service.js';
 
 
@@ -774,7 +774,7 @@ export class PaymentService {
         const response = await pagaService.generateVirtualAccount(
             total,
             `${firstName} ${lastName}`,
-            user.phone || '',
+            COMPANY_DETAILS.PHONE_NUMBER,
             ref
         );
 

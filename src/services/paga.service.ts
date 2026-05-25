@@ -538,9 +538,11 @@ export class PagaService {
                         status: error.response.status,
                         response: error.response.data,
                     });
+                    const errData = error.response.data;
+                    const friendlyError = errData?.statusMessage || errData?.message || `Payment service error (${error.response.status})`;
                     return {
                         success: false,
-                        error: `API call failed with status ${error.response.status}: ${JSON.stringify(error.response.data).substring(0, 200)}`,
+                        error: friendlyError,
                         operation,
                     };
                 }
@@ -586,12 +588,26 @@ export class PagaService {
     private formatPhoneNumber(phoneNumber: string): string {
         if (!phoneNumber) return '';
 
-        // Remove all non-digits
         let cleaned = phoneNumber.replace(/\D/g, '');
 
-        // If it starts with 0, replace with 234
+        // Already international format: 2348XXXXXXXXX (13 digits)
+        if (cleaned.startsWith('234') && cleaned.length === 13) {
+            return cleaned;
+        }
+
+        // Local format: 0XXXXXXXXXX (11 digits)
         if (cleaned.startsWith('0') && cleaned.length === 11) {
-            cleaned = '234' + cleaned.substring(1);
+            return '234' + cleaned.substring(1);
+        }
+
+        // Incorrectly prefixed: 10XXXXXXXXXX (12 digits) — strip leading 1
+        if (cleaned.startsWith('1') && cleaned.length === 12 && cleaned[1] === '0') {
+            return '234' + cleaned.substring(2);
+        }
+
+        // Bare 10-digit number without leading zero
+        if (cleaned.length === 10) {
+            return '234' + cleaned;
         }
 
         return cleaned;
