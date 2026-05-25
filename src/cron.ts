@@ -51,18 +51,24 @@ async function verifyPendingActivationRequests() {
         try {
             const verification = await pagaService.verifyPayment(reference);
 
-            if (!verification.success || !verification.is_paid) {
-                pagaLogger.info(`[cron] Activation request ${reference}: not yet paid — skipping`);
+            const innerStatus = verification.full_response?.data?.statusMessage?.toLowerCase();
+            if (!verification.success || innerStatus !== 'success') {
+                pagaLogger.info(`[cron] Activation request ${reference}: status="${innerStatus ?? 'unknown'}" — skipping`);
                 continue;
             }
 
             pagaLogger.info(`[cron] Activation request ${reference}: payment confirmed — processing`);
 
+            const paidAmount = verification.full_response?.data?.totalPaymentAmount
+                ?? verification.full_response?.data?.requestAmount
+                ?? verification.amount
+                ?? Number(req.amount);
+
             const result = await paymentService.processUserActivation({
                 externalReferenceNumber: reference,
                 event: 'PAYMENT_COMPLETE',
                 status: 'SUCCESSFUL',
-                paymentAmount: verification.amount ?? Number(req.amount),
+                paymentAmount: paidAmount,
             });
 
             pagaLogger.info(`[cron] Activation request ${reference}: result = ${JSON.stringify(result)}`);
@@ -97,18 +103,24 @@ async function verifyPendingActivationCards() {
         try {
             const verification = await pagaService.verifyPayment(reference);
 
-            if (!verification.success || !verification.is_paid) {
-                pagaLogger.info(`[cron] Activation card ${reference}: not yet paid — skipping`);
+            const innerStatus = verification.full_response?.data?.statusMessage?.toLowerCase();
+            if (!verification.success || innerStatus !== 'success') {
+                pagaLogger.info(`[cron] Activation card ${reference}: status="${innerStatus ?? 'unknown'}" — skipping`);
                 continue;
             }
 
             pagaLogger.info(`[cron] Activation card ${reference}: payment confirmed — processing`);
 
+            const paidAmount = verification.full_response?.data?.totalPaymentAmount
+                ?? verification.full_response?.data?.requestAmount
+                ?? verification.amount
+                ?? Number(card.amount);
+
             const result = await paymentService.processActivationCardPurchase({
                 externalReferenceNumber: reference,
                 event: 'PAYMENT_COMPLETE',
                 status: 'SUCCESSFUL',
-                paymentAmount: verification.amount ?? Number(card.amount),
+                paymentAmount: paidAmount,
             });
 
             pagaLogger.info(`[cron] Activation card ${reference}: result = ${JSON.stringify(result)}`);
