@@ -15,7 +15,8 @@ import {
     checkActivationStatus,
     submitActivationProof,
     generatePukVirtualAccount,
-    unblockWithPuk
+    unblockWithPuk,
+    verifyPaymentStatus
 } from "../controllers/payment.controller";
 import { upload } from "../config/cloudinary";
 import { validate } from "../middlewares/validateRequest";
@@ -41,5 +42,6 @@ router.post('/activation/virtual-account', generateActivationRequestVirtualAccou
 router.post('/activation/code', activateByCode);
 router.get('/activation/status/:reference', checkActivationStatus);
 router.post('/activation/proof', upload.single('prove'), submitActivationProof);
+router.get('/verify/:reference', verifyPaymentStatus);
 
 export default router;

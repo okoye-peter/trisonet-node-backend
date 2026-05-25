@@ -6,6 +6,7 @@ import { paginate } from "../utils/pagination";
 import { NextFunction, Request, Response } from "express";
 import { PaymentService } from "../services/payment.service";
 import { LoanService } from "../services/loan.service";
+import { PagaService } from "../services/paga.service";
 
 export const generateVirtualAccountForWardSlotPurchase = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const paymentService = new PaymentService();
@@ -181,5 +182,17 @@ export const unblockWithPuk = asyncHandler(async (req: Request, res: Response, n
     }
     const result = await paymentService.unblockWithPuk(BigInt(req.user.id), puk);
     return sendSuccess(res, 200, 'Account unblocked successfully', result);
+});
+
+export const verifyPaymentStatus = asyncHandler(async (req: Request, res: Response) => {
+    const reference = req.params.reference as string;
+    const pagaService = new PagaService();
+    const result = await pagaService.verifyPayment(reference);
+
+    if (!result.success) {
+        throw new AppError((result as any).error ?? 'Payment verification failed', 400);
+    }
+
+    return sendSuccess(res, 200, 'Payment status fetched', result);
 });
 
