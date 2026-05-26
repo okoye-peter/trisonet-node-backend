@@ -181,8 +181,8 @@ if (isPrimaryCluster) {
         pagaLogger.info('[cron] Starting pending activation verification and cleanup pipeline...');
 
         try {
-            await verifyPendingActivationRequests();
-            await verifyPendingActivationCards();
+            // await verifyPendingActivationRequests();
+            // await verifyPendingActivationCards();
             await cleanupStaleRecords();
         } catch (err: any) {
             pagaLogger.error(`[cron] Critical unhandled pipeline error: ${err.message}`);
