@@ -243,7 +243,7 @@ if (isPrimaryCluster) {
         }
     });
     // cron.schedule('0 * * * *', async () => {
-    //     await backfillMissingTransferIds();
+        //     await backfillMissingTransferIds();
     // });
 } else {
     pagaLogger.info(`[cron] Secondary cluster worker index (${process.env.NODE_APP_INSTANCE}) isolated: skipping scheduler binding.`);
