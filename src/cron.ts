@@ -235,15 +235,16 @@ if (isPrimaryCluster) {
             // await verifyPendingActivationRequests();
             // await verifyPendingActivationCards();
             await cleanupStaleRecords();
+            await backfillMissingTransferIds();
         } catch (err: any) {
             pagaLogger.error(`[cron] Critical unhandled pipeline error: ${err.message}`);
         } finally {
             isCronRunning = false;
         }
     });
-    cron.schedule('0 * * * *', async () => {
-        await backfillMissingTransferIds();
-    });
+    // cron.schedule('0 * * * *', async () => {
+    //     await backfillMissingTransferIds();
+    // });
 } else {
     pagaLogger.info(`[cron] Secondary cluster worker index (${process.env.NODE_APP_INSTANCE}) isolated: skipping scheduler binding.`);
 }
