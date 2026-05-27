@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import { prisma } from './config/prisma';
 import { PagaService } from './services/paga.service';
 import { PaymentService } from './services/payment.service';
-import { ACTIVATION_CARD_STATUSES } from './config/constants';
+import { ACTIVATION_CARD_STATUSES, ROLES } from './config/constants';
 import { pagaLogger } from './utils/logger';
 
 const pagaService = new PagaService();
@@ -163,6 +163,57 @@ async function cleanupStaleRecords() {
     }
 }
 
+
+
+// ─── Job 4: Backfill Missing Transfer IDs ────────────────────────────────────
+
+let isTransferIdCronRunning = false;
+
+const EXCLUDED_ROLES = [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.INFANT_ADMIN, ROLES.SCHOOL];
+
+async function generateUniqueTransferId(): Promise<string> {
+    let transferId: string;
+    do {
+        transferId = String(Math.floor(Math.random() * 10_000_000_000)).padStart(10, '0');
+    } while (await prisma.user.findUnique({ where: { transferId } }));
+    return transferId;
+}
+
+async function backfillMissingTransferIds() {
+    if (isTransferIdCronRunning) {
+        pagaLogger.warn('[cron] Transfer ID backfill already running. Skipping.');
+        return;
+    }
+
+    isTransferIdCronRunning = true;
+
+    try {
+        const users = await prisma.user.findMany({
+            where: {
+                transferId: null,
+                role: { notIn: EXCLUDED_ROLES },
+            },
+            select: { id: true },
+            take: BATCH_LIMIT,
+        });
+
+        if (users.length === 0) return;
+
+        pagaLogger.info(`[cron] Backfilling transfer IDs for ${users.length} user(s)`);
+
+        for (const user of users) {
+            const transferId = await generateUniqueTransferId();
+            await prisma.user.update({ where: { id: user.id }, data: { transferId } });
+        }
+
+        pagaLogger.info(`[cron] Transfer ID backfill complete for ${users.length} user(s)`);
+    } catch (err: any) {
+        pagaLogger.error(`[cron] Error during transfer ID backfill: ${err.message}`);
+    } finally {
+        isTransferIdCronRunning = false;
+    }
+}
+
 // ─── Schedule Deployment: Multi-Instance Cluster Safe ───────────────────────
 
 // PM2 gives every process an incremental index string ('0', '1', etc.) via NODE_APP_INSTANCE
@@ -189,6 +240,9 @@ if (isPrimaryCluster) {
         } finally {
             isCronRunning = false;
         }
+    });
+    cron.schedule('0 * * * *', async () => {
+        await backfillMissingTransferIds();
     });
 } else {
     pagaLogger.info(`[cron] Secondary cluster worker index (${process.env.NODE_APP_INSTANCE}) isolated: skipping scheduler binding.`);
