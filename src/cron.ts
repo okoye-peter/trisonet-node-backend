@@ -1,9 +1,9 @@
 import cron from 'node-cron';
-import { prisma } from './config/prisma';
+import { prisma, WalletType } from './config/prisma';
 import { PagaService } from './services/paga.service';
 import { PaymentService } from './services/payment.service';
 import { ACTIVATION_CARD_STATUSES, ROLES } from './config/constants';
-import { pagaLogger } from './utils/logger';
+import { activationCardFixLogger, pagaLogger } from './utils/logger';
 
 const pagaService = new PagaService();
 const paymentService = new PaymentService();
@@ -14,9 +14,15 @@ const MIN_AGE_MINUTES = 3;
 const MAX_AGE_HOURS = 2;
 // Crucial batch limit to prevent event-loop starvation and server unresponsiveness
 const BATCH_LIMIT = 20;
+const FIX_ACTIVATION_CARD_BATCH_LIMIT = 10;
+const FIX_ACTIVATION_CARD_LOOKBACK_DAYS = 5;
+const REFERRAL_DEBIT_ACTIVATED_FROM = new Date('2026-05-24T00:00:00.000Z');
+const ACTIVATION_CARD_FIX_RUN_KEY = 'activation_card_fix_unverified_payment_2026_05_24';
 
 // Concurrency lock to prevent overlapping cron execution
 let isCronRunning = false;
+let isActivationCardFixRunning = false;
+let hasActivationCardFixRun = false;
 
 function ageWindow() {
     const now = Date.now();
@@ -163,9 +169,247 @@ async function cleanupStaleRecords() {
     }
 }
 
+// ─── Job 4: Fix Approved Activation Cards With Unverified Payment ───────────
+
+type ActivationCardFixRecord = {
+    cardId: string;
+    proofOfPayment: string;
+    users: {
+        userId: string;
+        referralId: string | null;
+        directWalletsDebited: number;
+        indirectWalletsReset: number;
+        deactivated: boolean;
+    }[];
+};
+
+function activationCardFixCutoff() {
+    return new Date(Date.now() - FIX_ACTIVATION_CARD_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+}
+
+function isPagaPaymentSuccessful(verification: any) {
+    const fullResponse = verification.full_response ?? verification.data?.full_response ?? verification.data;
+    const status = String(verification.status ?? '').toLowerCase();
+    const statusMessage = String(fullResponse?.statusMessage ?? '').toLowerCase();
+    const dataStatusMessage = String(fullResponse?.data?.statusMessage ?? '').toLowerCase();
+
+    return verification.success === true
+        && (verification.is_paid === true || status === 'success')
+        && (!statusMessage || statusMessage === 'success')
+        && (!dataStatusMessage || dataStatusMessage === 'success');
+}
+
+async function claimActivationCardFixRun() {
+    try {
+        await prisma.setting.create({
+            data: {
+                name: 'Activation card unverified payment fix 2026-05-24',
+                key: ACTIVATION_CARD_FIX_RUN_KEY,
+                dataType: 'string',
+                value: `running:${new Date().toISOString()}`,
+            },
+        });
+
+        return true;
+    } catch (err: any) {
+        if (err.code === 'P2002') {
+            const existingRun = await prisma.setting.findUnique({
+                where: { key: ACTIVATION_CARD_FIX_RUN_KEY },
+                select: { value: true, updatedAt: true },
+            });
+
+            activationCardFixLogger.warn(
+                `[activation-card-fix] Persistent run marker exists. Skipping. value=${existingRun?.value ?? 'unknown'} updatedAt=${existingRun?.updatedAt?.toISOString() ?? 'unknown'}`
+            );
+            return false;
+        }
+
+        throw err;
+    }
+}
+
+export async function fixActivationCardsWithUnverifiedPayment() {
+    if (hasActivationCardFixRun) {
+        activationCardFixLogger.warn('[activation-card-fix] One-time fix has already run. Skipping.');
+        return;
+    }
+
+    if (isActivationCardFixRunning) {
+        activationCardFixLogger.warn('[activation-card-fix] Fix is already running. Skipping.');
+        return;
+    }
+
+    isActivationCardFixRunning = true;
+
+    const summary = {
+        checkedCards: 0,
+        affectedCards: 0,
+        deletedCards: 0,
+        usersDeactivated: 0,
+        directWalletsDebited: 0,
+        indirectWalletsReset: 0,
+        skippedCards: 0,
+        errors: [] as { cardId?: string; proofOfPayment?: string; message: string }[],
+        records: [] as ActivationCardFixRecord[],
+    };
+
+    try {
+        const shouldRun = await claimActivationCardFixRun();
+        hasActivationCardFixRun = true;
+
+        if (!shouldRun) return;
+
+        const cutoff = activationCardFixCutoff();
+        let lastSeenId: bigint | undefined;
+
+        activationCardFixLogger.info(`[activation-card-fix] Starting one-time fix. cutoff=${cutoff.toISOString()}`);
+
+        while (true) {
+            const activationCards = await prisma.activationCard.findMany({
+                where: {
+                    status: ACTIVATION_CARD_STATUSES.APPROVED,
+                    proofOfPayment: { startsWith: 'ACTIVATIONCARD' },
+                    createdAt: { gte: cutoff },
+                    ...(lastSeenId ? { id: { gt: lastSeenId } } : {}),
+                },
+                orderBy: { id: 'asc' },
+                take: FIX_ACTIVATION_CARD_BATCH_LIMIT,
+                select: {
+                    id: true,
+                    proofOfPayment: true,
+                },
+            });
+
+            if (activationCards.length === 0) break;
+
+            for (const card of activationCards) {
+                lastSeenId = card.id;
+                summary.checkedCards += 1;
+
+                const proofOfPayment = card.proofOfPayment;
+                if (!proofOfPayment) {
+                    summary.skippedCards += 1;
+                    continue;
+                }
+
+                try {
+                    const verification = await pagaService.verifyPayment(proofOfPayment);
+
+                    if (isPagaPaymentSuccessful(verification)) {
+                        summary.skippedCards += 1;
+                        continue;
+                    }
+
+                    const users = await prisma.user.findMany({
+                        where: {
+                            status: true,
+                            activationCardId: card.id,
+                        },
+                        select: {
+                            id: true,
+                            referralId: true,
+                            activatedAt: true,
+                        },
+                    });
+
+                    const record: ActivationCardFixRecord = {
+                        cardId: card.id.toString(),
+                        proofOfPayment,
+                        users: [],
+                    };
+
+                    for (const user of users) {
+                        let directWalletsDebited = 0;
+
+                        if (user.activatedAt && user.activatedAt >= REFERRAL_DEBIT_ACTIVATED_FROM && user.referralId) {
+                            const directWalletUpdate = await prisma.wallet.updateMany({
+                                data: {
+                                    amount: { decrement: 2000 },
+                                },
+                                where: {
+                                    type: WalletType.direct,
+                                    userId: user.referralId,
+                                },
+                            });
+
+                            directWalletsDebited = directWalletUpdate.count;
+                            summary.directWalletsDebited += directWalletUpdate.count;
+                        }
+
+                        const indirectWalletUpdate = await prisma.wallet.updateMany({
+                            data: {
+                                amount: 0,
+                            },
+                            where: {
+                                type: WalletType.indirect,
+                                userId: user.id,
+                            },
+                        });
+
+                        await prisma.user.update({
+                            data: {
+                                status: false,
+                                activatedAt: null,
+                                activationCardId: null,
+                            },
+                            where: {
+                                id: user.id,
+                            },
+                        });
+
+                        summary.indirectWalletsReset += indirectWalletUpdate.count;
+                        summary.usersDeactivated += 1;
+                        record.users.push({
+                            userId: user.id.toString(),
+                            referralId: user.referralId?.toString() ?? null,
+                            directWalletsDebited,
+                            indirectWalletsReset: indirectWalletUpdate.count,
+                            deactivated: true,
+                        });
+                    }
+
+                    await prisma.activationCard.delete({
+                        where: { id: card.id },
+                    });
+
+                    summary.affectedCards += 1;
+                    summary.deletedCards += 1;
+                    summary.records.push(record);
+
+                    activationCardFixLogger.info(`[activation-card-fix] Activation card ${card.id.toString()} removed after failed verification`, record);
+                } catch (err: any) {
+                    summary.errors.push({
+                        cardId: card.id.toString(),
+                        proofOfPayment,
+                        message: err.message ?? 'Unknown error',
+                    });
+                    activationCardFixLogger.error(`[activation-card-fix] Error fixing activation card ${card.id.toString()}: ${err.message}`);
+                }
+            }
+        }
+
+        const completedValue = summary.errors.length > 0
+            ? `completed_with_errors:${new Date().toISOString()}`
+            : `completed:${new Date().toISOString()}`;
+
+        await prisma.setting.update({
+            where: { key: ACTIVATION_CARD_FIX_RUN_KEY },
+            data: { value: completedValue },
+        });
+
+        activationCardFixLogger.info(`[activation-card-fix] Summary: ${JSON.stringify(summary)}`);
+        return summary;
+    } catch (err: any) {
+        activationCardFixLogger.error(`[activation-card-fix] Fatal error: ${err.message}`);
+        throw err;
+    } finally {
+        isActivationCardFixRunning = false;
+    }
+}
 
 
-// ─── Job 4: Backfill Missing Transfer IDs ────────────────────────────────────
+
+// ─── Job 5: Backfill Missing Transfer IDs ────────────────────────────────────
 
 let isTransferIdCronRunning = false;
 
@@ -242,6 +486,7 @@ if (isPrimaryCluster) {
             isCronRunning = false;
         }
     });
+    void fixActivationCardsWithUnverifiedPayment();
     // cron.schedule('0 * * * *', async () => {
         //     await backfillMissingTransferIds();
     // });
