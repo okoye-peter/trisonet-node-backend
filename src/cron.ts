@@ -486,7 +486,7 @@ if (isPrimaryCluster) {
             isCronRunning = false;
         }
     });
-    void fixActivationCardsWithUnverifiedPayment();
+    // void fixActivationCardsWithUnverifiedPayment();
     // cron.schedule('0 * * * *', async () => {
         //     await backfillMissingTransferIds();
     // });
