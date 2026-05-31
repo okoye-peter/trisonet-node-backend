@@ -28,6 +28,22 @@ function toStr(val: bigint | null | undefined): string {
     return val ? val.toString() : '';
 }
 
+// MySQL prepared statements cap at 65 535 placeholders; keep chunks well below that.
+const IN_CHUNK_SIZE = 1000;
+function chunkArray<T>(arr: T[]): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < arr.length; i += IN_CHUNK_SIZE) chunks.push(arr.slice(i, i + IN_CHUNK_SIZE));
+    return chunks;
+}
+async function groupByChunked<T>(fn: (ids: bigint[]) => Promise<T[]>, ids: bigint[]): Promise<T[]> {
+    if (ids.length === 0) return [];
+    return (await Promise.all(chunkArray(ids).map(fn))).flat();
+}
+async function findManyChunked<T>(fn: (ids: bigint[]) => Promise<T[]>, ids: bigint[]): Promise<T[]> {
+    if (ids.length === 0) return [];
+    return (await Promise.all(chunkArray(ids).map(fn))).flat();
+}
+
 export const getPost = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userId = BigInt((req as any).user.id);
     const id = BigInt(req.params.id as string);
@@ -127,6 +143,10 @@ export const getPosts = asyncHandler(async (req: Request, res: Response, _next: 
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = 10;
 
+    // Cap at 5 000 most-recent records each; merging and in-memory paginating beyond
+    // this would require a DB-level UNION anyway.
+    const FEED_CAP = 5000;
+
     // Fetch tweets with counts and isLiked
     const tweets = await prisma.tweet.findMany({
         select: {
@@ -138,6 +158,7 @@ export const getPosts = asyncHandler(async (req: Request, res: Response, _next: 
             user: { select: { id: true, name: true, username: true, pictureUrl: true } },
         },
         orderBy: { createdAt: 'desc' },
+        take: FEED_CAP,
     });
 
     // Fetch retweets with their retweetable (the original post)
@@ -153,60 +174,55 @@ export const getPosts = asyncHandler(async (req: Request, res: Response, _next: 
             user: { select: { id: true, name: true, username: true, pictureUrl: true } },
         },
         orderBy: { createdAt: 'desc' },
+        take: FEED_CAP,
     });
 
     // Collect all IDs needed for counts and isLiked
     const tweetIds = tweets.map(t => t.id);
     const retweetIds = retweets.map(r => r.id);
 
-    // Batch fetch like counts
-    const tweetLikeCounts = await prisma.like.groupBy({
-        by: ['likeableId'],
-        where: { likeableType: TWEET_MORPH, likeableId: { in: tweetIds } },
-        _count: { id: true },
-    });
-    const retweetLikeCounts = await prisma.like.groupBy({
-        by: ['likeableId'],
-        where: { likeableType: RETWEET_MORPH, likeableId: { in: retweetIds } },
-        _count: { id: true },
-    });
+    // Batch fetch like counts (chunked to stay within MySQL's 65 535 placeholder limit)
+    const tweetLikeCounts = await groupByChunked(
+        chunk => prisma.like.groupBy({ by: ['likeableId'], where: { likeableType: TWEET_MORPH, likeableId: { in: chunk } }, _count: { id: true } }),
+        tweetIds,
+    );
+    const retweetLikeCounts = await groupByChunked(
+        chunk => prisma.like.groupBy({ by: ['likeableId'], where: { likeableType: RETWEET_MORPH, likeableId: { in: chunk } }, _count: { id: true } }),
+        retweetIds,
+    );
 
     // Batch fetch comment counts
-    const tweetCommentCounts = await prisma.comment.groupBy({
-        by: ['commentableId'],
-        where: { commentableType: TWEET_MORPH, commentableId: { in: tweetIds } },
-        _count: { id: true },
-    });
-    const retweetCommentCounts = await prisma.comment.groupBy({
-        by: ['commentableId'],
-        where: { commentableType: RETWEET_MORPH, commentableId: { in: retweetIds } },
-        _count: { id: true },
-    });
+    const tweetCommentCounts = await groupByChunked(
+        chunk => prisma.comment.groupBy({ by: ['commentableId'], where: { commentableType: TWEET_MORPH, commentableId: { in: chunk } }, _count: { id: true } }),
+        tweetIds,
+    );
+    const retweetCommentCounts = await groupByChunked(
+        chunk => prisma.comment.groupBy({ by: ['commentableId'], where: { commentableType: RETWEET_MORPH, commentableId: { in: chunk } }, _count: { id: true } }),
+        retweetIds,
+    );
 
     // Batch fetch retweet counts (how many times each has been retweeted)
-    const tweetRetweetCounts = await prisma.retweet.groupBy({
-        by: ['retweetableId'],
-        where: { retweetableType: TWEET_MORPH, retweetableId: { in: tweetIds } },
-        _count: { id: true },
-    });
-    const retweetRetweetCounts = await prisma.retweet.groupBy({
-        by: ['retweetableId'],
-        where: { retweetableType: RETWEET_MORPH, retweetableId: { in: retweetIds } },
-        _count: { id: true },
-    });
+    const tweetRetweetCounts = await groupByChunked(
+        chunk => prisma.retweet.groupBy({ by: ['retweetableId'], where: { retweetableType: TWEET_MORPH, retweetableId: { in: chunk } }, _count: { id: true } }),
+        tweetIds,
+    );
+    const retweetRetweetCounts = await groupByChunked(
+        chunk => prisma.retweet.groupBy({ by: ['retweetableId'], where: { retweetableType: RETWEET_MORPH, retweetableId: { in: chunk } }, _count: { id: true } }),
+        retweetIds,
+    );
 
     // Batch fetch current user's likes
     const userTweetLikes = new Set(
-        (await prisma.like.findMany({
-            where: { likeableType: TWEET_MORPH, likeableId: { in: tweetIds }, userId },
-            select: { likeableId: true },
-        })).map(l => l.likeableId.toString())
+        (await findManyChunked(
+            chunk => prisma.like.findMany({ where: { likeableType: TWEET_MORPH, likeableId: { in: chunk }, userId }, select: { likeableId: true } }),
+            tweetIds,
+        )).map(l => l.likeableId.toString())
     );
     const userRetweetLikes = new Set(
-        (await prisma.like.findMany({
-            where: { likeableType: RETWEET_MORPH, likeableId: { in: retweetIds }, userId },
-            select: { likeableId: true },
-        })).map(l => l.likeableId.toString())
+        (await findManyChunked(
+            chunk => prisma.like.findMany({ where: { likeableType: RETWEET_MORPH, likeableId: { in: chunk }, userId }, select: { likeableId: true } }),
+            retweetIds,
+        )).map(l => l.likeableId.toString())
     );
 
     // Collect retweetable original tweet/retweet IDs to resolve their data
@@ -218,16 +234,16 @@ export const getPosts = asyncHandler(async (req: Request, res: Response, _next: 
         .map(r => r.retweetableId);
 
     const originalTweetsMap = new Map(
-        (await prisma.tweet.findMany({
-            where: { id: { in: retweetableOriginalTweetIds } },
-            select: { id: true, status: true, img: true, user: { select: { id: true, name: true, username: true, pictureUrl: true } } },
-        })).map(t => [t.id.toString(), t])
+        (await findManyChunked(
+            chunk => prisma.tweet.findMany({ where: { id: { in: chunk } }, select: { id: true, status: true, img: true, user: { select: { id: true, name: true, username: true, pictureUrl: true } } } }),
+            retweetableOriginalTweetIds,
+        )).map(t => [t.id.toString(), t])
     );
     const originalRetweetsMap = new Map(
-        (await prisma.retweet.findMany({
-            where: { id: { in: retweetableOriginalRetweetIds } },
-            select: { id: true, retweetMsg: true, retweetImg: true, user: { select: { id: true, name: true, username: true, pictureUrl: true } } },
-        })).map(r => [r.id.toString(), r])
+        (await findManyChunked(
+            chunk => prisma.retweet.findMany({ where: { id: { in: chunk } }, select: { id: true, retweetMsg: true, retweetImg: true, user: { select: { id: true, name: true, username: true, pictureUrl: true } } } }),
+            retweetableOriginalRetweetIds,
+        )).map(r => [r.id.toString(), r])
     );
 
     // Helper lookup maps

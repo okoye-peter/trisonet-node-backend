@@ -118,3 +118,49 @@ export const getGkwthPrices = asyncHandler(async (req: Request, res: Response, n
         gkwthPurchasePrice: settingsMap['gkwth_purchase_price'] || null,
     });
 });
+
+export const getWalletHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { page, limit } = req.query;
+
+    const wallets = await prisma.wallet.findMany({
+        where: { userId: user.id, type: 'direct' },
+        select: { id: true },
+    });
+
+    const walletIds = wallets.map((w) => w.id.toString());
+
+    if (walletIds.length === 0) {
+        return sendSuccess(res, 200, 'Wallet history fetched successfully', {
+            data: [],
+            meta: { totalItems: 0, itemsPerPage: 10, currentPage: 1, totalPages: 0, hasNextPage: false, hasPreviousPage: false },
+        });
+    }
+
+    const history = await paginate(
+        prisma.auditLog as any,
+        {
+            where: {
+                model: 'Wallet',
+                modelId: { in: walletIds },
+                action: 'UPDATE',
+            },
+            orderBy: { createdAt: 'desc' },
+        },
+        { page: page as string, limit: limit as string },
+    );
+
+    const serialized = {
+        ...history,
+        data: history.data.map((log: any) => ({
+            id: log.id.toString(),
+            action: log.action,
+            oldValues: log.oldValues,
+            newValues: log.newValues,
+            endpoint: log.endpoint,
+            createdAt: log.createdAt,
+        })),
+    };
+
+    sendSuccess(res, 200, 'Wallet history fetched successfully', serialized);
+});

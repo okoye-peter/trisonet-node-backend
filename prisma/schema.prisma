@@ -121,6 +121,7 @@ model User {
   receivedMessages                Message[]                        @relation("Receiver")
   sentMessages                    Message[]                        @relation("Sender")
   notifications                   NotificationUser[]
+  adminNotices                    AdminNoticeUser[]
   orderGroups                     OrderGroup[]
   patronGroupTransactions         PatronGroupTransaction[]
   patronGroupsOwned               PatronGroup[]                    @relation("PGOwner")
@@ -680,6 +681,30 @@ model PublicNotice {
   updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("public_notices")
+}
+
+model AdminNotice {
+  id        BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  title     String            @db.VarChar(255)
+  body      String            @db.LongText
+  audience  String            @default("all") @db.VarChar(255)
+  createdAt DateTime?         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime?         @updatedAt @map("updated_at") @db.Timestamp(0)
+  users     AdminNoticeUser[]
+
+  @@map("admin_notices")
+}
+
+model AdminNoticeUser {
+  adminNoticeId BigInt      @map("admin_notice_id") @db.UnsignedBigInt
+  userId        BigInt      @map("user_id") @db.UnsignedBigInt
+  readAt        DateTime?   @map("read_at") @db.Timestamp(0)
+  adminNotice   AdminNotice @relation(fields: [adminNoticeId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([adminNoticeId, userId])
+  @@index([userId], map: "admin_notice_user_user_id_foreign")
+  @@map("admin_notice_user")
 }
 
 model Setting {

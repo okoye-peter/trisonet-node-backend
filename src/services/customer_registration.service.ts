@@ -5,6 +5,7 @@ import { ROLES, INFANT_FORM_FEE, NEW_REFERRAL_SYSTEM } from "../config/constants
 import { handleReferral } from "./referral.service.js";
 import WalletService from "./wallet.service.js";
 import { AccountActivationService } from "./account_activation.service.js";
+import { AppError } from "../utils/AppError.js";
 
 interface UserRequestData {
     name: string;
@@ -51,19 +52,19 @@ export const createUser = async (data: UserRequestData) => {
 
     if (activation_code) {
         if (!activationCard) {
-            throw new Error('Invalid activation code');
+            throw new AppError('Invalid activation code', 400);
         }
         if (activationCard._count.usersWithCard >= Math.round(activationCard.amount / activationCard.pricePerUser)) {
-            throw new Error('Activation code has been exhausted');
+            throw new AppError('Activation code has been exhausted', 400);
         }
     }
 
     if (regionLimitReached) {
-        throw new Error('This region competition has ended, please select another region');
+        throw new AppError('This region competition has ended, please select another region', 400);
     }
 
     if (!referral.referralId && referral_id) {
-        throw new Error('Referral ID is invalid');
+        throw new AppError('Referral ID is invalid', 400);
     }
 
     // Block registration if the referral link has reached its target since the new system start date
