@@ -1,157 +1,186 @@
-import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import { Request, Response, NextFunction } from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 // import { prisma } from '../config/prisma';
-import { asyncHandler } from '../middlewares/asyncHandler';
-import { AppError } from '../utils/AppError';
-import { sendSuccess } from '../utils/responseWrapper';
-import { signAccessToken, signRefreshToken } from '../utils/jwt';
-import { createUser } from '../services/customer_registration.service';
-import { prisma } from '../config/prisma';
-import { ROLES } from '../config/constants';
-import { getSafeUserWallets } from '../utils/prismaUtils';
-import WalletService from '../services/wallet.service';
+import { asyncHandler } from "../middlewares/asyncHandler";
+import { AppError } from "../utils/AppError";
+import { sendSuccess } from "../utils/responseWrapper";
+import { signAccessToken, signRefreshToken } from "../utils/jwt";
+import { createUser } from "../services/customer_registration.service";
+import { prisma } from "../config/prisma";
+import { ROLES } from "../config/constants";
+import { getSafeUserWallets } from "../utils/prismaUtils";
+import WalletService from "../services/wallet.service";
 
-export const register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const register = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const userData = req.body;
 
-    const existingUser = await prisma.user.findFirst({ where: { email: userData.email } });
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+            {email: userData.email},
+            {username: userData.username},
+            {phone: userData.phone}
+        ]
+      },
+    });
     if (existingUser) {
-        return next(new AppError('Email already in use', 400));
+      if(existingUser.email == userData.email)
+        return next(new AppError("Email already in use", 400));
+
+      if(existingUser.username == userData.username)
+        return next(new AppError("Username already in use", 400));
+
+      if(existingUser.phone == userData.phone)
+        return next(new AppError("Phone number already in use", 400));
+    
+
     }
 
-    await createUser(userData)
+    await createUser(userData);
 
-    sendSuccess(res, 201, 'User registered successfully');
-});
+    sendSuccess(res, 201, "User registered successfully");
+  },
+);
 
-export const getPublicPatronPlans = asyncHandler(async (req: Request, res: Response) => {
+export const getPublicPatronPlans = asyncHandler(
+  async (req: Request, res: Response) => {
     const plans = await (prisma as any).patronPlan.findMany({
-        orderBy: { minAmount: 'asc' },
+      orderBy: { minAmount: "asc" },
     });
-    return sendSuccess(res, 200, 'Patron plans retrieved successfully', plans);
-});
+    return sendSuccess(res, 200, "Patron plans retrieved successfully", plans);
+  },
+);
 
-export const registerPatron = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const registerPatron = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, phone, password, patronType, planId } = req.body;
 
     const existingUser = await prisma.user.findFirst({ where: { email } });
     if (existingUser) {
-        return next(new AppError('Email already in use', 400));
+      return next(new AppError("Email already in use", 400));
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const username = email.split('@')[0] + crypto.randomInt(1000, 9999);
+    const username = email.split("@")[0] + crypto.randomInt(1000, 9999);
 
     const user = await prisma.$transaction(async (tx) => {
-        const createdUser = await tx.user.create({
-            data: {
-                name,
-                email,
-                phone,
-                password: hashedPassword,
-                username,
-                role: ROLES.PATRON,
-                patronPlanId: planId ? BigInt(planId) : null,
-            }
-        });
+      const createdUser = await tx.user.create({
+        data: {
+          name,
+          email,
+          phone,
+          password: hashedPassword,
+          username,
+          role: ROLES.PATRON,
+          patronPlanId: planId ? BigInt(planId) : null,
+        },
+      });
 
-        if (patronType === 'group') {
-            const groupData: any = {
-                owner: { connect: { id: createdUser.id } },
-                type: patronType,
-            };
-            if (planId) {
-                groupData.plan = { connect: { id: BigInt(planId) } };
-            }
-            const group = await (tx as any).patronGroup.create({ data: groupData });
-
-            await tx.user.update({
-                where: { id: createdUser.id },
-                data: {
-                    patronGroupId: group.id,
-                    pending_patron_type: 'group'
-                }
-            });
+      if (patronType === "group") {
+        const groupData: any = {
+          owner: { connect: { id: createdUser.id } },
+          type: patronType,
+        };
+        if (planId) {
+          groupData.plan = { connect: { id: BigInt(planId) } };
         }
+        const group = await (tx as any).patronGroup.create({ data: groupData });
 
-        // Initialize wallets (direct and patronage)
-        await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx);
+        await tx.user.update({
+          where: { id: createdUser.id },
+          data: {
+            patronGroupId: group.id,
+            pending_patron_type: "group",
+          },
+        });
+      }
 
-        return createdUser;
+      // Initialize wallets (direct and patronage)
+      await WalletService.createWallets(createdUser.id, ROLES.PATRON, tx);
+
+      return createdUser;
     });
 
     const accessToken = signAccessToken(user.id.toString());
     const refreshToken = signRefreshToken(user.id.toString());
 
     await prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken },
+      where: { id: user.id },
+      data: { refreshToken },
     });
 
-    const patronPlan = planId ? await (prisma as any).patronPlan.findUnique({ where: { id: BigInt(planId) } }) : null;
+    const patronPlan = planId
+      ? await (prisma as any).patronPlan.findUnique({
+          where: { id: BigInt(planId) },
+        })
+      : null;
     const wallets = await getSafeUserWallets(user.id);
     const { password: _, ...userWithoutPassword } = user as any;
 
-    sendSuccess(res, 201, 'Patron registered successfully', {
-        user: { ...userWithoutPassword, wallets, patronPlan },
-        accessToken,
-        refreshToken,
+    sendSuccess(res, 201, "Patron registered successfully", {
+      user: { ...userWithoutPassword, wallets, patronPlan },
+      accessToken,
+      refreshToken,
     });
-});
+  },
+);
 
-export const login = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const login = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { email, emailOrUsername, password } = req.body;
     const identifier = email || emailOrUsername;
     const user = await prisma.user.findFirst({
-        where: {
-            OR: [
-                { email: identifier },
-                { username: identifier }
-            ]
+      where: {
+        OR: [{ email: identifier }, { username: identifier }],
+      },
+      omit: {
+        withdrawalPinResetOtp: true,
+        withdrawalPinResetOtpSentAt: true,
+        emailVerificationCode: true,
+        emailVerificationCodeSentAt: true,
+        passwordResetOtp: true,
+        passwordResetOtpSentAt: true,
+        referralActivateAt: true,
+        activatedAt: true,
+        lastSeen: true,
+        canWithdraw: true,
+        canUseVtu: true,
+        canEarn: true,
+        canOptOut: true,
+        canWithdrawGkwth: true,
+        sponsorshipAcceptedAt: true,
+        sponsorAgreement: true,
+        sponsorLoginOtp: true,
+        sponsorLoginOtpCreatedAt: true,
+        sponsorWithdrawalOtp: true,
+        sponsorWithdrawalOtpSentAt: true,
+        sponsorSlot: true,
+        loginYearlyCount: true,
+        schoolFeesPermittedAt: true,
+        withdrawalBypassAt: true,
+        activationCardId: true,
+        blockedAt: true,
+        bvn: true,
+      },
+      include: {
+        region: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-        omit: {
-            withdrawalPinResetOtp: true,
-            withdrawalPinResetOtpSentAt: true,
-            emailVerificationCode: true,
-            emailVerificationCodeSentAt: true,
-            passwordResetOtp: true,
-            passwordResetOtpSentAt: true,
-            referralActivateAt: true,
-            activatedAt: true,
-            lastSeen: true,
-            canWithdraw: true,
-            canUseVtu: true,
-            canEarn: true,
-            canOptOut: true,
-            canWithdrawGkwth: true,
-            sponsorshipAcceptedAt: true,
-            sponsorAgreement: true,
-            sponsorLoginOtp: true,
-            sponsorLoginOtpCreatedAt: true,
-            sponsorWithdrawalOtp: true,
-            sponsorWithdrawalOtpSentAt: true,
-            sponsorSlot: true,
-            loginYearlyCount: true,
-            schoolFeesPermittedAt: true,
-            withdrawalBypassAt: true,
-            activationCardId: true,
-            blockedAt: true,
-            bvn: true
-        },
-        include: {
-            region: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
-        }
+      },
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password)) || user.isInfant) {
-        return next(new AppError('Incorrect email or password', 401));
+    if (
+      !user ||
+      !(await bcrypt.compare(password, user.password)) ||
+      user.isInfant
+    ) {
+      return next(new AppError("Incorrect email or password", 401));
     }
 
     const wallets = await getSafeUserWallets(user.id);
@@ -166,148 +195,166 @@ export const login = asyncHandler(async (req: Request, res: Response, next: Next
     const refreshToken = signRefreshToken(user.id.toString());
 
     await prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken },
+      where: { id: user.id },
+      data: { refreshToken },
     });
 
     // Compute patron-specific fields
     let patronActivated = false;
     let patronPlan = null;
     if (Number(user.role) === ROLES.PATRON) {
-        const [activationPivot, plan] = await Promise.all([
-            (prisma as any).userPatronActivationPivotTable.findFirst({
-                where: { userId: user.id },
-                include: { patronActivationPayment: { select: { status: true, amount: true } } }
-            }),
-            (user as any).patronPlanId
-                ? (prisma as any).patronPlan.findUnique({ where: { id: (user as any).patronPlanId } })
-                : (user as any).patronGroupId
-                    ? (prisma as any).patronGroup.findUnique({
-                        where: { id: (user as any).patronGroupId },
-                        include: { plan: true }
-                    }).then((group: any) => group?.plan || null)
-                    : null,
-        ]);
-        patronPlan = plan;
-        const payment = activationPivot?.patronActivationPayment;
-        const minAmount = plan?.minAmount;
+      const [activationPivot, plan] = await Promise.all([
+        (prisma as any).userPatronActivationPivotTable.findFirst({
+          where: { userId: user.id },
+          include: {
+            patronActivationPayment: { select: { status: true, amount: true } },
+          },
+        }),
+        (user as any).patronPlanId
+          ? (prisma as any).patronPlan.findUnique({
+              where: { id: (user as any).patronPlanId },
+            })
+          : (user as any).patronGroupId
+            ? (prisma as any).patronGroup
+                .findUnique({
+                  where: { id: (user as any).patronGroupId },
+                  include: { plan: true },
+                })
+                .then((group: any) => group?.plan || null)
+            : null,
+      ]);
+      patronPlan = plan;
+      const payment = activationPivot?.patronActivationPayment;
+      const minAmount = plan?.minAmount;
 
-        patronActivated = !!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount);
+      patronActivated =
+        !!minAmount &&
+        payment?.status === 1 &&
+        Number(payment.amount) >= Number(minAmount);
     }
 
     const { password: _, ...userWithoutPassword } = user as any;
 
-    sendSuccess(res, 200, 'User logged in successfully', {
-        user: { ...userWithoutPassword, wallets, patronPlan, patronActivated },
-        accessToken,
-        refreshToken,
+    sendSuccess(res, 200, "User logged in successfully", {
+      user: { ...userWithoutPassword, wallets, patronPlan, patronActivated },
+      accessToken,
+      refreshToken,
     });
-});
+  },
+);
 
-export const getNewToken = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const getNewToken = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { refreshToken } = req.body;
     try {
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'refresh_secret') as { id: string };
-        const user = await prisma.user.findUnique({ where: { id: BigInt(decoded.id) } });
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || "refresh_secret",
+      ) as { id: string };
+      const user = await prisma.user.findUnique({
+        where: { id: BigInt(decoded.id) },
+      });
 
-        if (!user || user.refreshToken !== refreshToken) {
-            return next(new AppError('Invalid refresh token', 401));
-        }
+      if (!user || user.refreshToken !== refreshToken) {
+        return next(new AppError("Invalid refresh token", 401));
+      }
 
-        const newAccessToken = signAccessToken(user.id.toString());
-        const newRefreshToken = signRefreshToken(user.id.toString());
+      const newAccessToken = signAccessToken(user.id.toString());
+      const newRefreshToken = signRefreshToken(user.id.toString());
 
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { refreshToken: newRefreshToken },
-        });
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: newRefreshToken },
+      });
 
-        sendSuccess(res, 200, 'Token refreshed successfully', {
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
-        });
+      sendSuccess(res, 200, "Token refreshed successfully", {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      });
     } catch (error) {
-        return next(new AppError('Invalid refresh token', 401));
+      return next(new AppError("Invalid refresh token", 401));
     }
-});
+  },
+);
 
-export const handleAuthHandoff = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const handleAuthHandoff = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { token } = req.body;
 
-    if (!token) return next(new AppError('Token required', 400));
+    if (!token) return next(new AppError("Token required", 400));
 
     const hashedToken = crypto
-        .createHash('sha256')
-        .update(token as string)
-        .digest('hex');
+      .createHash("sha256")
+      .update(token as string)
+      .digest("hex");
 
     // Look up the token in the shared DB
     const record = await prisma.authHandoffToken.findFirst({
-        where: {
-            token: hashedToken,
-            used: false,
-            expiresAt: {
-                gt: new Date(),
-            },
+      where: {
+        token: hashedToken,
+        used: false,
+        expiresAt: {
+          gt: new Date(),
         },
+      },
     });
 
     if (!record) {
-        return next(new AppError('Invalid or expired token', 401));
+      return next(new AppError("Invalid or expired token", 401));
     }
 
     // Mark as used immediately (one-time use)
     await prisma.authHandoffToken.update({
-        where: { id: record.id },
-        data: { used: true },
+      where: { id: record.id },
+      data: { used: true },
     });
 
     // Fetch user from shared DB
     const user = await prisma.user.findUnique({
-        where: { id: record.userId },
-        omit: {
-            withdrawalPinResetOtp: true,
-            withdrawalPinResetOtpSentAt: true,
-            emailVerificationCode: true,
-            emailVerificationCodeSentAt: true,
-            passwordResetOtp: true,
-            passwordResetOtpSentAt: true,
-            referralActivateAt: true,
-            activatedAt: true,
-            lastSeen: true,
-            canWithdraw: true,
-            canUseVtu: true,
-            canEarn: true,
-            canOptOut: true,
-            canWithdrawGkwth: true,
-            sponsorshipAcceptedAt: true,
-            sponsorAgreement: true,
-            sponsorLoginOtp: true,
-            sponsorLoginOtpCreatedAt: true,
-            sponsorWithdrawalOtp: true,
-            sponsorWithdrawalOtpSentAt: true,
-            isDeactivated: true,
-            sponsorSlot: true,
-            loginYearlyCount: true,
-            schoolFeesPermittedAt: true,
-            withdrawalBypassAt: true,
-            isUnitLeader: true,
-            patronGroupId: true,
-            activationCardId: true,
-            blockedAt: true,
+      where: { id: record.userId },
+      omit: {
+        withdrawalPinResetOtp: true,
+        withdrawalPinResetOtpSentAt: true,
+        emailVerificationCode: true,
+        emailVerificationCodeSentAt: true,
+        passwordResetOtp: true,
+        passwordResetOtpSentAt: true,
+        referralActivateAt: true,
+        activatedAt: true,
+        lastSeen: true,
+        canWithdraw: true,
+        canUseVtu: true,
+        canEarn: true,
+        canOptOut: true,
+        canWithdrawGkwth: true,
+        sponsorshipAcceptedAt: true,
+        sponsorAgreement: true,
+        sponsorLoginOtp: true,
+        sponsorLoginOtpCreatedAt: true,
+        sponsorWithdrawalOtp: true,
+        sponsorWithdrawalOtpSentAt: true,
+        isDeactivated: true,
+        sponsorSlot: true,
+        loginYearlyCount: true,
+        schoolFeesPermittedAt: true,
+        withdrawalBypassAt: true,
+        isUnitLeader: true,
+        patronGroupId: true,
+        activationCardId: true,
+        blockedAt: true,
+      },
+      include: {
+        region: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-        include: {
-            region: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
-        }
+      },
     });
 
     if (!user) {
-        return next(new AppError('User not found', 404));
+      return next(new AppError("User not found", 404));
     }
 
     // Issue your normal JWT
@@ -315,17 +362,18 @@ export const handleAuthHandoff = asyncHandler(async (req: Request, res: Response
     const refreshToken = signRefreshToken(user.id.toString());
 
     await prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken },
+      where: { id: user.id },
+      data: { refreshToken },
     });
 
     const wallets = await getSafeUserWallets(user.id);
     const userWithWallets = { ...user, wallets };
     const { password: _, ...userWithoutPassword } = userWithWallets;
 
-    return sendSuccess(res, 200, 'User logged in successfully', {
-        user: userWithoutPassword,
-        accessToken,
-        refreshToken,
+    return sendSuccess(res, 200, "User logged in successfully", {
+      user: userWithoutPassword,
+      accessToken,
+      refreshToken,
     });
-})
+  },
+);
