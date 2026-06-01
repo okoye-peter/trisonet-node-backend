@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
+import { isBlocked } from "../middlewares/isBlocked";
 import {
     generateVirtualAccountForWardSlotPurchase,
     purchaseGkwth,
@@ -26,8 +27,13 @@ const router = Router();
 
 // Protected routes
 router.use(protect);
+
+// PUK unblocking routes bypass isBlocked — blocked users must be able to reach these
 router.post('/puk/generate-virtual-account', generatePukVirtualAccount);
 router.post('/puk/unblock-with-puk', unblockWithPuk);
+
+// All remaining payment routes enforce the blocked-account check
+router.use(isBlocked);
 router.post('/wallet/direct/funding', validate(initiateDirectWalletFundingSchema),initiateDirectWalletFunding);
 router.post('/wallet/indirect/funding', validate(initiateGkwthPurchaseSchema),initiateGkwthPurchase);
 

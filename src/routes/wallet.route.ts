@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
+import { isBlocked } from "../middlewares/isBlocked";
 import { getAuthUserWallets, getWalletTransfers, transferFunds, getGkwthPrices, getWalletHistory } from "../controllers/wallet.controller";
 import { validate } from "../middlewares/validateRequest";
 import { transferFundsSchema } from "../validations/wallet.validation";
@@ -9,6 +10,7 @@ import { transferFundsSchema } from "../validations/wallet.validation";
 const router = Router();
 
 router.use(protect);
+router.use(isBlocked);
 
 router.get('/', getAuthUserWallets);
 router.get('/history', getWalletHistory);

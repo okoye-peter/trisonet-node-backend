@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
+import { isBlocked } from "../middlewares/isBlocked";
 import { upload } from "../config/cloudinary";
 import {
     getUserFriends,
@@ -22,6 +23,7 @@ import {
 const router = Router();
 
 router.use(protect);
+router.use(isBlocked);
 
 // Private Direct Messages & Friends List
 router.get("/friends", getUserFriends);

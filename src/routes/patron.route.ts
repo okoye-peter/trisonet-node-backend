@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { protect, restrictTo } from "../middlewares/auth";
+import { isBlocked } from "../middlewares/isBlocked";
 import { validate } from "../middlewares/validateRequest";
 import { ROLES } from "../config/constants";
 import * as patronController from "../controllers/patron.controller";
@@ -9,6 +10,7 @@ const router = Router();
 
 // All routes here require the user to be logged in and have the PATRON role
 router.use(protect);
+router.use(isBlocked);
 router.use(restrictTo(ROLES.PATRON));
 
 router.get('/dashboard', patronController.getDashboard);

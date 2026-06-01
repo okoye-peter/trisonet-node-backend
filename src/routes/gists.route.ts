@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
+import { isBlocked } from "../middlewares/isBlocked";
 import multer from "multer";
 import {
     getPost,
@@ -15,6 +16,7 @@ const memUpload = multer({ storage: multer.memoryStorage() });
 const router = Router();
 
 router.use(protect);
+router.use(isBlocked);
 
 router.get("/", getPosts);
 router.get("/:id", getPost);
