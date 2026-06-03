@@ -20,8 +20,8 @@ export const register = asyncHandler(
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-            { email: { equals: userData.email, mode: 'insensitive' } },
-            { username: { equals: userData.username, mode: 'insensitive' } },
+            { email: userData.email?.toLowerCase() },
+            { username: userData.username?.toLowerCase() },
             { phone: userData.phone }
         ]
       },
