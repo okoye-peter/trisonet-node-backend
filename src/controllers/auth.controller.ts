@@ -20,20 +20,20 @@ export const register = asyncHandler(
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-            {email: userData.email},
-            {username: userData.username},
-            {phone: userData.phone}
+            { email: { equals: userData.email, mode: 'insensitive' } },
+            { username: { equals: userData.username, mode: 'insensitive' } },
+            { phone: userData.phone }
         ]
       },
     });
     if (existingUser) {
-      if(existingUser.email == userData.email)
+      if (existingUser.email == userData.email)
         return next(new AppError("Email already in use", 400));
 
-      if(existingUser.username == userData.username)
+      if (existingUser.username == userData.username)
         return next(new AppError("Username already in use", 400));
 
-      if(existingUser.phone == userData.phone)
+      if (existingUser.phone == userData.phone)
         return next(new AppError("Phone number already in use", 400));
     
 
@@ -134,7 +134,10 @@ export const login = asyncHandler(
     const identifier = email || emailOrUsername;
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ email: identifier }, { username: identifier }],
+        OR: [
+          { email: { equals: identifier } },
+          { username: { equals: identifier } },
+        ],
       },
       omit: {
         withdrawalPinResetOtp: true,

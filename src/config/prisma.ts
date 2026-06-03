@@ -36,9 +36,36 @@ const filterSensitiveData = (data: any) => {
 };
 
 /**
+ * Prisma Extension for normalizing User email/username to lowercase on writes
+ */
+const normalizedPrisma = basePrisma.$extends({
+    query: {
+        user: {
+            async create({ args, query }) {
+                if (typeof args.data.email === 'string') args.data.email = args.data.email.toLowerCase();
+                if (typeof args.data.username === 'string') args.data.username = args.data.username.toLowerCase();
+                return query(args);
+            },
+            async update({ args, query }) {
+                if (typeof args.data.email === 'string') args.data.email = args.data.email.toLowerCase();
+                if (typeof args.data.username === 'string') args.data.username = args.data.username.toLowerCase();
+                return query(args);
+            },
+            async upsert({ args, query }) {
+                if (typeof args.create.email === 'string') args.create.email = args.create.email.toLowerCase();
+                if (typeof args.create.username === 'string') args.create.username = args.create.username.toLowerCase();
+                if (typeof args.update.email === 'string') args.update.email = (args.update.email as string).toLowerCase();
+                if (typeof args.update.username === 'string') args.update.username = (args.update.username as string).toLowerCase();
+                return query(args);
+            },
+        }
+    }
+});
+
+/**
  * Prisma Extension for Auditing
  */
-const extendedPrisma = basePrisma.$extends({
+const extendedPrisma = normalizedPrisma.$extends({
     query: {
         $allModels: {
             async $allOperations({ model, operation, args, query }) {

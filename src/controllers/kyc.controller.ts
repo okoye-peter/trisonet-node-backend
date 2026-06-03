@@ -296,6 +296,81 @@ export const ninVerification = asyncHandler(async (req: Request, res: Response, 
     }
 });
 
+export const internationalPassportVerification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { passportNumber, name } = req.body;
+    const user = req.user;
+    const username = user?.username || 'Unknown User';
+
+    if (!passportNumber || passportNumber.trim().length < 5) {
+        return next(new AppError('Please provide a valid passport number.', 400));
+    }
+
+    const parts = name?.trim().split(/\s+/) || [];
+    if (parts.length < 2 || parts.some((part: string) => part.length < 3)) {
+        return next(new AppError('Please provide your full name', 400));
+    }
+
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    if (!files?.image?.[0]) {
+        return next(new AppError('Please provide the identification image.', 400));
+    }
+
+    const image_url = (files.image[0] as any).path;
+
+    const options = {
+        method: 'POST',
+        url: 'https://api.prembly.com/verification/government_data_verification/global/passport',
+        headers: {
+            accept: 'application/json',
+            'x-api-key': PREMBLY.API_KEY,
+            'content-type': 'application/json'
+        },
+        data: { number: passportNumber.trim(), image: image_url }
+    };
+
+    try {
+        const response = await axios.request(options);
+
+        if (!response.data.status) {
+            cleanupCloudinary(image_url);
+            return next(new AppError(response.data.message || 'Passport verification failed at provider.', 400));
+        }
+
+        const { firstName, lastName } = response.data.data || {};
+
+        if (firstName && lastName && !verifyNameMatch(name, firstName, lastName)) {
+            cleanupCloudinary(image_url);
+            kycLogger.warn('Passport KYC Name Mismatch', {
+                userId: user.id,
+                username,
+                registeredName: name,
+                receivedNames: { firstName, lastName }
+            });
+            return next(new AppError('Identity verification failed. Your name does not match the name on your passport.', 400));
+        }
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { hasVerifiedLevel2: true, name }
+        });
+
+        kycLogger.info('Passport KYC Verification Successful', { userId: user.id, username });
+        return sendSuccess(res, 200, "Identity verification successful.");
+
+    } catch (error: any) {
+        cleanupCloudinary(image_url);
+
+        kycLogger.error('Prembly Passport API Error', {
+            username,
+            error: error.response?.data || error.message,
+            stack: error.stack
+        });
+
+        const errorMessage = error.response?.data?.message || 'Identity verification failed. Please ensure images are clear and retry.';
+        return next(new AppError(errorMessage, 500));
+    }
+});
+
 export const updateUserBvnHash = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const users = await prisma.user.findMany({
         where: {
