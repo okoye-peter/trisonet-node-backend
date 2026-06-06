@@ -371,6 +371,27 @@ export const internationalPassportVerification = asyncHandler(async (req: Reques
     }
 });
 
+export const getAllUsersKycStats = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const [total, verified, withBvn, withNin] = await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { hasVerifiedLevel2: true } }),
+        prisma.user.count({ where: { bvnHash: { not: null } } }),
+        prisma.user.count({ where: { ninHash: { not: null } } }),
+    ]);
+
+    const unverified = total - verified;
+    const mean = total > 0 ? parseFloat((verified / total).toFixed(4)) : 0;
+
+    return sendSuccess(res, 200, "KYC stats retrieved.", {
+        total,
+        verified,
+        unverified,
+        mean,
+        meanPercent: `${(mean * 100).toFixed(2)}%`,
+        byMethod: { bvn: withBvn, nin: withNin },
+    });
+});
+
 export const updateUserBvnHash = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const users = await prisma.user.findMany({
         where: {

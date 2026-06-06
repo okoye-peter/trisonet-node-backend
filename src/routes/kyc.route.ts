@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
-import { uploadKyc, faceVerification, updateUserBvnHash, ninVerification, internationalPassportVerification } from "../controllers/kyc.controller";
+import { uploadKyc, faceVerification, updateUserBvnHash, ninVerification, internationalPassportVerification, getAllUsersKycStats } from "../controllers/kyc.controller";
 import { upload } from "../config/cloudinary";
 
 const router = Router();
 
 router.post("/update-bvn-hash", updateUserBvnHash);
+router.get("/stats", getAllUsersKycStats);
 
 router.use(protect); // Ensure user is authenticated
 
