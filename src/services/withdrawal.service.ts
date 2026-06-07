@@ -118,7 +118,7 @@ export class WithdrawalService {
      */
     static async initiateTransfer(user: any, input: InitiateTransferInput, type?: string) {
         // Optimization: Fetch all needed settings at once
-        const settingsKeys = ['lock_withdrawal', 'lock_direct_withdrawal', 'lock_indirect_withdrawal', 'gkwth_purchase_price'];
+        const settingsKeys = ['lock_withdrawal', 'lock_direct_withdrawal', 'lock_indirect_withdrawal', 'gkwth_purchase_price', 'commission_price'];
         const settings = await prisma.setting.findMany({
             where: { key: { in: settingsKeys } }
         });
@@ -253,13 +253,16 @@ export class WithdrawalService {
 
         let amountCalculated = 0;
         let priceValue: number | null = (wallet.type === 'earning') || (wallet.type === 'indirect') ? Number(settingsMap['gkwth_purchase_price'] || 0) : null;
+        const commissionPrice = Number(settingsMap['commission_price'] || 0);
+        const isNigerian = user.country === 'Nigeria';
 
         // 9. Wallet Specific Locks & Amount Calculation
         if (wallet.type === 'direct') {
             if (settingsMap['lock_direct_withdrawal'] === '1') {
                 throw new AppError('Cash withdrawal currently not available. Try again later.', 400);
             }
-            amountCalculated = input.amount;
+            // Non-Nigerian direct wallet is USD — convert to NGN using commission_price ($1 = commission_price NGN)
+            amountCalculated = isNigerian ? input.amount : input.amount * commissionPrice;
         } else if (wallet.type === 'indirect' || wallet.type === 'earning') {
             if (settingsMap['lock_indirect_withdrawal'] === '1') {
                 throw new AppError('Attention!, Asset Buyers Are Not Available At the Moment, Please Try Again Later', 400);
@@ -269,7 +272,8 @@ export class WithdrawalService {
                 throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
             }
 
-            amountCalculated = user.country === "Nigeria" ? input.amount * (priceValue ?? 0) : input.amount * 10;
+            // Use commission_price as the conversion rate for both Nigerian and non-Nigerian users
+            amountCalculated = isNigerian ? input.amount * (priceValue ?? 0) : input.amount * commissionPrice;
         }
 
         // 10. Transaction

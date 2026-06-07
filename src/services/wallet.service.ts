@@ -29,7 +29,7 @@ class WalletService {
         let receiverData: any;
         let senderData: any;
 
-        
+
         const user = await prisma.user.findFirst({
             where: {
                 role: ROLES.CUSTOMER,
@@ -42,7 +42,10 @@ class WalletService {
         if(!user) {
             throw new AppError('only user that has migrated can make transfer', 400);
         }
-        
+
+        // Fetch commission_price for cross-country conversion ($1 = commission_price NGN)
+        const commissionSetting = await prisma.setting.findUnique({ where: { key: 'commission_price' } });
+        const commissionPrice = commissionSetting ? parseFloat(commissionSetting.value) || 0 : 0;
 
         const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // 1. Verify Sender
@@ -50,7 +53,8 @@ class WalletService {
                 where: { id: senderId },
                 select: {
                     id: true,
-                    name: true, // Added
+                    name: true,
+                    country: true,
                     withdrawalPin: true,
                     status: true,
                     accountState: true,
@@ -67,8 +71,10 @@ class WalletService {
                 throw new Error('Infants are not permitted to perform transfer');
             }
 
-            if (amount < 100) {
-                throw new Error('Minimum transfer amount is ₦100');
+            const senderIsNigerianCheck = senderData?.country?.toLowerCase() === 'nigeria';
+            const minAmount = senderIsNigerianCheck ? 100 : 1;
+            if (amount < minAmount) {
+                throw new Error(`Minimum transfer amount is ${senderIsNigerianCheck ? '₦100' : '$1'}`);
             }
 
             if (!sender.withdrawalPin) {
@@ -120,6 +126,13 @@ class WalletService {
                 throw new Error('Invalid receiver wallet type');
             }
 
+            // 5. Determine credit amount — convert if sender is non-Nigerian and receiver is Nigerian
+            const senderIsNigerian = senderData.country?.toLowerCase() === 'nigeria';
+            const receiverIsNigerian = receiver.country?.toLowerCase() === 'nigeria';
+            const creditAmount = (!senderIsNigerian && receiverIsNigerian)
+                ? amount * commissionPrice
+                : amount;
+
             // 5. Perform Balances Update
             await tx.wallet.update({
                 where: { id: senderWallet.id },
@@ -128,7 +141,7 @@ class WalletService {
 
             await tx.wallet.update({
                 where: { id: receiverWallet!.id },
-                data: { amount: { increment: amount } }
+                data: { amount: { increment: creditAmount } }
             });
 
             // 6. Create Transfer Log
@@ -137,34 +150,36 @@ class WalletService {
                 data: {
                     senderWalletId: senderWallet.id,
                     receiverWalletId: receiverWallet!.id,
-                    amount: BigInt(Math.floor(amount)), // Truncating to BigInt as per schema
+                    amount: BigInt(Math.floor(amount)),
                     reference
                 }
             });
 
-            return transfer;
+            return { transfer, senderIsNigerian, receiverIsNigerian, creditAmount };
         });
+
+        const { transfer: transferResult, senderIsNigerian, receiverIsNigerian, creditAmount } = result;
+        const senderCurrencySymbol = senderIsNigerian ? '₦' : '$';
+        const receiverCurrencySymbol = receiverIsNigerian ? '₦' : '$';
 
         // Trigger Notifications
         try {
-            // Notify Sender
             await NotificationService.createNotification(
                 [senderId],
                 'Funds Transferred',
-                `You have successfully transferred ₦${amount.toLocaleString()} to ${receiverTransferId}. Reference: ${result.reference}`
+                `You have successfully transferred ${senderCurrencySymbol}${amount.toLocaleString()} to ${receiverTransferId}. Reference: ${transferResult.reference}`
             );
 
-            // Notify Receiver
             await NotificationService.createNotification(
                 [receiverData.id],
                 'Funds Received',
-                `You have received ₦${amount.toLocaleString()} from ${senderData.name || 'a user'}. Reference: ${result.reference}`
+                `You have received ${receiverCurrencySymbol}${creditAmount.toLocaleString()} from ${senderData.name || 'a user'}. Reference: ${transferResult.reference}`
             );
         } catch (error) {
             console.error('Failed to trigger transfer notifications:', error);
         }
 
-        return result;
+        return transferResult;
     }
 }
 

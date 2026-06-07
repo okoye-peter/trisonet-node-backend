@@ -465,7 +465,8 @@ export const getUserByTransferId = asyncHandler(async (req: Request, res: Respon
             transferId: true,
             status: true,
             accountState: true,
-            username: true // Keeping username for the UI display
+            username: true,
+            country: true
         }
     });
 

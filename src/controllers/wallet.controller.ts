@@ -101,7 +101,7 @@ export const transferFunds = asyncHandler(async (req: any, res: Response, next: 
 });
 
 export const getGkwthPrices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const keys = ['up_front_sale_price', 'gkwth_sale_price', 'gkwth_purchase_price'];
+    const keys = ['up_front_sale_price', 'gkwth_sale_price', 'gkwth_purchase_price', 'commission_price'];
 
     const settings = await prisma.setting.findMany({
         where: { key: { in: keys } }
@@ -116,6 +116,7 @@ export const getGkwthPrices = asyncHandler(async (req: Request, res: Response, n
         loanPurchasePrice: settingsMap['up_front_sale_price'] || null,
         gkwthSalePrice: settingsMap['gkwth_sale_price'] || null,
         gkwthPurchasePrice: settingsMap['gkwth_purchase_price'] || null,
+        commissionPrice: settingsMap['commission_price'] || null,
     });
 });
 
