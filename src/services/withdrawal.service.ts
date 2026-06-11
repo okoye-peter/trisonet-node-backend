@@ -41,9 +41,9 @@ export class WithdrawalService {
                 }
             });
 
-            if (activeReferralsCount < 6) {
-                return { status: false, error: "you can't withdraw until you distribute up to 6 units" };
-            }
+            // if (activeReferralsCount < 6) {
+            //     return { status: false, error: "you can't withdraw until you distribute up to 6 units" };
+            // }
 
             const lastWithdrawal = await prisma.withDrawal.findFirst({
                 where: {
