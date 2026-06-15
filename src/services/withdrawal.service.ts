@@ -62,20 +62,20 @@ export class WithdrawalService {
                 }
             }
 
-            // if (lastWithdrawal) {
-            //     const recentRefs = await prisma.user.count({
-            //         where: {
-            //             referralId: user.id,
-            //             status: true,
-            //             createdAt: { gte: lastWithdrawal.createdAt! }
-            //         }
-            //     });
+            if (lastWithdrawal) {
+                const recentRefs = await prisma.user.count({
+                    where: {
+                        referralId: user.id,
+                        status: true,
+                        createdAt: { gte: lastWithdrawal.createdAt! }
+                    }
+                });
 
-            //     if (recentRefs < 6) {
-            //         const remaining = 6 - (recentRefs % 6);
-            //         return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units since your last withdrawal` };
-            //     }
-            // }
+                if (recentRefs < 6) {
+                    const remaining = 6 - (recentRefs % 6);
+                    return { status: false, error: `you can't withdraw until you distribute up to ${remaining} units since your last withdrawal` };
+                }
+            }
         } else if (user.role === ROLES.INFLUENCER) {
             const lastWithdrawal = await prisma.withDrawal.findFirst({
                 where: {

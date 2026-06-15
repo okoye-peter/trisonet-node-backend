@@ -17,7 +17,8 @@ import {
     submitActivationProof,
     generatePukVirtualAccount,
     unblockWithPuk,
-    verifyPaymentStatus
+    verifyPaymentStatus,
+    verifyCardCharge
 } from "../controllers/payment.controller";
 import { upload } from "../config/cloudinary";
 import { validate } from "../middlewares/validateRequest";
@@ -49,5 +50,6 @@ router.post('/activation/code', activateByCode);
 router.get('/activation/status/:reference', checkActivationStatus);
 router.post('/activation/proof', upload.single('prove'), submitActivationProof);
 router.get('/verify/:reference', verifyPaymentStatus);
+router.get('/card/verify/:reference', verifyCardCharge);
 
 export default router;

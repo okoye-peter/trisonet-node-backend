@@ -21,6 +21,7 @@ export class PagaService {
     private readonly testMode: boolean;
     private readonly baseUrl: string;
     private readonly businessUrl: string;
+    private readonly checkoutUrl: string;
     private readonly businessPublicId: string;
     private readonly businessPassword: string;
 
@@ -41,6 +42,11 @@ export class PagaService {
         this.businessUrl = this.testMode
             ? 'https://beta.mypaga.com/paga-webservices/business-rest/secured/'
             : 'https://www.mypaga.com/paga-webservices/business-rest/secured/';
+
+        // Checkout Link API (card payments)
+        this.checkoutUrl = this.testMode
+            ? 'https://beta-checkout.paga.com/'
+            : 'https://checkout.paga.com/';
     }
 
     /**
@@ -456,6 +462,67 @@ export class PagaService {
             fee: data.fee ?? null,
             full_response: data
         };
+    }
+
+    /**
+     * Verify a card charge — Checkout Link API
+     */
+    async verifyCardCharge(referenceNumber: string): Promise<PagaResponse> {
+        const hash = this.generateHash([referenceNumber]);
+        const url = this.checkoutUrl + 'checkoutAndPay/v1/billing/getTransactionDetails';
+
+        try {
+            const response = await axios.post(url, { referenceNumber }, {
+                headers: {
+                    'hash': hash,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                auth: {
+                    username: this.publicKey,
+                    password: this.secretKey
+                },
+                timeout: 60000,
+                httpsAgent: new https.Agent({ keepAlive: false }),
+            });
+
+            const data = response.data;
+            const statusCode = data.statusCode ?? data.responseCode ?? null;
+            const transactionStatus = data.transactionStatus ?? data.status ?? 'UNKNOWN';
+
+            return {
+                success: true,
+                operation: 'verifyCardCharge',
+                is_paid: this.isPaymentSuccessful(statusCode, transactionStatus),
+                status: transactionStatus,
+                status_code: statusCode,
+                amount: data.amount ?? data.transactionAmount ?? 0,
+                reference: referenceNumber,
+                transaction_id: data.transactionId ?? null,
+                completed_at: data.completedDateTimeUTC ?? data.transactionDateTime ?? null,
+                full_response: data
+            };
+        } catch (error: any) {
+            if (error.response) {
+                pagaLogger.error('Paga verifyCardCharge Error', {
+                    status: error.response.status,
+                    response: error.response.data,
+                });
+                const errData = error.response.data;
+                return {
+                    success: false,
+                    error: errData?.statusMessage || errData?.message || `Payment service error (${error.response.status})`,
+                    operation: 'verifyCardCharge',
+                };
+            }
+
+            pagaLogger.error('Paga verifyCardCharge Exception', { error: error.message });
+            return {
+                success: false,
+                error: error.message,
+                operation: 'verifyCardCharge',
+            };
+        }
     }
 
     /**

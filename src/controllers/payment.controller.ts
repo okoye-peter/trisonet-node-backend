@@ -196,3 +196,15 @@ export const verifyPaymentStatus = asyncHandler(async (req: Request, res: Respon
     return sendSuccess(res, 200, 'Payment status fetched', result);
 });
 
+export const verifyCardCharge = asyncHandler(async (req: Request, res: Response) => {
+    const reference = req.params.reference as string;
+    const pagaService = new PagaService();
+    const result = await pagaService.verifyCardCharge(reference);
+
+    if (!result.success) {
+        throw new AppError((result as any).error ?? 'Card payment verification failed', 400);
+    }
+
+    return sendSuccess(res, 200, 'Card payment status fetched', result);
+});
+
