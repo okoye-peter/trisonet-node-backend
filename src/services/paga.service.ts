@@ -467,14 +467,12 @@ export class PagaService {
     /**
      * Verify a card charge — Checkout Link API
      */
-    async verifyCardCharge(referenceNumber: string): Promise<PagaResponse> {
-        const hash = this.generateHash([referenceNumber]);
-        const url = this.checkoutUrl + 'checkoutAndPay/v1/billing/getTransactionDetails';
+    async verifyCardCharge(paymentReference: string, amount: number, currency: string = 'NGN'): Promise<PagaResponse> {
+        const url = this.checkoutUrl + 'checkout/transaction/verify';
 
         try {
-            const response = await axios.post(url, { referenceNumber }, {
+            const response = await axios.post(url, { paymentReference, amount, currency }, {
                 headers: {
-                    'hash': hash,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
@@ -497,7 +495,7 @@ export class PagaService {
                 status: transactionStatus,
                 status_code: statusCode,
                 amount: data.amount ?? data.transactionAmount ?? 0,
-                reference: referenceNumber,
+                reference: paymentReference,
                 transaction_id: data.transactionId ?? null,
                 completed_at: data.completedDateTimeUTC ?? data.transactionDateTime ?? null,
                 full_response: data

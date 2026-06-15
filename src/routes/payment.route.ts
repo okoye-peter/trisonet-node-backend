@@ -50,6 +50,6 @@ router.post('/activation/code', activateByCode);
 router.get('/activation/status/:reference', checkActivationStatus);
 router.post('/activation/proof', upload.single('prove'), submitActivationProof);
 router.get('/verify/:reference', verifyPaymentStatus);
-router.get('/card/verify/:reference', verifyCardCharge);
+router.post('/card/verify', verifyCardCharge);
 
 export default router;

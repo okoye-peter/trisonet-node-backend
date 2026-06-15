@@ -197,9 +197,13 @@ export const verifyPaymentStatus = asyncHandler(async (req: Request, res: Respon
 });
 
 export const verifyCardCharge = asyncHandler(async (req: Request, res: Response) => {
-    const reference = req.params.reference as string;
+    const { reference, amount, currency } = req.body;
+    if (!reference || !amount) {
+        throw new AppError('reference and amount are required', 400);
+    }
+
     const pagaService = new PagaService();
-    const result = await pagaService.verifyCardCharge(reference);
+    const result = await pagaService.verifyCardCharge(reference, Number(amount), currency ?? 'NGN');
 
     if (!result.success) {
         throw new AppError((result as any).error ?? 'Card payment verification failed', 400);
