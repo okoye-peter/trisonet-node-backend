@@ -468,11 +468,13 @@ export class PagaService {
      * Verify a card charge — Checkout Link API
      */
     async verifyCardCharge(paymentReference: string, amount: number, currency: string = 'NGN'): Promise<PagaResponse> {
+        const hash = this.generateHash([paymentReference]);
         const url = this.checkoutUrl + 'checkout/transaction/verify';
 
         try {
             const response = await axios.post(url, { paymentReference, amount, currency }, {
                 headers: {
+                    'hash': hash,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
