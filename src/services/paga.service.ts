@@ -472,7 +472,7 @@ export class PagaService {
         const url = this.checkoutUrl + 'checkout/transaction/verify';
 
         try {
-            const response = await axios.post(url, { paymentReference, amount, currency }, {
+            const response = await axios.post(url, { paymentReference, amount, currency, publicKey: this.publicKey }, {
                 headers: {
                     'hash': hash,
                     'Accept': 'application/json',
