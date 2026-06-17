@@ -474,7 +474,7 @@ export class PagaService {
         try {
             const response = await axios.post(url, { paymentReference, amount, currency }, {
                 headers: {
-                    'hash': hash,
+                    // 'hash': hash,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
