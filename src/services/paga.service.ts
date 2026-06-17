@@ -472,7 +472,7 @@ export class PagaService {
         const url = this.checkoutUrl + 'checkout/transaction/verify';
 
         try {
-            const response = await axios.post(url, { paymentReference, amount, currency, publicKey: this.publicKey }, {
+            const response = await axios.post(url, { paymentReference, amount, currency }, {
                 headers: {
                     'hash': hash,
                     'Accept': 'application/json',
@@ -487,8 +487,8 @@ export class PagaService {
             });
 
             const data = response.data;
-            const statusCode = data.statusCode ?? data.responseCode ?? null;
-            const transactionStatus = data.transactionStatus ?? data.status ?? 'UNKNOWN';
+            const statusCode = data.status_code ?? data.statusCode ?? data.responseCode ?? null;
+            const transactionStatus = data.status_message ?? data.transactionStatus ?? data.status ?? 'UNKNOWN';
 
             return {
                 success: true,
@@ -498,8 +498,8 @@ export class PagaService {
                 status_code: statusCode,
                 amount: data.amount ?? data.transactionAmount ?? 0,
                 reference: paymentReference,
-                transaction_id: data.transactionId ?? null,
-                completed_at: data.completedDateTimeUTC ?? data.transactionDateTime ?? null,
+                transaction_id: data.chargeId ?? data.transactionId ?? null,
+                // completed_at: data.completedDateTimeUTC ?? data.transactionDateTime ?? null,
                 full_response: data
             };
         } catch (error: any) {
