@@ -486,10 +486,12 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
         select: {
             id: true,
             phone: true,
+            email: true,
             guardianUser: {
                 select: {
                     id: true,
-                    phone: true
+                    phone: true,
+                    email: true
                 }
             }
         }
@@ -500,7 +502,8 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const phone = user.phone || user.guardianUser?.phone;
-    if (!phone) return next(new AppError('No phone number found', 400));
+    const email = user.email || user.guardianUser?.email;
+    if (!phone && !email) return next(new AppError('No phone number or email found', 400));
 
     await prisma.user.update({
         where: { id: user.id },
@@ -514,7 +517,11 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
         TermiiService.sendSms(phone, `Your withdrawal pin reset code is ${otp}`)
     }
 
-    sendSuccess(res, 200, 'Verification code sent to your phone number');
+    if (email) {
+        TermiiService.sendMailWithTermii(email, otp)
+    }
+
+    sendSuccess(res, 200, 'Verification code sent to your phone number and email');
 });
 
 export const verifyWithdrawalPinOtp = asyncHandler(async (req: any, res: Response, next: NextFunction) => {

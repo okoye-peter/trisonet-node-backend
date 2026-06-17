@@ -22,7 +22,8 @@ interface UserRequestData {
 }
 
 export const createUser = async (data: UserRequestData) => {
-    const { name, username, email, phone, region_id, country, password, confirm_password, referral_id, activation_code, picture_url } = data;
+    const { name, email, phone, region_id, country, password, confirm_password, referral_id, activation_code, picture_url } = data;
+    const username = data.username?.toLowerCase();
     if (name.split(' ').length == 1) {
         throw new Error('Please provide your full name');
     }

@@ -30,7 +30,7 @@ export const register = asyncHandler(
       if (existingUser.email == userData.email)
         return next(new AppError("Email already in use", 400));
 
-      if (existingUser.username == userData.username)
+      if (existingUser.username?.toLowerCase() === userData.username?.toLowerCase())
         return next(new AppError("Username already in use", 400));
 
       if (existingUser.phone == userData.phone)
