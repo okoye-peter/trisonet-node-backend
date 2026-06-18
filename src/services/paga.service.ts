@@ -470,7 +470,7 @@ export class PagaService {
     async verifyCardCharge(paymentReference: string, amount: number, currency: string = 'NGN'): Promise<PagaResponse> {
         const hash = this.generateHash([paymentReference]);
         const url = this.checkoutUrl + 'checkout/transaction/verify';
-
+        
         try {
             const response = await axios.post(url, { paymentReference, amount, currency }, {
                 headers: {
@@ -485,11 +485,12 @@ export class PagaService {
                 timeout: 60000,
                 httpsAgent: new https.Agent({ keepAlive: false }),
             });
-
+            
+            
             const data = response.data;
             const statusCode = data.status_code ?? data.statusCode ?? data.responseCode ?? null;
             const transactionStatus = data.status_message ?? data.transactionStatus ?? data.status ?? 'UNKNOWN';
-
+            
             return {
                 success: true,
                 operation: 'verifyCardCharge',
