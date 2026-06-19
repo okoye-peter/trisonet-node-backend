@@ -126,12 +126,16 @@ class WalletService {
                 throw new Error('Invalid receiver wallet type');
             }
 
-            // 5. Determine credit amount — convert if sender is non-Nigerian and receiver is Nigerian
-            const senderIsNigerian = senderData.country?.toLowerCase() === 'nigeria';
-            const receiverIsNigerian = receiver.country?.toLowerCase() === 'nigeria';
-            const creditAmount = (!senderIsNigerian && receiverIsNigerian)
-                ? amount * commissionPrice
-                : amount;
+            // 5. Determine credit amount — convert only when sender's country is explicitly non-Nigerian
+            const senderCountry = senderData.country?.toLowerCase() ?? '';
+            const receiverCountry = receiver.country?.toLowerCase() ?? '';
+            const senderIsNigerian = senderCountry === 'nigeria';
+            const receiverIsNigerian = receiverCountry === 'nigeria';
+
+            // If sender country is unknown (null/empty), default to no conversion to prevent
+            // accidental multiplication of same-currency transfers
+            const shouldConvert = senderCountry !== '' && !senderIsNigerian && receiverIsNigerian && commissionPrice > 0;
+            const creditAmount = shouldConvert ? amount * commissionPrice : amount;
 
             // 5. Perform Balances Update
             await tx.wallet.update({
