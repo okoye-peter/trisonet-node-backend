@@ -34,12 +34,12 @@ export class WithdrawalService {
                 throw new AppError('only user that has migrated can request for withdrawal', 400);
             }
 
-            const activeReferralsCount = await prisma.user.count({
-                where: {
-                    referralId: user.id,
-                    status: true
-                }
-            });
+            // const activeReferralsCount = await prisma.user.count({
+            //     where: {
+            //         referralId: user.id,
+            //         status: true
+            //     }
+            // });
 
             // if (activeReferralsCount < 6) {
             //     return { status: false, error: "you can't withdraw until you distribute up to 6 units" };
