@@ -43,7 +43,7 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
             getSafeUserWallets(userId)
         ]);
 
-        if (!currentUser) {
+        if (!currentUser || currentUser.deletedAt) {
             return next(new AppError('The user belonging to this token does no longer exist.', 401));
         }
 

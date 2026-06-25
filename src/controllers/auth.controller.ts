@@ -134,6 +134,7 @@ export const login = asyncHandler(
     const identifier = email || emailOrUsername;
     const user = await prisma.user.findFirst({
       where: {
+        deletedAt: null,
         OR: [
           { email: { equals: identifier } },
           { username: { equals: identifier } },
