@@ -12,19 +12,19 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
     const user = req.user;
 
     const [totalCards, slotsResult, pendingCards, cardPrice, activeCardResult] = await Promise.all([
-        // totalCard Query
+        // totalCard Query — only count approved cards
         prisma.activationCard.count({
             where: {
                 userId: user.id,
-                status: { not: ACTIVATION_CARD_STATUSES.CANCELLED }
+                status: ACTIVATION_CARD_STATUSES.APPROVED
             }
         }),
-        // availableSlots Query
+        // availableSlots Query — aggregate across all approved cards
         prisma.$queryRaw<any[]>`
-            SELECT 
-                FLOOR(ac.amount / ac.price_per_user) AS "totalSlots",
-                COALESCE(u.numUsers, 0) AS "usedSlots",
-                FLOOR(ac.amount / ac.price_per_user) - COALESCE(u.numUsers, 0) AS "availableSlots"
+            SELECT
+                SUM(FLOOR(ac.amount / ac.price_per_user)) AS "totalSlots",
+                SUM(COALESCE(u.numUsers, 0)) AS "usedSlots",
+                SUM(FLOOR(ac.amount / ac.price_per_user) - COALESCE(u.numUsers, 0)) AS "availableSlots"
             FROM activation_cards ac
             LEFT JOIN (
                 SELECT activation_card_id, COUNT(*) AS numUsers
@@ -36,8 +36,6 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
                 ac.user_id = ${user.id}
                 AND ac.status = ${ACTIVATION_CARD_STATUSES.APPROVED}
                 AND ac.price_per_user > 0
-            ORDER BY ac.created_at DESC
-            LIMIT 1
         `,
         // pendingCards Query
         prisma.activationCard.count({
