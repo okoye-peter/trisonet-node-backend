@@ -114,7 +114,7 @@ export const getUserCards = asyncHandler(async (req: any, res: Response) => {
     const whereClause: any = {
         userId: BigInt(user.id),
         OR: [
-            { status: { not: ACTIVATION_CARD_STATUSES.PENDING } },
+            { status: ACTIVATION_CARD_STATUSES.APPROVED },
             {
                 status: ACTIVATION_CARD_STATUSES.PENDING,
                 proofOfPayment: {
