@@ -1247,6 +1247,7 @@ model ActivationCard {
   status                  Int                         @default(0) @db.TinyInt
   rejectionReason         String?                     @map("rejection_reason") @db.VarChar(255)
   approvedBy              BigInt?                     @map("approved_by") @db.UnsignedBigInt
+  acknowledgedAt          DateTime?                   @map("acknowledged_at") @db.Timestamp(0)
   createdAt               DateTime?                   @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt               DateTime?                   @updatedAt @map("updated_at") @db.Timestamp(0)
   transactions            ActivationCardTransaction[]
