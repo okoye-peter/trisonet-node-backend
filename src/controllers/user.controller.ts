@@ -10,6 +10,7 @@ import { AppError } from "../utils/AppError"
 import { getOrSetCache } from '../utils/cache';
 import { TermiiService } from '../services/termii.service';
 import { getSafeUserWallets } from "../utils/prismaUtils";
+import { isAuctionAllowedUser } from "../utils/auctionAccess";
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -85,8 +86,10 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         where: { user_id: user.id }
     }).then(m => !!m);
 
+    const canAccessAuction = await isAuctionAllowedUser(user.id);
+
     sendSuccess(res, 200, 'User fetched successfully', {
-        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration }
+        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration, canAccessAuction }
     });
 });
 

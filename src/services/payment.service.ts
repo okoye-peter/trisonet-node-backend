@@ -6,6 +6,7 @@ import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
 import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS } from "../config/constants.js";
 import { TermiiService } from './termii.service.js';
+import AuctionService from './auction.service.js';
 
 
 export class PaymentService {
@@ -38,6 +39,10 @@ export class PaymentService {
 
         if (externalReferenceNumber.startsWith('ACTIVATIONCARD')) {
             return await this.processActivationCardPurchase(payload);
+        }
+
+        if (externalReferenceNumber.startsWith('AUCTIONCLAIM')) {
+            return await AuctionService.processClaimPayment(externalReferenceNumber, paymentAmount);
         }
 
         // 1. Find the funding record
@@ -1093,6 +1098,10 @@ export class PaymentService {
         // Route based on reference prefix
         if (reference.startsWith('ACTIVATION') && !reference.startsWith('ACTIVATIONCARD')) {
             return await AccountActivationService.processActivationPayment(reference, amountPaid);
+        }
+
+        if (reference.startsWith('AUCTIONCLAIM')) {
+            return await AuctionService.processClaimPayment(reference, amountPaid);
         }
 
         if (reference.startsWith('PUK')) {

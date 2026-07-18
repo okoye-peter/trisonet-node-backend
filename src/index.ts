@@ -32,11 +32,15 @@ import webhookRouter from './routes/webhook.route';
 import queueRouter from './routes/queue.route';
 import publicNoticeRouter from './routes/public_notice.route';
 import adminNoticeRouter from './routes/admin_notice.route';
+import auctionRouter from './routes/auction.route';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSockets } from './sockets';
 
 // Initialize background workers
 import './queue';
+
+// Initialize auction expiry sweep (isolated from the pre-existing, currently-unimported ./cron)
+import './cron/auction.cron';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -111,6 +115,7 @@ app.use('/api/webhooks', webhookRouter);
 app.use('/api/queues', queueRouter);
 app.use('/api/public-notices', publicNoticeRouter);
 app.use('/api/admin-notices', adminNoticeRouter);
+app.use('/api/auctions', auctionRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);

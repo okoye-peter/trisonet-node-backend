@@ -12,7 +12,8 @@
         "db:pull": "prisma db pull",
         "db:studio": "prisma studio",
         "db:generate": "prisma generate",
-        "db:reset": "prisma migrate reset"
+        "db:reset": "prisma migrate reset",
+        "db:sync": "prisma db pull && prisma generate"
     },
     "keywords": [],
     "author": "",

@@ -8,160 +8,168 @@ datasource db {
 }
 
 model User {
-  id                              BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
-  patronId                        BigInt?                          @map("patron_id") @db.UnsignedBigInt
-  name                            String                           @db.VarChar(255)
-  username                        String?                          @db.VarChar(255)
-  email                           String?                          @db.VarChar(255)
-  phone                           String?                          @db.VarChar(255)
-  pictureUrl                      String?                          @map("picture_url") @db.VarChar(255)
-  cloudinaryPublicId              String?                          @map("cloudinary_public_id") @db.VarChar(255)
-  regionId                        BigInt?                          @map("region_id") @db.UnsignedBigInt
-  role                            Int                              @default(3)
-  accountState                    Int                              @default(1) @map("account_state")
-  country                         String?                          @db.VarChar(255)
-  referralId                      BigInt?                          @map("referral_id") @db.UnsignedBigInt
-  emailVerificationCode           String?                          @map("email_verification_code") @db.VarChar(255)
-  emailVerificationCodeSentAt     DateTime?                        @map("email_verification_code_sent_at") @db.Timestamp(0)
-  emailVerifiedAt                 DateTime?                        @map("email_verified_at") @db.Timestamp(0)
-  password                        String                           @db.VarChar(255)
-  passwordResetOtp                String?                          @map("password_reset_otp") @db.VarChar(255)
-  passwordResetOtpSentAt          DateTime?                        @map("password_reset_otp_sent_at") @db.Timestamp(0)
-  rememberToken                   String?                          @map("remember_token") @db.VarChar(100)
-  createdAt                       DateTime?                        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt                       DateTime?                        @updatedAt @map("updated_at") @db.Timestamp(0)
-  status                          Boolean                          @default(false)
-  withdrawalPin                   String?                          @map("withdrawal_pin") @db.VarChar(255)
-  withdrawalPinResetOtp           String?                          @map("withdrawal_pin_reset_otp") @db.VarChar(255)
-  withdrawalPinResetOtpSentAt     DateTime?                        @map("withdrawal_pin_reset_otp_sent_at") @db.Timestamp(0)
-  referralActivateAt              DateTime?                        @map("referral_activate_at") @db.Timestamp(0)
-  bank                            String?                          @db.VarChar(255)
-  accountNumber                   String?                          @map("account_number") @db.VarChar(11)
-  isInfant                        Boolean                          @default(false) @map("is_infant")
-  birthDate                       DateTime?                        @map("birth_date") @db.Date
-  birthPlace                      String?                          @map("birth_place") @db.VarChar(255)
-  birthCertificate                String?                          @map("birth_certificate") @db.VarChar(255)
-  infantGroupId                   BigInt?                          @map("infant_group_id") @db.UnsignedBigInt
-  canWithdraw                     Boolean                          @default(true) @map("can_withdraw")
-  canUseVtu                       Boolean                          @default(true) @map("can_use_vtu")
-  deletedAt                       DateTime?                        @map("deleted_at") @db.Timestamp(0)
-  canEarn                         Boolean                          @default(true) @map("can_earn")
-  canOptOut                       Boolean                          @default(true) @map("can_opt_out")
-  canWithdrawGkwth                Boolean                          @default(true) @map("can_withdraw_gkwth")
-  lastSeen                        DateTime?                        @map("last_seen") @db.Timestamp(0)
-  activatedAt                     DateTime?                        @map("activated_at") @db.Timestamp(0)
-  isOnline                        Boolean                          @default(false) @map("is_online")
-  sponsorshipAcceptedAt           DateTime?                        @map("sponsorship_accepted_at") @db.Timestamp(0)
-  sponsorAgreement                Boolean?                         @map("sponsor_agreement")
-  sponsorshipStatus               SponsorshipStatus?               @map("sponsorship_status")
-  sponsorLoginOtp                 Int?                             @map("sponsor_login_otp")
-  sponsorLoginOtpCreatedAt        DateTime?                        @map("sponsor_login_otp_created_at") @db.Timestamp(0)
-  isSponsorAccount                String?                          @map("is_sponsor_account") @db.VarChar(255)
-  influencerId                    BigInt?                          @map("influencer_id") @db.UnsignedBigInt
-  accountActivationAcknowledgedAt DateTime?                        @map("account_activation_acknowledged_at") @db.Timestamp(0)
-  sponsorWithdrawalOtp            Int?                             @map("sponsor_withdrawal_otp")
-  sponsorWithdrawalOtpSentAt      DateTime?                        @map("sponsor_withdrawal_otp_sent_at") @db.Timestamp(0)
-  isDeactivated                   Boolean                          @default(false) @map("is_deactivated")
-  sponsorId                       BigInt?                          @map("sponsor_id") @db.UnsignedBigInt
-  sponsorSlot                     Int                              @default(0) @map("sponsor_slot")
-  loginYearlyCount                Json?                            @map("login_yearly_count")
-  schoolFeesPermittedAt           DateTime?                        @map("school_fees_permitted_at") @db.Timestamp(0)
-  withdrawalBypassAt              DateTime?                        @map("withdrawal_bypass_at") @db.Timestamp(0)
-  isUnitLeader                    Boolean                          @default(false) @map("is_unit_leader")
-  schoolId                        BigInt?                          @map("school_id") @db.UnsignedBigInt
-  address                         String?                          @db.Text
-  sponsorClass                    SponsorClass?                    @map("sponsor_class")
-  transferId                      String?                          @unique(map: "users_transfer_id_unique") @map("transfer_id") @db.VarChar(255)
-  unblockingCode                  String?                          @map("unblocking_code") @db.VarChar(255)
-  blockedAt                       DateTime?                        @map("blocked_at") @db.Timestamp(0)
-  influencerPromoPeriodId         BigInt?                          @map("influencer_promo_period_id") @db.UnsignedBigInt
-  guardianId                      BigInt?                          @map("guardian_id") @db.UnsignedBigInt
-  guardianWardSlotId              BigInt?                          @map("guardian_ward_slot_id") @db.UnsignedBigInt
-  pimId                           String?                          @unique(map: "users_pim_id_unique") @map("pim_id") @db.VarChar(255)
-  patronGroupId                   BigInt?                          @map("patron_group_id") @db.UnsignedBigInt
-  activationCardId                BigInt?                          @map("activation_card_id") @db.UnsignedBigInt
-  upgradeToAdultAt                DateTime?                        @map("upgrade_to_adult_at") @db.Timestamp(0)
-  level                           Int                              @default(1)
-  hasVerifiedLevel2               Boolean                          @default(false) @map("has_verified_level_2")
-  bvn                             String?                          @db.VarChar(255)
-  migratedAt                      DateTime?                        @map("migrated_at") @db.Timestamp(0)
-  bvnHash                         String?                          @unique(map: "users_bvn_hash_unique") @map("bvn_hash") @db.VarChar(255)
-  pending_patron_type             String?
-  refreshToken                    String?                          @map("refresh_token") @db.VarChar(255)
-  patronPlanId                    BigInt?                          @map("plan_id") @db.UnsignedBigInt
-  isWorker                        Boolean                          @default(false) @map("is_worker")
-  nin                             String?                          @db.VarChar(255)
-  ninHash                         String?                          @unique(map: "users_nin_hash_unique") @map("nin_hash") @db.VarChar(255)
-  activationCardTransactions      ActivationCardTransaction[]
-  activationCardsApproved         ActivationCard[]                 @relation("ACApprover")
-  activationCardsOwned            ActivationCard[]                 @relation("ACOwner")
-  activationTeamMates             ActivationTeamMateUser[]
-  adminLogs                       AdminLog[]
-  attemptLogins                   AttemptLogin[]
-  auditLogs                       AuditLog[]
-  blogs                           Blog[]
-  carts                           Cart[]
-  centralTreasuryLogs             CentralTreasuryLog[]
-  chatGroupUsers                  ChatGroupUser[]
-  chatGroupsCreated               ChatGroup[]                      @relation("CGCreator")
-  comments                        Comment[]
-  followsAsFollower               Follow[]                         @relation("Follower")
-  followsAsFollowing              Follow[]                         @relation("Following")
-  guardianWardSlotPurchases       GuardianWardSlotPurchase[]       @relation("GWSUser")
-  infantFormFees                  InfantFormFee[]
-  infantSchoolFeeGroups           InfantSchoolFeeGroup[]
-  infantSchoolFees                InfantSchoolFee[]
-  infantUpkeepRequests            InfantUpkeepRequest[]
-  infantYearlyTopups              InfantYearlyTopup[]
-  influencerYearlyTopupsApproved  InfluencerYearlyTopup[]          @relation("IYTApprover")
-  influencerYearlyTopups          InfluencerYearlyTopup[]          @relation("IYTUser")
-  likes                           Like[]
-  loansAsResolver                 Loan[]                           @relation("LoanResolver")
-  loansAsUser                     Loan[]                           @relation("LoanUser")
-  receivedMessages                Message[]                        @relation("Receiver")
-  sentMessages                    Message[]                        @relation("Sender")
-  notifications                   NotificationUser[]
-  adminNotices                    AdminNoticeUser[]
-  orderGroups                     OrderGroup[]
-  patronGroupTransactions         PatronGroupTransaction[]
-  patronGroupsOwned               PatronGroup[]                    @relation("PGOwner")
-  pending_level2_migrations       pending_level2_migrations[]
-  prizeUsers                      PrizeUser[]
-  quizPhaseUsers                  QuizPhaseUser[]
-  quizUsers                       QuizUser[]
-  retweets                        Retweet[]
-  schoolCompensationAsInfant      SchoolCompensation[]             @relation("SCInfant")
-  schoolCompensationAsSchool      SchoolCompensation[]             @relation("SCSchool")
-  schoolFees                      SchoolFee[]
-  sponsorInvestmentReturnsSponsor SponsorInvestmentReturn[]        @relation("SIRSponsor")
-  sponsorInvestmentReturns        SponsorInvestmentReturn[]        @relation("SIRUser")
-  tweets                          Tweet[]
-  unblockingPayments              UnblockingPayment[]
-  userActivationRequests          UserActivationRequest[]
-  patronActivationPivots          UserPatronActivationPivotTable[]
-  activationCard                  ActivationCard?                  @relation("ACToUser", fields: [activationCardId], references: [id], onUpdate: NoAction, map: "users_activation_card_id_foreign")
-  guardianUser                    User?                            @relation("GuardianToUser", fields: [guardianId], references: [id], onUpdate: NoAction, map: "users_guardian_id_foreign")
-  guardianWards                   User[]                           @relation("GuardianToUser")
-  guardianWardSlot                GuardianWardSlotPurchase?        @relation("GWSToUser", fields: [guardianWardSlotId], references: [id], onUpdate: NoAction, map: "users_guardian_ward_slot_id_foreign")
-  infantGroup                     User?                            @relation("InfantGroupToUser", fields: [infantGroupId], references: [id], onUpdate: NoAction, map: "users_infant_group_id_foreign")
-  infantGroupMembers              User[]                           @relation("InfantGroupToUser")
-  influencerUser                  User?                            @relation("InfluencerToUser", fields: [influencerId], references: [id], onUpdate: NoAction, map: "users_influencer_id_foreign")
-  influencees                     User[]                           @relation("InfluencerToUser")
-  influencer_promo_periods        InfluencerPromoPeriod?           @relation(fields: [influencerPromoPeriodId], references: [id], onUpdate: NoAction, map: "users_influencer_promo_period_id_foreign")
-  patronGroup                     PatronGroup?                     @relation(fields: [patronGroupId], references: [id], onUpdate: NoAction, map: "users_patron_group_id_foreign")
-  patron                          User?                            @relation("PatronToUser", fields: [patronId], references: [id], onUpdate: NoAction, map: "users_patron_id_foreign")
-  patronees                       User[]                           @relation("PatronToUser")
-  patronPlan                      PatronPlan?                      @relation(fields: [patronPlanId], references: [id], onUpdate: NoAction, map: "users_patron_plan_id_foreign")
-  referral                        User?                            @relation("ReferralToUser", fields: [referralId], references: [id], onUpdate: NoAction, map: "users_referral_id_foreign")
-  referrals                       User[]                           @relation("ReferralToUser")
-  region                          Region?                          @relation(fields: [regionId], references: [id], onUpdate: NoAction, map: "users_region_id_foreign")
-  schoolUser                      User?                            @relation("SchoolToUser", fields: [schoolId], references: [id], onUpdate: NoAction, map: "users_school_id_foreign")
-  schoolStudents                  User[]                           @relation("SchoolToUser")
-  sponsorUser                     User?                            @relation("SponsorToUser", fields: [sponsorId], references: [id], onUpdate: NoAction, map: "users_sponsor_id_foreign")
-  sponsorees                      User[]                           @relation("SponsorToUser")
-  wallets                         Wallet[]
-  wishlists                       Wishlist[]
-  withDrawals                     WithDrawal[]
+  id                                                                 BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  patronId                                                           BigInt?                          @map("patron_id") @db.UnsignedBigInt
+  name                                                               String                           @db.VarChar(255)
+  username                                                           String?                          @db.VarChar(255)
+  email                                                              String?                          @db.VarChar(255)
+  phone                                                              String?                          @db.VarChar(255)
+  pictureUrl                                                         String?                          @map("picture_url") @db.VarChar(255)
+  cloudinaryPublicId                                                 String?                          @map("cloudinary_public_id") @db.VarChar(255)
+  regionId                                                           BigInt?                          @map("region_id") @db.UnsignedBigInt
+  role                                                               Int                              @default(3)
+  accountState                                                       Int                              @default(1) @map("account_state")
+  country                                                            String?                          @db.VarChar(255)
+  referralId                                                         BigInt?                          @map("referral_id") @db.UnsignedBigInt
+  emailVerificationCode                                              String?                          @map("email_verification_code") @db.VarChar(255)
+  emailVerificationCodeSentAt                                        DateTime?                        @map("email_verification_code_sent_at") @db.Timestamp(0)
+  emailVerifiedAt                                                    DateTime?                        @map("email_verified_at") @db.Timestamp(0)
+  password                                                           String                           @db.VarChar(255)
+  passwordResetOtp                                                   String?                          @map("password_reset_otp") @db.VarChar(255)
+  passwordResetOtpSentAt                                             DateTime?                        @map("password_reset_otp_sent_at") @db.Timestamp(0)
+  rememberToken                                                      String?                          @map("remember_token") @db.VarChar(100)
+  createdAt                                                          DateTime?                        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                                          DateTime?                        @updatedAt @map("updated_at") @db.Timestamp(0)
+  status                                                             Boolean                          @default(false)
+  withdrawalPin                                                      String?                          @map("withdrawal_pin") @db.VarChar(255)
+  withdrawalPinResetOtp                                              String?                          @map("withdrawal_pin_reset_otp") @db.VarChar(255)
+  withdrawalPinResetOtpSentAt                                        DateTime?                        @map("withdrawal_pin_reset_otp_sent_at") @db.Timestamp(0)
+  referralActivateAt                                                 DateTime?                        @map("referral_activate_at") @db.Timestamp(0)
+  bank                                                               String?                          @db.VarChar(255)
+  accountNumber                                                      String?                          @map("account_number") @db.VarChar(11)
+  isInfant                                                           Boolean                          @default(false) @map("is_infant")
+  birthDate                                                          DateTime?                        @map("birth_date") @db.Date
+  birthPlace                                                         String?                          @map("birth_place") @db.VarChar(255)
+  birthCertificate                                                   String?                          @map("birth_certificate") @db.VarChar(255)
+  infantGroupId                                                      BigInt?                          @map("infant_group_id") @db.UnsignedBigInt
+  canWithdraw                                                        Boolean                          @default(true) @map("can_withdraw")
+  canUseVtu                                                          Boolean                          @default(true) @map("can_use_vtu")
+  deletedAt                                                          DateTime?                        @map("deleted_at") @db.Timestamp(0)
+  canEarn                                                            Boolean                          @default(true) @map("can_earn")
+  canOptOut                                                          Boolean                          @default(true) @map("can_opt_out")
+  canWithdrawGkwth                                                   Boolean                          @default(true) @map("can_withdraw_gkwth")
+  lastSeen                                                           DateTime?                        @map("last_seen") @db.Timestamp(0)
+  activatedAt                                                        DateTime?                        @map("activated_at") @db.Timestamp(0)
+  isOnline                                                           Boolean                          @default(false) @map("is_online")
+  sponsorshipAcceptedAt                                              DateTime?                        @map("sponsorship_accepted_at") @db.Timestamp(0)
+  sponsorAgreement                                                   Boolean?                         @map("sponsor_agreement")
+  sponsorshipStatus                                                  SponsorshipStatus?               @map("sponsorship_status")
+  sponsorLoginOtp                                                    Int?                             @map("sponsor_login_otp")
+  sponsorLoginOtpCreatedAt                                           DateTime?                        @map("sponsor_login_otp_created_at") @db.Timestamp(0)
+  isSponsorAccount                                                   String?                          @map("is_sponsor_account") @db.VarChar(255)
+  influencerId                                                       BigInt?                          @map("influencer_id") @db.UnsignedBigInt
+  accountActivationAcknowledgedAt                                    DateTime?                        @map("account_activation_acknowledged_at") @db.Timestamp(0)
+  sponsorWithdrawalOtp                                               Int?                             @map("sponsor_withdrawal_otp")
+  sponsorWithdrawalOtpSentAt                                         DateTime?                        @map("sponsor_withdrawal_otp_sent_at") @db.Timestamp(0)
+  isDeactivated                                                      Boolean                          @default(false) @map("is_deactivated")
+  sponsorId                                                          BigInt?                          @map("sponsor_id") @db.UnsignedBigInt
+  sponsorSlot                                                        Int                              @default(0) @map("sponsor_slot")
+  loginYearlyCount                                                   Json?                            @map("login_yearly_count")
+  schoolFeesPermittedAt                                              DateTime?                        @map("school_fees_permitted_at") @db.Timestamp(0)
+  withdrawalBypassAt                                                 DateTime?                        @map("withdrawal_bypass_at") @db.Timestamp(0)
+  isUnitLeader                                                       Boolean                          @default(false) @map("is_unit_leader")
+  schoolId                                                           BigInt?                          @map("school_id") @db.UnsignedBigInt
+  address                                                            String?                          @db.Text
+  sponsorClass                                                       SponsorClass?                    @map("sponsor_class")
+  transferId                                                         String?                          @unique(map: "users_transfer_id_unique") @map("transfer_id") @db.VarChar(255)
+  unblockingCode                                                     String?                          @map("unblocking_code") @db.VarChar(255)
+  blockedAt                                                          DateTime?                        @map("blocked_at") @db.Timestamp(0)
+  influencerPromoPeriodId                                            BigInt?                          @map("influencer_promo_period_id") @db.UnsignedBigInt
+  guardianId                                                         BigInt?                          @map("guardian_id") @db.UnsignedBigInt
+  guardianWardSlotId                                                 BigInt?                          @map("guardian_ward_slot_id") @db.UnsignedBigInt
+  pimId                                                              String?                          @unique(map: "users_pim_id_unique") @map("pim_id") @db.VarChar(255)
+  patronGroupId                                                      BigInt?                          @map("patron_group_id") @db.UnsignedBigInt
+  activationCardId                                                   BigInt?                          @map("activation_card_id") @db.UnsignedBigInt
+  upgradeToAdultAt                                                   DateTime?                        @map("upgrade_to_adult_at") @db.Timestamp(0)
+  level                                                              Int                              @default(1)
+  hasVerifiedLevel2                                                  Boolean                          @default(false) @map("has_verified_level_2")
+  bvn                                                                String?                          @db.VarChar(255)
+  migratedAt                                                         DateTime?                        @map("migrated_at") @db.Timestamp(0)
+  bvnHash                                                            String?                          @unique(map: "users_bvn_hash_unique") @map("bvn_hash") @db.VarChar(255)
+  pending_patron_type                                                String?
+  refreshToken                                                       String?                          @map("refresh_token") @db.VarChar(255)
+  patronPlanId                                                       BigInt?                          @map("plan_id") @db.UnsignedBigInt
+  isWorker                                                           Boolean                          @default(false) @map("is_worker")
+  nin                                                                String?                          @db.VarChar(255)
+  ninHash                                                            String?                          @unique(map: "users_nin_hash_unique") @map("nin_hash") @db.VarChar(255)
+  activationCardTransactions                                         ActivationCardTransaction[]
+  activationCardsApproved                                            ActivationCard[]                 @relation("ACApprover")
+  activationCardsOwned                                               ActivationCard[]                 @relation("ACOwner")
+  activationTeamMates                                                ActivationTeamMateUser[]
+  adminLogs                                                          AdminLog[]
+  attemptLogins                                                      AttemptLogin[]
+  auctionListingsAsSeller                                            AuctionListing[]                 @relation("AuctionSeller")
+  auctionBids                                                        AuctionBid[]                     @relation("AuctionBidder")
+  auditLogs                                                          AuditLog[]
+  employee_penalties                                                 employee_penalties[]
+  infant_upgrade_supports_infant_upgrade_supports_approved_byTousers infant_upgrade_supports[]        @relation("infant_upgrade_supports_approved_byTousers")
+  infant_upgrade_supports_infant_upgrade_supports_user_idTousers     infant_upgrade_supports[]        @relation("infant_upgrade_supports_user_idTousers")
+  payroll_transactions                                               payroll_transactions[]
+  worker_penalties_worker_penalties_penalized_byTousers              worker_penalties[]               @relation("worker_penalties_penalized_byTousers")
+  worker_penalties_worker_penalties_user_idTousers                   worker_penalties[]               @relation("worker_penalties_user_idTousers")
+  blogs                                                              Blog[]
+  carts                                                              Cart[]
+  centralTreasuryLogs                                                CentralTreasuryLog[]
+  chatGroupUsers                                                     ChatGroupUser[]
+  chatGroupsCreated                                                  ChatGroup[]                      @relation("CGCreator")
+  comments                                                           Comment[]
+  followsAsFollower                                                  Follow[]                         @relation("Follower")
+  followsAsFollowing                                                 Follow[]                         @relation("Following")
+  guardianWardSlotPurchases                                          GuardianWardSlotPurchase[]       @relation("GWSUser")
+  infantFormFees                                                     InfantFormFee[]
+  infantSchoolFeeGroups                                              InfantSchoolFeeGroup[]
+  infantSchoolFees                                                   InfantSchoolFee[]
+  infantUpkeepRequests                                               InfantUpkeepRequest[]
+  infantYearlyTopups                                                 InfantYearlyTopup[]
+  influencerYearlyTopupsApproved                                     InfluencerYearlyTopup[]          @relation("IYTApprover")
+  influencerYearlyTopups                                             InfluencerYearlyTopup[]          @relation("IYTUser")
+  likes                                                              Like[]
+  loansAsResolver                                                    Loan[]                           @relation("LoanResolver")
+  loansAsUser                                                        Loan[]                           @relation("LoanUser")
+  receivedMessages                                                   Message[]                        @relation("Receiver")
+  sentMessages                                                       Message[]                        @relation("Sender")
+  notifications                                                      NotificationUser[]
+  adminNotices                                                       AdminNoticeUser[]
+  orderGroups                                                        OrderGroup[]
+  patronGroupTransactions                                            PatronGroupTransaction[]
+  patronGroupsOwned                                                  PatronGroup[]                    @relation("PGOwner")
+  pending_level2_migrations                                          pending_level2_migrations[]
+  prizeUsers                                                         PrizeUser[]
+  quizPhaseUsers                                                     QuizPhaseUser[]
+  quizUsers                                                          QuizUser[]
+  retweets                                                           Retweet[]
+  schoolCompensationAsInfant                                         SchoolCompensation[]             @relation("SCInfant")
+  schoolCompensationAsSchool                                         SchoolCompensation[]             @relation("SCSchool")
+  schoolFees                                                         SchoolFee[]
+  sponsorInvestmentReturnsSponsor                                    SponsorInvestmentReturn[]        @relation("SIRSponsor")
+  sponsorInvestmentReturns                                           SponsorInvestmentReturn[]        @relation("SIRUser")
+  tweets                                                             Tweet[]
+  unblockingPayments                                                 UnblockingPayment[]
+  userActivationRequests                                             UserActivationRequest[]
+  patronActivationPivots                                             UserPatronActivationPivotTable[]
+  activationCard                                                     ActivationCard?                  @relation("ACToUser", fields: [activationCardId], references: [id], onUpdate: NoAction, map: "users_activation_card_id_foreign")
+  guardianUser                                                       User?                            @relation("GuardianToUser", fields: [guardianId], references: [id], onUpdate: NoAction, map: "users_guardian_id_foreign")
+  guardianWards                                                      User[]                           @relation("GuardianToUser")
+  guardianWardSlot                                                   GuardianWardSlotPurchase?        @relation("GWSToUser", fields: [guardianWardSlotId], references: [id], onUpdate: NoAction, map: "users_guardian_ward_slot_id_foreign")
+  infantGroup                                                        User?                            @relation("InfantGroupToUser", fields: [infantGroupId], references: [id], onUpdate: NoAction, map: "users_infant_group_id_foreign")
+  infantGroupMembers                                                 User[]                           @relation("InfantGroupToUser")
+  influencerUser                                                     User?                            @relation("InfluencerToUser", fields: [influencerId], references: [id], onUpdate: NoAction, map: "users_influencer_id_foreign")
+  influencees                                                        User[]                           @relation("InfluencerToUser")
+  influencer_promo_periods                                           InfluencerPromoPeriod?           @relation(fields: [influencerPromoPeriodId], references: [id], onUpdate: NoAction, map: "users_influencer_promo_period_id_foreign")
+  patronGroup                                                        PatronGroup?                     @relation(fields: [patronGroupId], references: [id], onUpdate: NoAction, map: "users_patron_group_id_foreign")
+  patron                                                             User?                            @relation("PatronToUser", fields: [patronId], references: [id], onUpdate: NoAction, map: "users_patron_id_foreign")
+  patronees                                                          User[]                           @relation("PatronToUser")
+  patronPlan                                                         PatronPlan?                      @relation(fields: [patronPlanId], references: [id], onUpdate: NoAction, map: "users_patron_plan_id_foreign")
+  referral                                                           User?                            @relation("ReferralToUser", fields: [referralId], references: [id], onUpdate: NoAction, map: "users_referral_id_foreign")
+  referrals                                                          User[]                           @relation("ReferralToUser")
+  region                                                             Region?                          @relation(fields: [regionId], references: [id], onUpdate: NoAction, map: "users_region_id_foreign")
+  schoolUser                                                         User?                            @relation("SchoolToUser", fields: [schoolId], references: [id], onUpdate: NoAction, map: "users_school_id_foreign")
+  schoolStudents                                                     User[]                           @relation("SchoolToUser")
+  sponsorUser                                                        User?                            @relation("SponsorToUser", fields: [sponsorId], references: [id], onUpdate: NoAction, map: "users_sponsor_id_foreign")
+  sponsorees                                                         User[]                           @relation("SponsorToUser")
+  wallets                                                            Wallet[]
+  wishlists                                                          Wishlist[]
+  withDrawals                                                        WithDrawal[]
 
   @@index([role], map: "users_role_index")
   @@index([role, patronId], map: "users_role_patron_id_index")
@@ -224,6 +232,8 @@ model Wallet {
   userId                  BigInt                   @map("user_id") @db.UnsignedBigInt
   createdAt               DateTime?                @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt               DateTime?                @updatedAt @map("updated_at") @db.Timestamp(0)
+  auctionListings         AuctionListing[]
+  auctionBidsLocked       AuctionBid[]
   centralTreasuryLogs     CentralTreasuryLog[]
   earning_transactions    EarningTransaction[]
   loans                   Loan[]
@@ -237,6 +247,236 @@ model Wallet {
 
   @@index([userId], map: "wallets_user_id_foreign")
   @@map("wallets")
+}
+
+model AuctionListing {
+  id              BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  sellerId        BigInt                 @map("seller_id") @db.UnsignedBigInt
+  sellerWalletId  BigInt                 @map("seller_wallet_id") @db.UnsignedBigInt
+  gkwthAmount     Float                  @map("gkwth_amount")
+  startingBid     Float                  @map("starting_bid")
+  buyItNowPrice   Float?                 @map("buy_it_now_price")
+  minIncrement    Float                  @default(1000) @map("min_increment")
+  visibility      AuctionVisibility      @default(public)
+  status          AuctionStatus          @default(scheduled)
+  startsAt        DateTime               @map("starts_at") @db.Timestamp(0)
+  endsAt          DateTime               @map("ends_at") @db.Timestamp(0)
+  acceptedBidId   BigInt?                @map("accepted_bid_id") @db.UnsignedBigInt
+  settlementType  AuctionSettlementType? @map("settlement_type")
+  claimDeadlineAt DateTime?              @map("claim_deadline_at") @db.Timestamp(0)
+  cancelReason    String?                @map("cancel_reason") @db.VarChar(255)
+  createdAt       DateTime?              @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime?              @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  seller       User                 @relation("AuctionSeller", fields: [sellerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_listings_seller_id_foreign")
+  sellerWallet Wallet               @relation(fields: [sellerWalletId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_listings_seller_wallet_id_foreign")
+  bids         AuctionBid[]
+  transactions AuctionTransaction[]
+  reviews      AuctionReview[]
+  claims       AuctionClaim[]
+
+  @@index([sellerId], map: "auction_listings_seller_id_foreign")
+  @@index([sellerWalletId], map: "auction_listings_seller_wallet_id_foreign")
+  @@index([status, endsAt], map: "auction_listings_status_ends_at_index")
+  @@map("auction_listings")
+}
+
+model AuctionBid {
+  id               BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  auctionListingId BigInt           @map("auction_listing_id") @db.UnsignedBigInt
+  bidderId         BigInt           @map("bidder_id") @db.UnsignedBigInt
+  bidderWalletId   BigInt           @map("bidder_wallet_id") @db.UnsignedBigInt
+  amount           Float
+  status           AuctionBidStatus @default(pending)
+  isBuyItNow       Boolean          @default(false) @map("is_buy_it_now")
+  refundedAt       DateTime?        @map("refunded_at") @db.Timestamp(0)
+  createdAt        DateTime?        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  auctionListing AuctionListing @relation(fields: [auctionListingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_bids_auction_listing_id_foreign")
+  bidder         User           @relation("AuctionBidder", fields: [bidderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_bids_bidder_id_foreign")
+  bidderWallet   Wallet         @relation(fields: [bidderWalletId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_bids_bidder_wallet_id_foreign")
+
+  @@index([auctionListingId, status], map: "auction_bids_listing_id_status_index")
+  @@index([bidderId], map: "auction_bids_bidder_id_foreign")
+  @@index([bidderWalletId], map: "auction_bids_bidder_wallet_id_foreign")
+  @@map("auction_bids")
+}
+
+model AuctionTransaction {
+  id               BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  auctionListingId BigInt                @map("auction_listing_id") @db.UnsignedBigInt
+  winningBidId     BigInt?               @map("winning_bid_id") @db.UnsignedBigInt
+  sellerId         BigInt                @map("seller_id") @db.UnsignedBigInt
+  buyerId          BigInt                @map("buyer_id") @db.UnsignedBigInt
+  gkwthAmount      Float                 @map("gkwth_amount")
+  grossAmount      Float                 @map("gross_amount")
+  platformFee      Float                 @map("platform_fee")
+  netAmount        Float                 @map("net_amount")
+  settlementType   AuctionSettlementType @map("settlement_type")
+  reference        String                @unique(map: "auction_transactions_reference_unique") @db.VarChar(255)
+  createdAt        DateTime?             @default(now()) @map("created_at") @db.Timestamp(0)
+
+  auctionListing AuctionListing @relation(fields: [auctionListingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_transactions_listing_id_foreign")
+
+  @@index([auctionListingId], map: "auction_transactions_listing_id_foreign")
+  @@index([sellerId], map: "auction_transactions_seller_id_index")
+  @@index([buyerId], map: "auction_transactions_buyer_id_index")
+  @@map("auction_transactions")
+}
+
+model AuctionReview {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  auctionListingId BigInt    @map("auction_listing_id") @db.UnsignedBigInt
+  reviewerId       BigInt    @map("reviewer_id") @db.UnsignedBigInt
+  sellerId         BigInt    @map("seller_id") @db.UnsignedBigInt
+  rating           Int
+  comment          String?   @db.Text
+  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+
+  auctionListing AuctionListing @relation(fields: [auctionListingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_reviews_listing_id_foreign")
+
+  @@unique([auctionListingId, reviewerId], map: "auction_reviews_listing_reviewer_unique")
+  @@index([sellerId], map: "auction_reviews_seller_id_index")
+  @@map("auction_reviews")
+}
+
+model AuctionClaim {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  auctionListingId BigInt             @map("auction_listing_id") @db.UnsignedBigInt
+  bidId            BigInt             @map("bid_id") @db.UnsignedBigInt
+  buyerId          BigInt             @map("buyer_id") @db.UnsignedBigInt
+  amount           Float
+  reference        String             @unique(map: "auction_claims_reference_unique") @db.VarChar(255)
+  status           AuctionClaimStatus @default(pending)
+  accountName      String?            @map("account_name") @db.VarChar(255)
+  bankName         String?            @map("bank_name") @db.VarChar(255)
+  accountNumber    String?            @map("account_number") @db.VarChar(255)
+  expiresAt        DateTime           @map("expires_at") @db.Timestamp(0)
+  createdAt        DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  auctionListing AuctionListing @relation(fields: [auctionListingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auction_claims_listing_id_foreign")
+
+  @@index([auctionListingId], map: "auction_claims_listing_id_foreign")
+  @@index([buyerId], map: "auction_claims_buyer_id_index")
+  @@map("auction_claims")
+}
+
+// ─── The following models (employees, employee_penalties, payroll_transactions, ───
+// ─── infant_upgrade_supports, worker_penalties, jobs) were introspected directly ───
+// ─── from the live database — they existed as real tables with data but had no ───
+// ─── corresponding models in this file, which was blocking `prisma db push`/`migrate` ───
+// ─── for any unrelated change (including the auction models above). Added verbatim ───
+// ─── from `prisma db pull` so schema.prisma matches reality; not otherwise used yet. ───
+model employee_penalties {
+  id                     BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  employee_id            BigInt                    @db.UnsignedBigInt
+  penalized_by           BigInt                    @db.UnsignedBigInt
+  payroll_transaction_id BigInt?                   @db.UnsignedBigInt
+  amount                 Decimal                   @db.Decimal(12, 2)
+  reason                 String                    @db.Text
+  status                 employee_penalties_status @default(pending)
+  created_at             DateTime?                 @db.Timestamp(0)
+  updated_at             DateTime?                 @db.Timestamp(0)
+  employees              employees                 @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "employee_penalties_employee_id_foreign")
+  payroll_transactions   payroll_transactions?     @relation(fields: [payroll_transaction_id], references: [id], onUpdate: NoAction, map: "employee_penalties_payroll_transaction_id_foreign")
+  users                  User                      @relation(fields: [penalized_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "employee_penalties_penalized_by_foreign")
+
+  @@index([employee_id], map: "employee_penalties_employee_id_foreign")
+  @@index([payroll_transaction_id], map: "employee_penalties_payroll_transaction_id_foreign")
+  @@index([penalized_by], map: "employee_penalties_penalized_by_foreign")
+}
+
+model employees {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  name                 String                 @db.VarChar(255)
+  email                String?                @db.VarChar(255)
+  phone                String?                @db.VarChar(255)
+  position             String?                @db.VarChar(255)
+  department           String?                @db.VarChar(255)
+  salary               Decimal                @default(0.00) @db.Decimal(12, 2)
+  bank_uuid            String                 @db.VarChar(255)
+  bank_name            String                 @db.VarChar(255)
+  bank_code            String?                @db.VarChar(255)
+  bank_account_number  String                 @db.VarChar(255)
+  account_name         String                 @db.VarChar(255)
+  status               employees_status       @default(active)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  employee_penalties   employee_penalties[]
+  payroll_transactions payroll_transactions[]
+}
+
+model infant_upgrade_supports {
+  id                                               BigInt                         @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id                                          BigInt                         @db.UnsignedBigInt
+  bank_name                                        String                         @db.VarChar(255)
+  bank_code                                        String?                        @db.VarChar(255)
+  account_number                                   String                         @db.VarChar(11)
+  account_name                                     String                         @db.VarChar(255)
+  amount                                           Decimal?                       @db.Decimal(12, 2)
+  status                                           infant_upgrade_supports_status @default(pending)
+  reference                                        String?                        @db.VarChar(255)
+  denial_reason                                    String?                        @db.Text
+  approved_by                                      BigInt?                        @db.UnsignedBigInt
+  approved_at                                      DateTime?                      @db.Timestamp(0)
+  created_at                                       DateTime?                      @db.Timestamp(0)
+  updated_at                                       DateTime?                      @db.Timestamp(0)
+  users_infant_upgrade_supports_approved_byTousers User?                          @relation("infant_upgrade_supports_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction, map: "infant_upgrade_supports_approved_by_foreign")
+  users_infant_upgrade_supports_user_idTousers     User                           @relation("infant_upgrade_supports_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "infant_upgrade_supports_user_id_foreign")
+
+  @@index([approved_by], map: "infant_upgrade_supports_approved_by_foreign")
+  @@index([user_id], map: "infant_upgrade_supports_user_id_foreign")
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model payroll_transactions {
+  id                  BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  employee_id         BigInt                      @db.UnsignedBigInt
+  paid_by             BigInt                      @db.UnsignedBigInt
+  amount              Decimal                     @db.Decimal(12, 2)
+  reference           String                      @unique(map: "payroll_transactions_reference_unique") @db.VarChar(255)
+  paga_transaction_id String?                     @db.VarChar(255)
+  status              payroll_transactions_status @default(pending)
+  narration           String?                     @db.VarChar(255)
+  paga_response       Json?
+  paid_at             DateTime?                   @db.Timestamp(0)
+  created_at          DateTime?                   @db.Timestamp(0)
+  updated_at          DateTime?                   @db.Timestamp(0)
+  employee_penalties  employee_penalties[]
+  employees           employees                   @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payroll_transactions_employee_id_foreign")
+  users               User                        @relation(fields: [paid_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payroll_transactions_paid_by_foreign")
+
+  @@index([employee_id], map: "payroll_transactions_employee_id_foreign")
+  @@index([paid_by], map: "payroll_transactions_paid_by_foreign")
+}
+
+model worker_penalties {
+  id                                         BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id                                    BigInt                  @db.UnsignedBigInt
+  penalized_by                               BigInt                  @db.UnsignedBigInt
+  amount                                     Decimal                 @db.Decimal(12, 2)
+  reason                                     String                  @db.Text
+  status                                     worker_penalties_status @default(pending)
+  created_at                                 DateTime?               @db.Timestamp(0)
+  updated_at                                 DateTime?               @db.Timestamp(0)
+  users_worker_penalties_penalized_byTousers User                    @relation("worker_penalties_penalized_byTousers", fields: [penalized_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "worker_penalties_penalized_by_foreign")
+  users_worker_penalties_user_idTousers      User                    @relation("worker_penalties_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "worker_penalties_user_id_foreign")
+
+  @@index([penalized_by], map: "worker_penalties_penalized_by_foreign")
+  @@index([user_id], map: "worker_penalties_user_id_foreign")
 }
 
 model AdminLog {
@@ -1534,6 +1774,42 @@ enum WalletType {
   earning
 }
 
+enum AuctionStatus {
+  scheduled
+  active
+  ended
+  awaiting_payment
+  completed
+  cancelled
+}
+
+enum AuctionClaimStatus {
+  pending
+  paid
+  expired
+}
+
+enum AuctionVisibility {
+  public
+  followers
+  private
+}
+
+enum AuctionBidStatus {
+  pending
+  accepted
+  rejected
+  superseded
+  refunded
+}
+
+enum AuctionSettlementType {
+  accepted_bid
+  buy_it_now
+  cron_auto_accept
+  ended_early
+}
+
 enum CentralTreasuryTransactionType {
   sale
   purchase
@@ -1642,4 +1918,31 @@ enum PatronGroupTransactionStatus {
   pending
   success
   failed
+}
+
+enum worker_penalties_status {
+  pending
+  applied
+}
+
+enum employee_penalties_status {
+  pending
+  applied
+}
+
+enum payroll_transactions_status {
+  pending
+  success
+  failed
+}
+
+enum infant_upgrade_supports_status {
+  pending
+  approved
+  denied
+}
+
+enum employees_status {
+  active
+  inactive
 }
