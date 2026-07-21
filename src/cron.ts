@@ -6,7 +6,7 @@ import { ACTIVATION_CARD_STATUSES, ROLES } from './config/constants';
 import { activationCardFixLogger, pagaLogger } from './utils/logger';
 
 const pagaService = new PagaService();
-const paymentService = new PaymentService(); 
+const paymentService = new PaymentService();
 
 // Records younger than this haven't had time for the webhook to fire yet
 const MIN_AGE_MINUTES = 3;

@@ -12,8 +12,13 @@ const REFUNDABLE_BID_STATUSES: Array<"pending" | "superseded"> = ["pending", "su
 const CRON_SWEEP_BATCH_LIMIT = 20;
 const CLAIM_WINDOW_HOURS = 48;
 const COMMISSION_SETTING_KEY = "auction_payment_percentage_charges";
+// Surcharge added on top of a claim's amount for card payments only (bank transfer already has
+// Paga's own collection fee borne by the payer — see generateVirtualAccount). Does not affect
+// platformFee/netAmount, which are always computed from winningBid.amount, not what was paid.
+const CARD_CHARGE_SETTING_KEY = "auction_card_charge_percentage";
 
-const DURATION_PRESET_HOURS = [6, 24, 72, 168];
+const MIN_DURATION_HOURS = 1;
+const MAX_DURATION_HOURS = 720; // 30 days — sellers can also pick a custom duration outside the presets
 
 function generateReference(prefix: string): string {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -44,13 +49,14 @@ export class AuctionService {
      * show real terms up front instead of a hardcoded guess.
      */
     static async getAuctionSettings() {
-        const settingsKeys = ["lock_auction", COMMISSION_SETTING_KEY, "auction_min_gkwth_amount", "auction_max_price"];
+        const settingsKeys = ["lock_auction", COMMISSION_SETTING_KEY, CARD_CHARGE_SETTING_KEY, "auction_min_gkwth_amount", "auction_max_price"];
         const settings = await prisma.setting.findMany({ where: { key: { in: settingsKeys } } });
         const settingsMap = Object.fromEntries(settings.map((s) => [s.key, s.value]));
 
         return {
             locked: settingsMap["lock_auction"] === "1",
             commissionPercent: Number(settingsMap[COMMISSION_SETTING_KEY] || 0.5),
+            cardChargePercent: Number(settingsMap[CARD_CHARGE_SETTING_KEY] || 1.5),
             minGkwthAmount: Number(settingsMap["auction_min_gkwth_amount"] || 0.5),
             maxPrice: Number(settingsMap["auction_max_price"] || 0) || null,
         };
@@ -93,8 +99,8 @@ export class AuctionService {
             throw new AppError("Buy It Now price must be higher than the starting bid", 400);
         }
 
-        if (!DURATION_PRESET_HOURS.includes(input.durationHours)) {
-            throw new AppError("Invalid auction duration", 400);
+        if (input.durationHours < MIN_DURATION_HOURS || input.durationHours > MAX_DURATION_HOURS) {
+            throw new AppError(`Auction duration must be between ${MIN_DURATION_HOURS} and ${MAX_DURATION_HOURS} hours`, 400);
         }
 
         const sellerWallet = await prisma.wallet.findFirst({ where: { userId: user.id, type: "indirect" } });
@@ -740,7 +746,17 @@ export class AuctionService {
         return this.buildClaimResponse(claim, user);
     }
 
-    private static buildClaimResponse(claim: { reference: string; amount: number; expiresAt: Date; accountName: string | null; bankName: string | null; accountNumber: string | null }, user: any) {
+    /**
+     * Bank transfer stays at the winning bid's exact amount — Paga already bears its own
+     * collection fee on the payer's side (see generateVirtualAccount). Card payment adds the
+     * admin-configured surcharge on top so the platform isn't left covering card processing
+     * costs; this surcharge never affects platformFee/netAmount, which are always computed from
+     * winningBid.amount at settlement (see finalizeAuctionPayment).
+     */
+    private static async buildClaimResponse(claim: { reference: string; amount: number; expiresAt: Date; accountName: string | null; bankName: string | null; accountNumber: string | null }, user: any) {
+        const { cardChargePercent } = await this.getAuctionSettings();
+        const cardAmount = Number((claim.amount * (1 + cardChargePercent / 100)).toFixed(2));
+
         return {
             reference: claim.reference,
             amount: claim.amount,
@@ -754,6 +770,8 @@ export class AuctionService {
                 publicKey: PAGA.USERNAME,
                 email: user.email,
                 phoneNumber: user.phone || "",
+                amount: cardAmount,
+                chargePercent: cardChargePercent,
             },
         };
     }
