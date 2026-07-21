@@ -347,6 +347,7 @@ model AuctionClaim {
   bidId            BigInt             @map("bid_id") @db.UnsignedBigInt
   buyerId          BigInt             @map("buyer_id") @db.UnsignedBigInt
   amount           Float
+  transferAmount   Float?             @map("transfer_amount")
   reference        String             @unique(map: "auction_claims_reference_unique") @db.VarChar(255)
   status           AuctionClaimStatus @default(pending)
   accountName      String?            @map("account_name") @db.VarChar(255)
