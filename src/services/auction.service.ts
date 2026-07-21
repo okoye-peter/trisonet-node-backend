@@ -108,7 +108,7 @@ export class AuctionService {
             throw new AppError("You don't have a GKWTH wallet", 400);
         }
 
-        const maxSellableGkwth = Math.max(0, sellerWallet.amount - 1);
+        const maxSellableGkwth = Number(Math.max(0, sellerWallet.amount - 1).toFixed(2));
         if (input.gkwthAmount > maxSellableGkwth) {
             throw new AppError(
                 `You can put up to ${maxSellableGkwth} GKWTH up for sale. 1 GKWTH must always stay in your wallet, and your wallet currently holds ${sellerWallet.amount}.`,
