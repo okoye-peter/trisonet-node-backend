@@ -272,8 +272,11 @@ export class WithdrawalService {
                 throw new AppError("Your GKWTH balance can't be less than 1 after withdrawal.", 400);
             }
 
-            // Use commission_price as the conversion rate for both Nigerian and non-Nigerian users
-            amountCalculated = isNigerian ? input.amount * (priceValue ?? 0) : input.amount * commissionPrice;
+            // input.amount is a GKWTH quantity here, not a currency amount — it must always be
+            // priced via gkwth_purchase_price (the NGN price per GKWTH), for every country. Using
+            // commission_price (an unrelated $-to-NGN FX rate) for non-Nigerian users, as before,
+            // produced a wrong payout since it isn't a GKWTH price at all.
+            amountCalculated = (priceValue ?? 0) * input.amount;
         }
 
         // 10. Transaction

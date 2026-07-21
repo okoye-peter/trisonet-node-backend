@@ -734,6 +734,11 @@ export class AuctionService {
                 bidId: winningBid.id,
                 buyerId: user.id,
                 amount: winningBid.amount,
+                // Paga's payerCollectionFeeShare is set to 1, so it folds its own collection fee
+                // into totalPaymentAmount — that's the real figure the buyer must transfer, not
+                // the raw bid amount. Stored separately so settlement math (platformFee/netAmount)
+                // stays anchored to winningBid.amount regardless of what Paga charges on top.
+                transferAmount: response.data.amount,
                 reference,
                 status: "pending",
                 accountName: response.data.account_name,
@@ -747,13 +752,14 @@ export class AuctionService {
     }
 
     /**
-     * Bank transfer stays at the winning bid's exact amount — Paga already bears its own
-     * collection fee on the payer's side (see generateVirtualAccount). Card payment adds the
-     * admin-configured surcharge on top so the platform isn't left covering card processing
-     * costs; this surcharge never affects platformFee/netAmount, which are always computed from
-     * winningBid.amount at settlement (see finalizeAuctionPayment).
+     * Bank transfer's payerCollectionFeeShare is set to 1 (see generateVirtualAccount), so the
+     * buyer — not the platform — bears Paga's collection fee; transferAmount is the real,
+     * fee-inclusive figure Paga expects and must be shown as the amount to send. Card payment
+     * adds the admin-configured surcharge on top so the platform isn't left covering card
+     * processing costs. Neither surcharge affects platformFee/netAmount, which are always
+     * computed from winningBid.amount at settlement (see finalizeAuctionPayment).
      */
-    private static async buildClaimResponse(claim: { reference: string; amount: number; expiresAt: Date; accountName: string | null; bankName: string | null; accountNumber: string | null }, user: any) {
+    private static async buildClaimResponse(claim: { reference: string; amount: number; transferAmount: number | null; expiresAt: Date; accountName: string | null; bankName: string | null; accountNumber: string | null }, user: any) {
         const { cardChargePercent } = await this.getAuctionSettings();
         const cardAmount = Number((claim.amount * (1 + cardChargePercent / 100)).toFixed(2));
 
@@ -765,6 +771,7 @@ export class AuctionService {
                 accountName: claim.accountName,
                 bankName: claim.bankName,
                 accountNumber: claim.accountNumber,
+                amount: claim.transferAmount ?? claim.amount,
             },
             cardPayment: {
                 publicKey: PAGA.USERNAME,
