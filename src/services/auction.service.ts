@@ -57,7 +57,7 @@ export class AuctionService {
             locked: settingsMap["lock_auction"] === "1",
             commissionPercent: Number(settingsMap[COMMISSION_SETTING_KEY] || 0.5),
             cardChargePercent: Number(settingsMap[CARD_CHARGE_SETTING_KEY] || 1.5),
-            minGkwthAmount: Number(settingsMap["auction_min_gkwth_amount"] || 0.5),
+            minGkwthAmount: Number(settingsMap["auction_min_gkwth_amount"] || 1),
             maxPrice: Number(settingsMap["auction_max_price"] || 0) || null,
         };
     }
@@ -82,7 +82,7 @@ export class AuctionService {
             throw new AppError("Please add your bank account details before placing GKWTH for auction", 400);
         }
 
-        const minGkwthAmount = Number(settingsMap["auction_min_gkwth_amount"] || 0.5);
+        const minGkwthAmount = Number(settingsMap["auction_min_gkwth_amount"] || 1);
         if (input.gkwthAmount < minGkwthAmount) {
             throw new AppError(`Minimum GKWTH amount to auction is ${minGkwthAmount}`, 400);
         }

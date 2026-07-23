@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const createAuctionSchema = z.object({
     body: z.object({
-        gkwthAmount: z.coerce.number().positive("GKWTH amount must be greater than 0"),
+        gkwthAmount: z.coerce.number()
+            .min(1, "GKWTH amount must be at least 1")
+            .refine((v) => Math.round(v * 100) === v * 100, "GKWTH amount can have at most 2 decimal places"),
         startingBid: z.coerce.number().positive("Starting bid must be greater than 0"),
         buyItNowPrice: z.coerce.number().positive().optional(),
         minIncrement: z.coerce.number().positive().optional(),
