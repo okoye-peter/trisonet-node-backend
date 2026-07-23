@@ -226,6 +226,45 @@ export class AuctionService {
         return { currentTopBid, minNextBid, bidCount, bidderCount };
     }
 
+    private static async getSellerReputations(sellerIds: bigint[]) {
+        const uniqueIds = Array.from(new Set(sellerIds.map((id) => id.toString()))).map((id) => BigInt(id));
+
+        const map = new Map<string, { completedAuctions: number; averageRating: number | null; reviewCount: number }>();
+        for (const id of uniqueIds) {
+            map.set(id.toString(), { completedAuctions: 0, averageRating: null, reviewCount: 0 });
+        }
+
+        if (uniqueIds.length === 0) return map;
+
+        const [completedCounts, ratingAgg] = await Promise.all([
+            prisma.auctionListing.groupBy({
+                by: ["sellerId"],
+                where: { sellerId: { in: uniqueIds }, status: "completed" },
+                _count: { _all: true },
+            }),
+            prisma.auctionReview.groupBy({
+                by: ["sellerId"],
+                where: { sellerId: { in: uniqueIds } },
+                _avg: { rating: true },
+                _count: { rating: true },
+            }),
+        ]);
+
+        for (const row of completedCounts) {
+            const entry = map.get(row.sellerId.toString());
+            if (entry) entry.completedAuctions = row._count._all;
+        }
+        for (const row of ratingAgg) {
+            const entry = map.get(row.sellerId.toString());
+            if (entry) {
+                entry.averageRating = row._avg.rating !== null ? Math.round(row._avg.rating * 10) / 10 : null;
+                entry.reviewCount = row._count.rating;
+            }
+        }
+
+        return map;
+    }
+
     static async listAuctions(user: any | null, filters: { page?: number | undefined; limit?: number | undefined; status?: string | undefined; search?: string | undefined; sort?: string | undefined }) {
         const where: any = {
             OR: [
@@ -267,10 +306,13 @@ export class AuctionService {
             { page: filters.page, limit: filters.limit }
         );
 
+        const reputations = await this.getSellerReputations(result.data.map((listing: any) => listing.sellerId));
+
         let data = result.data.map((listing: any) => ({
             ...listing,
             ...this.deriveListingStats(listing, listing.bids),
             bids: undefined,
+            sellerStats: reputations.get(listing.sellerId.toString()),
         }));
 
         if (filters.sort === "lowest_bid") {
@@ -311,7 +353,7 @@ export class AuctionService {
 
         const stats = this.deriveListingStats(listing, listing.bids);
 
-        const completedCount = await prisma.auctionListing.count({ where: { sellerId: listing.sellerId, status: "completed" } });
+        const sellerStats = (await this.getSellerReputations([listing.sellerId])).get(listing.sellerId.toString());
 
         let yourStanding: any = null;
         if (user) {
@@ -341,7 +383,7 @@ export class AuctionService {
         return {
             ...listing,
             ...stats,
-            sellerStats: { completedAuctions: completedCount },
+            sellerStats,
             yourStanding,
         };
     }
