@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../config/prisma.js";
 import { ROLES } from "../config/constants.js";
 import WalletService from "../services/wallet.service.js";
-import { AUCTION_ALLOWLIST_SETTING_KEY } from "../utils/auctionAccess.js";
 
 function randomPassword(): string {
     return crypto.randomBytes(9).toString("base64").replace(/[+/=]/g, "").slice(0, 12) + "!1";
@@ -45,26 +44,10 @@ async function main() {
         });
     }
 
-    const allowedIds = created.map((u) => u.id).join(",");
-
-    await prisma.setting.upsert({
-        where: { key: AUCTION_ALLOWLIST_SETTING_KEY },
-        create: {
-            name: "Comma-separated user IDs allowed to access the GKWTH auction feature during live testing",
-            key: AUCTION_ALLOWLIST_SETTING_KEY,
-            dataType: "string",
-            value: allowedIds,
-        },
-        update: {
-            value: allowedIds,
-        },
-    });
-
     console.log("\n=== Auction test accounts created ===");
     for (const u of created) {
         console.log(`id=${u.id}  email=${u.email}  username=${u.username}  password=${u.password}`);
     }
-    console.log(`\nSetting "${AUCTION_ALLOWLIST_SETTING_KEY}" set to: ${allowedIds}`);
     console.log("Note: wallets were created with a 0 GKWTH balance — fund them separately if you need to test creating a listing, not just browsing/bidding.\n");
 }
 

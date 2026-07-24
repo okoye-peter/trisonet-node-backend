@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/AppError';
 import { ROLES } from '../config/constants';
 import { asyncHandler } from './asyncHandler';
-import { isAuctionAllowedUser } from '../utils/auctionAccess';
 
 /**
  * Restricts access to the auction feature to customers who are:
@@ -10,8 +9,6 @@ import { isAuctionAllowedUser } from '../utils/auctionAccess';
  * - adults (not isInfant)
  * - activated (status === true)
  * - not blocked (blockedAt is null)
- * - allow-listed while the feature is in live testing (see utils/auctionAccess.ts) — remove
- *   this check once the feature is opened up to everyone.
  *
  * Unlike role-restriction middleware, there is no bypass for other roles
  * (Patron/Admin/etc.) — the auction feature is customer-only.
@@ -23,10 +20,6 @@ export const requireAuctionEligibility = asyncHandler(async (req: Request, res: 
         return next(new AppError('You are not logged in! Please log in to get access.', 401));
     }
 
-    if (!(await isAuctionAllowedUser(user.id))) {
-        return next(new AppError('The auction feature is not yet available on your account.', 403));
-    }
-
     if (Number(user.role) !== ROLES.CUSTOMER) {
         return next(new AppError('The auction feature is only available to customers.', 403));
     }
@@ -36,7 +29,7 @@ export const requireAuctionEligibility = asyncHandler(async (req: Request, res: 
     }
 
     if (user.level < 2) {
-        return next(new AppError('The auction feature requires account level 2 or higher.', 403));
+        return next(new AppError('The auction feature requires account that has migrated.', 403));
     }
 
     if (!user.status) {
