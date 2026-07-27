@@ -136,7 +136,6 @@ export class AuctionService {
                     gkwthAmount: input.gkwthAmount,
                     startingBid: input.startingBid,
                     buyItNowPrice: input.buyItNowPrice ?? null,
-                    minIncrement: input.minIncrement || 1000,
                     visibility: input.visibility || "public",
                     status: "active",
                     startsAt,
@@ -214,15 +213,16 @@ export class AuctionService {
     }
 
     /**
-     * Compute the derived stats (current top bid, min next bid, counts) for a listing given its bids.
+     * Compute the derived stats (current top bid, counts) for a listing given its bids.
+     * There's no fixed minimum increment — a bid just has to beat the current top bid,
+     * by whatever amount the bidder chooses.
      */
-    private static deriveListingStats(listing: { startingBid: number; minIncrement: number }, bids: Array<{ bidderId: bigint; amount: number; status: string }>) {
+    private static deriveListingStats(listing: { startingBid: number }, bids: Array<{ bidderId: bigint; amount: number; status: string }>) {
         const openBids = bids.filter((b) => OPEN_BID_STATUSES.includes(b.status as any));
         const currentTopBid = openBids.length > 0 ? Math.max(...openBids.map((b) => b.amount)) : listing.startingBid;
-        const minNextBid = openBids.length > 0 ? currentTopBid + listing.minIncrement : listing.startingBid;
         const bidCount = bids.length;
         const bidderCount = new Set(bids.map((b) => b.bidderId.toString())).size;
-        return { currentTopBid, minNextBid, bidCount, bidderCount };
+        return { currentTopBid, bidCount, bidderCount };
     }
 
     private static async getSellerReputations(sellerIds: bigint[]) {
@@ -412,10 +412,17 @@ export class AuctionService {
                 where: { auctionListingId: listingId, status: { in: OPEN_BID_STATUSES } },
             });
             const currentTopBid = openBids.length > 0 ? Math.max(...openBids.map((b) => b.amount)) : listing.startingBid;
-            const minNextBid = openBids.length > 0 ? currentTopBid + listing.minIncrement : listing.startingBid;
 
-            if (input.amount < minNextBid) {
-                throw new AppError(`Your bid must be at least ₦${minNextBid.toLocaleString()}`, 400);
+            // No fixed increment — a bidder can name any amount, as long as it beats the
+            // current top bid (or meets the starting bid, if this is the first bid).
+            const meetsFloor = openBids.length > 0 ? input.amount > currentTopBid : input.amount >= currentTopBid;
+            if (!meetsFloor) {
+                throw new AppError(
+                    openBids.length > 0
+                        ? `Your bid must be higher than the current top bid of ₦${currentTopBid.toLocaleString()}`
+                        : `Your bid must be at least the starting bid of ₦${currentTopBid.toLocaleString()}`,
+                    400
+                );
             }
 
             // Supersede this bidder's own previous pending bid, if any, so they don't have two open proposals.

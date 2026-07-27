@@ -7,7 +7,6 @@ export const createAuctionSchema = z.object({
             .refine((v) => Math.round(v * 100) === v * 100, "GKWTH amount can have at most 2 decimal places"),
         startingBid: z.coerce.number().positive("Starting bid must be greater than 0"),
         buyItNowPrice: z.coerce.number().positive().optional(),
-        minIncrement: z.coerce.number().positive().optional(),
         durationHours: z.coerce.number().positive("Duration is required"),
         visibility: z.enum(["public", "followers", "private"]).optional(),
     }),
