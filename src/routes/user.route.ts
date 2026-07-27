@@ -4,6 +4,7 @@ import { isBlocked } from "../middlewares/isBlocked";
 import { getUserReferrals, getAuthUser, getUserDashboardStats, updateProfile, updateBankDetails, updatePassword, getUserWards, getUserWardStats, getWardsSchoolFees, getUserByTransferId, resetWithdrawalPin, verifyWithdrawalPinOtp, sendOtpForWithdrawalPinReset, getUserAwards, getActivationCandidates, sendEmailVerificationOtp, verifyEmailOtp } from "../controllers/user.controller";
 import { validate } from "../middlewares/validateRequest";
 import { changePasswordSchema } from "../validations/password_reset.validation";
+import { updateBankDetailsSchema } from "../validations/bank.validation";
 import { withdrawalPinOtpLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
@@ -24,7 +25,7 @@ router.get('/activation-candidates', getActivationCandidates);
 
 // Write operations are gated — blocked users cannot mutate their account
 router.patch('/update', isBlocked, updateProfile);
-router.patch('/update-bank', isBlocked, updateBankDetails);
+router.patch('/update-bank', isBlocked, validate(updateBankDetailsSchema), updateBankDetails);
 router.patch('/update-password', isBlocked, validate(changePasswordSchema), updatePassword);
 router.post('/reset-withdrawal-pin', isBlocked, resetWithdrawalPin);
 router.post('/verify-withdrawal-pin-otp', isBlocked, verifyWithdrawalPinOtp);

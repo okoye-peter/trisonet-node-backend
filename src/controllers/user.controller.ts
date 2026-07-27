@@ -10,6 +10,7 @@ import { AppError } from "../utils/AppError"
 import { getOrSetCache } from '../utils/cache';
 import { TermiiService } from '../services/termii.service';
 import { getSafeUserWallets } from "../utils/prismaUtils";
+import { bankAccountNameMatches } from "../utils/nameMatcher";
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -240,7 +241,7 @@ export const updateProfile = asyncHandler(async (req: any, res: Response, next: 
 
 export const updateBankDetails = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
-    const { bank, accountNumber, currentPassword } = req.body;
+    const { bank, bankUUID, accountNumber, currentPassword } = req.body;
 
     if (!currentPassword) {
         return next(new AppError('Password is required to update bank details', 400));
@@ -249,6 +250,16 @@ export const updateBankDetails = asyncHandler(async (req: any, res: Response, ne
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isPasswordValid) {
         return next(new AppError('Invalid current password', 400));
+    }
+
+    // Re-resolve the account with Paga server-side — never trust a client-supplied account name.
+    const resolved = await (new PagaService()).resolveBankDetails(bankUUID, accountNumber);
+    if (!resolved.success || !resolved.data?.is_valid) {
+        return next(new AppError(resolved.error || 'Could not verify this bank account. Please check the details and try again.', 400));
+    }
+
+    if (!bankAccountNameMatches(user.name, resolved.data.account_name)) {
+        return next(new AppError('The bank account name must match the name registered on your Trisonet account.', 400));
     }
 
     const updatedUser = await prisma.user.update({
