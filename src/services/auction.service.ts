@@ -87,12 +87,11 @@ export class AuctionService {
             throw new AppError(`Minimum GKWTH amount to auction is ${minGkwthAmount}`, 400);
         }
 
-        const maxPrice = Number(settingsMap["auction_max_price"] || 0) || Infinity;
-        if (input.startingBid > maxPrice) {
-            throw new AppError(`Starting bid cannot exceed the maximum auction price of ₦${maxPrice.toLocaleString()}`, 400);
-        }
-        if (input.buyItNowPrice && input.buyItNowPrice > maxPrice) {
-            throw new AppError(`Buy It Now price cannot exceed the maximum auction price of ₦${maxPrice.toLocaleString()}`, 400);
+        // This cap only regulates the seller's starting bid — Buy It Now price and actual bids
+        // placed during the auction are intentionally allowed to exceed it.
+        const maxStartingBid = Number(settingsMap["auction_max_price"] || 0) || Infinity;
+        if (input.startingBid > maxStartingBid) {
+            throw new AppError(`Starting bid cannot exceed the maximum of ₦${maxStartingBid.toLocaleString()}`, 400);
         }
 
         if (input.buyItNowPrice && input.buyItNowPrice <= input.startingBid) {
