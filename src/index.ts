@@ -45,6 +45,12 @@ import './cron/auction.cron';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust the first hop (reverse proxy / PM2 / load balancer) so req.ip and
+// req.secure reflect the real client via X-Forwarded-For instead of the
+// proxy's own address. Without this, IP-based rate limiting collapses
+// every client behind the proxy onto a single key.
+app.set('trust proxy', 1);
+
 // ─── Security Middlewares ─────────────────────────────────────────────────────
 app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },

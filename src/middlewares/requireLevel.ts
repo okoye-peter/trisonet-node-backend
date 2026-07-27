@@ -29,7 +29,7 @@ export const requireAuctionEligibility = asyncHandler(async (req: Request, res: 
     }
 
     if (user.level < 2) {
-        return next(new AppError('The auction feature requires account that has migrated.', 403));
+        return next(new AppError('The auction feature requires account level 2 or higher.', 403));
     }
 
     if (!user.status) {

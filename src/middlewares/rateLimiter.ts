@@ -11,7 +11,11 @@ interface RateLimitOptions {
 
 export const rateLimiter = (options: RateLimitOptions) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        // req.ip already honors Express's `trust proxy` setting (see app.set('trust proxy', ...)
+        // in src/index.ts), so it correctly resolves X-Forwarded-For when behind a proxy.
+        // Falling back to the raw header would just re-introduce the same spoofing risk
+        // trust proxy is meant to guard against.
+        const ip = req.ip || req.socket.remoteAddress || 'unknown';
         const key = `${options.keyPrefix || 'rate-limit'}:${ip}`;
 
         try {
@@ -46,6 +50,13 @@ export const otpLimiter = rateLimiter({
     max: 5,
     message: "Too many OTP requests. Please try again after 10 minutes.",
     keyPrefix: "otp-limit"
+});
+
+export const withdrawalPinOtpLimiter = rateLimiter({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 5,
+    message: "Too many OTP requests. Please try again after 10 minutes.",
+    keyPrefix: "withdrawal-pin-otp-limit"
 });
 
 export const authLimiter = rateLimiter({
