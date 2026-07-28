@@ -113,7 +113,7 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
             ? prisma.region.findUnique({ where: { id: BigInt(user.regionId) } })
             : Promise.resolve(null)),
         user.regionId
-            ? prisma.user.count({ where: { regionId: BigInt(user.regionId) } })
+            ? prisma.user.count({ where: { regionId: BigInt(user.regionId), status: true, deletedAt: null } })
             : Promise.resolve(0),
         prisma.setting.findFirst({
             where: { key: 'gkwth_sale_price' }
