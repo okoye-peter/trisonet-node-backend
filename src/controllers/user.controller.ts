@@ -11,6 +11,7 @@ import { getOrSetCache } from '../utils/cache';
 import { TermiiService } from '../services/termii.service';
 import { getSafeUserWallets } from "../utils/prismaUtils";
 import { bankAccountNameMatches } from "../utils/nameMatcher";
+import { addSmsJob } from '../queue';
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
