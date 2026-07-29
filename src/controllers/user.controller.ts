@@ -531,7 +531,8 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
     });
 
     if (phone) {
-        TermiiService.sendSms(phone, `Your withdrawal pin reset code is ${otp}`)
+        await addSmsJob(phone, `Your withdrawal pin reset code is ${otp}`);
+        // TermiiService.sendSms(phone, `Your withdrawal pin reset code is ${otp}`)
     }
 
     if (email) {

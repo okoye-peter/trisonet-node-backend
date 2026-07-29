@@ -4,6 +4,7 @@ import { sendSuccess } from "../utils/responseWrapper";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/AppError";
 import { addSmsJob } from "../queue/sms.queue";
+import { TermiiService } from "../services/termii.service";
 import bcrypt from "bcryptjs";
 import { differenceInMinutes } from "date-fns";
 
@@ -16,10 +17,12 @@ export const sendCustomerPasswordResetOtp = asyncHandler(async (req: Request, re
             username: true,
             name: true,
             phone: true,
+            email: true,
             isInfant: true,
             guardianUser: {
                 select: {
-                    phone: true
+                    phone: true,
+                    email: true
                 }
             }
         }
@@ -29,11 +32,22 @@ export const sendCustomerPasswordResetOtp = asyncHandler(async (req: Request, re
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const phoneNumber = user.phone ?? user.guardianUser?.phone ?? '';
-    if (!phoneNumber) {
+    const email = user.email ?? user.guardianUser?.email ?? '';
+    const isNigerian = phoneNumber ? TermiiService.getCountry(phoneNumber).country === 'Nigeria' : true;
+
+    if (isNigerian && !phoneNumber) {
         return next(new AppError(`no valid phone number to send authentication reset verification code to`, 404));
     }
+    if (!isNigerian && !email) {
+        return next(new AppError(`no valid email address to send authentication reset verification code to`, 404));
+    }
+
     if (process.env.NODE_ENV == 'production') {
-        await addSmsJob(phoneNumber, `Your password reset OTP is ${otp}`);
+        if (isNigerian) {
+            await addSmsJob(phoneNumber, `Your password reset OTP is ${otp}`);
+        } else {
+            await TermiiService.sendMailWithTermii(email, otp);
+        }
     }
 
     await prisma.user.update({
