@@ -5,7 +5,7 @@ import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
 import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS } from "../config/constants.js";
-import { TermiiService } from './termii.service.js';
+import { addSmsJob, addOtpEmailJob } from '../queue/index.js';
 import AuctionService from './auction.service.js';
 
 
@@ -935,14 +935,14 @@ export class PaymentService {
         const message = `Hello ${nameCapitalized} this is your ${isWard ? "ward's " + nameCapitalized + " PIM" : "PIM"} activation puk code: ${code}`;
 
         try {
-            await TermiiService.sendSms(phone, message);
+            await addSmsJob(phone, message);
         } catch (smsError) {
             pagaLogger.error(`Failed to send PUK SMS to ${phone}:`, smsError);
         }
 
         if (user.email) {
             try {
-                await TermiiService.sendMailWithTermii(user.email, code);
+                await addOtpEmailJob(user.email, code);
             } catch (mailError) {
                 pagaLogger.error(`Failed to send PUK email to ${user.email}:`, mailError);
             }

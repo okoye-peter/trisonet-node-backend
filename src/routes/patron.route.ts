@@ -16,6 +16,7 @@ router.use(restrictTo(ROLES.PATRON));
 router.get('/dashboard', patronController.getDashboard);
 router.get('/plans', patronController.getPlans);
 router.get('/members', patronController.getMembers);
+router.get('/group-members', patronController.getGroupMembers);
 router.get('/beneficiaries', patronController.getBeneficiaries);
 router.get('/transactions', patronController.getTransactionsHistory);
 router.get('/earnings', patronController.getEarningDashboard);

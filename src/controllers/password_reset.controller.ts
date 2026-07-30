@@ -4,6 +4,7 @@ import { sendSuccess } from "../utils/responseWrapper";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/AppError";
 import { addSmsJob } from "../queue/sms.queue";
+import { addOtpEmailJob } from "../queue/mail.queue";
 import { TermiiService } from "../services/termii.service";
 import bcrypt from "bcryptjs";
 import { differenceInMinutes } from "date-fns";
@@ -46,7 +47,7 @@ export const sendCustomerPasswordResetOtp = asyncHandler(async (req: Request, re
         if (isNigerian) {
             await addSmsJob(phoneNumber, `Your password reset OTP is ${otp}`);
         } else {
-            await TermiiService.sendMailWithTermii(email, otp);
+            await addOtpEmailJob(email, otp);
         }
     }
 

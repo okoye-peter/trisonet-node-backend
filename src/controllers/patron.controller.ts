@@ -4,12 +4,13 @@ import { asyncHandler } from '../middlewares/asyncHandler';
 import { AppError } from '../utils/AppError';
 import { sendSuccess, sendPaginated } from '../utils/responseWrapper';
 import { ROLES, MAX_PATRONS_PER_GROUP } from '../config/constants';
-import { TermiiService } from '../services/termii.service';
 import { PagaService } from '../services/paga.service';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import WalletService from '../services/wallet.service';
 import { PaymentService } from '../services/payment.service';
+import { addWelcomeEmailJob, addOtpEmailJob } from '../queue/mail.queue';
+import { addSmsJob } from '../queue/sms.queue';
 
 const pagaService = new PagaService();
 
@@ -204,8 +205,72 @@ export const getMembers = asyncHandler(async (req: Request, res: Response, next:
 
     if (search) {
         where.OR = [
-            { name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search } },
+            { email: { contains: search } },
+        ];
+    }
+
+    const [members, total] = await Promise.all([
+        prisma.user.findMany({
+            where,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                patronId: true,
+                createdAt: true,
+                _count: {
+                    select: { patronees: true }
+                }
+            },
+            orderBy: { name: 'asc' },
+            skip,
+            take: limit,
+        }),
+        prisma.user.count({ where })
+    ]);
+
+    return sendSuccess(res, 200, 'Members retrieved successfully', {
+        members,
+        meta: {
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        }
+    });
+});
+
+/**
+ * Get Patron Group Members
+ * Returns a searchable list of all patrons in the current user's organization (patron group),
+ * regardless of who directly recruited them. Used for org-wide actions like crediting a member's wallet.
+ */
+export const getGroupMembers = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    const search = req.query.search as string;
+
+    const page = Number(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    if (!user.patronGroupId) {
+        return sendSuccess(res, 200, 'Members retrieved successfully', {
+            members: [],
+            meta: { total: 0, page, totalPages: 0 }
+        });
+    }
+
+    const where: any = {
+        patronGroupId: user.patronGroupId,
+        role: ROLES.PATRON,
+        id: { not: user.id },
+    };
+
+    if (search) {
+        where.OR = [
+            { name: { contains: search } },
+            { email: { contains: search } },
         ];
     }
 
@@ -502,9 +567,15 @@ export const addMember = asyncHandler(async (req: Request, res: Response, next: 
         return createdUser;
     });
 
-    // Send SMS
+    // Send SMS and login details email
     if (process.env.NODE_ENV === 'production') {
-        await TermiiService.sendSms(phone, `Your patron account has been created. Email: ${email} Password: ${password}`);
+        await addSmsJob(phone, `Your patron account has been created. Email: ${email} Password: ${password}`);
+        await addWelcomeEmailJob(
+            email,
+            name,
+            password,
+            `You've been added as a member on Trisonet. Use the credentials below to log in and get started.`
+        );
     }
 
     return sendSuccess(res, 201, 'Patron member created successfully', {
@@ -574,9 +645,15 @@ export const createOrganizationCoPatron = asyncHandler(async (req: Request, res:
         return createdUser;
     });
 
-    // Send SMS
+    // Send SMS and login details email
     if (process.env.NODE_ENV === 'production') {
-        await TermiiService.sendSms(phone, `Your patron account has been created. Email: ${email} Password: ${password}`);
+        await addSmsJob(phone, `Your patron account has been created. Email: ${email} Password: ${password}`);
+        await addWelcomeEmailJob(
+            email,
+            name,
+            password,
+            `You've been added as a co-patron to ${patronGroup?.name || 'your organization'} on Trisonet. You now have full leadership access to help manage members, funds, and growth alongside the rest of your team. Use the credentials below to log in and get started.`
+        );
     }
 
     return sendSuccess(res, 201, 'Patron member created successfully', {
@@ -753,11 +830,7 @@ export const sendWithdrawalOtp = asyncHandler(async (req: Request, res: Response
     });
 
     // Send Mail using Termii
-    const mailResult = await TermiiService.sendMailWithTermii(user.email || user.username || '', otp.toString());
-
-    if (!mailResult.status) {
-        return next(new AppError('Failed to send OTP via mail', 500));
-    }
+    await addOtpEmailJob(user.email || user.username || '', otp.toString());
 
     return sendSuccess(res, 200, 'Withdrawal OTP sent successfully');
 });

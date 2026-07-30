@@ -1,5 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { countries } from 'countries-list';
+import { TERMII } from '../config/constants';
 
 export class TermiiService {
     private static apiKey = process.env.TERMII_API_KEY;
@@ -115,7 +116,9 @@ export class TermiiService {
     public static async sendTemplate(
         email: string,
         subject: string,
-        variables: Record<string, string>
+        variables: Record<string, string>,
+        templateId: string = '6bd1e7d7-9271-4edd-bcca-4849a6cd6858',
+        emailConfigurationId: string = 'f4f54611-4cd3-4490-96ab-f9a764f4f869'
     ): Promise<boolean> {
         try {
             const response = await fetch('https://api.ng.termii.com/api/templates/send-email', {
@@ -125,8 +128,8 @@ export class TermiiService {
                 },
                 body: JSON.stringify({
                     api_key: this.apiKey,
-                    email_configuration_id: 'f4f54611-4cd3-4490-96ab-f9a764f4f869',
-                    template_id: '6bd1e7d7-9271-4edd-bcca-4849a6cd6858',
+                    email_configuration_id: emailConfigurationId,
+                    template_id: templateId,
                     email,
                     subject,
                     variables,
@@ -153,5 +156,22 @@ export class TermiiService {
             logger.error('Termii sendTemplate exception', { email, error });
             return false;
         }
+    }
+
+    public static async sendWelcomeEmail(email: string, name: string, password: string, intro: string): Promise<boolean> {
+        const templateId = TERMII.EMAIL_TEMPLATES.WELCOME;
+
+        if (!templateId) {
+            logger.error('TERMII_WELCOME_TEMPLATE_ID is not configured, skipping welcome email', { email });
+            return false;
+        }
+
+        return this.sendTemplate(
+            email,
+            'Welcome to Trisonet',
+            { name, email, password, intro },
+            templateId,
+            this.emailConfigId
+        );
     }
 }

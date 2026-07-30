@@ -142,6 +142,8 @@ import { referralWorker } from './queue/workers/referral.worker';
 import { referralQueue } from './queue/referral.queue';
 import { smsWorker } from './queue/workers/sms.worker';
 import { smsQueue } from './queue/sms.queue';
+import { mailWorker } from './queue/workers/mail.worker';
+import { mailQueue } from './queue/mail.queue';
 import { decryptEncryptedText, encryptText } from './utils/crypto';
 
 const server = app.listen(PORT, () => {
@@ -171,6 +173,8 @@ async function shutdown() {
         await referralQueue.close();  // Close the queue connection
         await smsWorker.close();
         await smsQueue.close();
+        await mailWorker.close();
+        await mailQueue.close();
         console.log("Closed background workers and queues.");
     } catch (err) {
         console.error("Error during graceful shutdown:", err);

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Queue, Job } from 'bullmq';
 import { referralQueue } from '../queue/referral.queue.js';
 import { smsQueue } from '../queue/sms.queue.js';
+import { mailQueue } from '../queue/mail.queue.js';
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { sendSuccess } from '../utils/responseWrapper.js';
 import { AppError } from '../utils/AppError.js';
@@ -9,6 +10,7 @@ import { AppError } from '../utils/AppError.js';
 const QUEUES: Record<string, Queue> = {
     referralQueue,
     smsQueue,
+    mailQueue,
 };
 
 const JOB_STATUSES = ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'] as const;

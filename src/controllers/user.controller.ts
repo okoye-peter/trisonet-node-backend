@@ -8,10 +8,9 @@ import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, NEW_REFERRAL_SYSTEM, ROLES } from 
 import bcrypt from "bcryptjs"
 import { AppError } from "../utils/AppError"
 import { getOrSetCache } from '../utils/cache';
-import { TermiiService } from '../services/termii.service';
 import { getSafeUserWallets } from "../utils/prismaUtils";
 import { bankAccountNameMatches } from "../utils/nameMatcher";
-import { addSmsJob } from '../queue';
+import { addSmsJob, addOtpEmailJob } from '../queue';
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -537,11 +536,10 @@ export const sendOtpForWithdrawalPinReset = asyncHandler(async (req: any, res: R
 
     if (phone) {
         await addSmsJob(phone, `Your withdrawal pin reset code is ${otp}`);
-        // TermiiService.sendSms(phone, `Your withdrawal pin reset code is ${otp}`)
     }
 
     if (email) {
-        TermiiService.sendMailWithTermii(email, otp)
+        await addOtpEmailJob(email, otp);
     }
 
     sendSuccess(res, 200, 'Verification code sent to your phone number and email');
@@ -612,7 +610,7 @@ export const sendEmailVerificationOtp = asyncHandler(async (req: any, res: Respo
         }
     });
 
-    await TermiiService.sendMailWithTermii(email, otp);
+    await addOtpEmailJob(email, otp);
 
     sendSuccess(res, 200, 'Verification code sent to your email');
 });
