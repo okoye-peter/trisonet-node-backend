@@ -248,6 +248,10 @@ export const updateBankDetails = asyncHandler(async (req: any, res: Response, ne
         return next(new AppError('Password is required to update bank details', 400));
     }
 
+    if (!accountNumber || !/^\d{10}$/.test(accountNumber)) {
+        return next(new AppError('Account number must be exactly 10 digits.', 400));
+    }
+
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isPasswordValid) {
         return next(new AppError('Invalid current password', 400));

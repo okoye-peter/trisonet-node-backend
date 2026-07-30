@@ -56,11 +56,24 @@ export const getPublicPatronPlans = asyncHandler(
 
 export const registerPatron = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, email, phone, password, patronType, planId } = req.body;
+    const { name, email, phone, password, patronType, planId, groupName } = req.body;
 
     const existingUser = await prisma.user.findFirst({ where: { email } });
     if (existingUser) {
       return next(new AppError("Email already in use", 400));
+    }
+
+    if (patronType === "group") {
+      if (!groupName || !groupName.trim()) {
+        return next(new AppError("Group name is required", 400));
+      }
+
+      const existingGroup = await (prisma as any).patronGroup.findFirst({
+        where: { name: groupName.trim() },
+      });
+      if (existingGroup) {
+        return next(new AppError("Group name already taken", 400));
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -81,6 +94,7 @@ export const registerPatron = asyncHandler(
 
       if (patronType === "group") {
         const groupData: any = {
+          name: groupName.trim(),
           owner: { connect: { id: createdUser.id } },
           type: patronType,
         };
