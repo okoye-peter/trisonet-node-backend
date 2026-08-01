@@ -87,15 +87,21 @@ export class AuctionService {
             throw new AppError(`Minimum GKWTH amount to auction is ${minGkwthAmount}`, 400);
         }
 
-        // This cap only regulates the seller's starting bid — Buy It Now price and actual bids
-        // placed during the auction are intentionally allowed to exceed it.
+        // input.startingBid is entered as a price PER GKWTH unit — the stored/bid-against lot
+        // total is that unit price multiplied by the quantity being auctioned. buyItNowPrice,
+        // by contrast, is entered as a flat total for the whole lot (like a bid amount), not
+        // a per-unit price.
+        const totalStartingBid = input.startingBid * input.gkwthAmount;
+
+        // This cap regulates the seller's starting *unit* price — Buy It Now price and actual
+        // bids placed during the auction are intentionally allowed to exceed it.
         const maxStartingBid = Number(settingsMap["auction_max_price"] || 0) || Infinity;
         if (input.startingBid > maxStartingBid) {
-            throw new AppError(`Starting bid cannot exceed the maximum of ₦${maxStartingBid.toLocaleString()}`, 400);
+            throw new AppError(`Starting price cannot exceed the maximum of ₦${maxStartingBid.toLocaleString()} per GKWTH`, 400);
         }
 
-        if (input.buyItNowPrice && input.buyItNowPrice <= input.startingBid) {
-            throw new AppError("Buy It Now price must be higher than the starting bid", 400);
+        if (input.buyItNowPrice && input.buyItNowPrice <= totalStartingBid) {
+            throw new AppError("Buy It Now price must be higher than the total starting bid", 400);
         }
 
         if (input.durationHours < MIN_DURATION_HOURS || input.durationHours > MAX_DURATION_HOURS) {
@@ -134,7 +140,7 @@ export class AuctionService {
                     sellerId: user.id,
                     sellerWalletId: sellerWallet.id,
                     gkwthAmount: input.gkwthAmount,
-                    startingBid: input.startingBid,
+                    startingBid: totalStartingBid,
                     buyItNowPrice: input.buyItNowPrice ?? null,
                     visibility: input.visibility || "public",
                     status: "active",
