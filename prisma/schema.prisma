@@ -148,6 +148,8 @@ model User {
   userActivationRequests                                             UserActivationRequest[]
   patronActivationPivots                                             UserPatronActivationPivotTable[]
   activationCard                                                     ActivationCard?                  @relation("ACToUser", fields: [activationCardId], references: [id], onUpdate: NoAction, map: "users_activation_card_id_foreign")
+  commissionLogsAsRecipient                                          CommissionLog[]                  @relation("CommissionLogRecipient")
+  commissionLogsAsSource                                             CommissionLog[]                  @relation("CommissionLogSourceUser")
   guardianUser                                                       User?                            @relation("GuardianToUser", fields: [guardianId], references: [id], onUpdate: NoAction, map: "users_guardian_id_foreign")
   guardianWards                                                      User[]                           @relation("GuardianToUser")
   guardianWardSlot                                                   GuardianWardSlotPurchase?        @relation("GWSToUser", fields: [guardianWardSlotId], references: [id], onUpdate: NoAction, map: "users_guardian_ward_slot_id_foreign")
@@ -494,6 +496,30 @@ model AdminLog {
 
   @@index([adminId], map: "admin_logs_admin_id_foreign")
   @@map("admin_logs")
+}
+
+model CommissionLog {
+  id           BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  recipientId  BigInt?             @map("recipient_id") @db.UnsignedBigInt
+  sourceUserId BigInt?             @map("source_user_id") @db.UnsignedBigInt
+  type         CommissionLogType
+  status       CommissionLogStatus
+  amount       Decimal?            @db.Decimal(12, 2)
+  walletType   WalletType?         @map("wallet_type")
+  level        Int?
+  reason       String?             @db.VarChar(500)
+  reference    String?             @db.VarChar(255)
+  processedVia String?             @map("processed_via") @db.VarChar(255)
+  metadata     Json?
+  createdAt    DateTime?           @default(now()) @map("created_at") @db.Timestamp(0)
+  recipient    User?               @relation("CommissionLogRecipient", fields: [recipientId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "commission_logs_recipient_id_foreign")
+  sourceUser   User?               @relation("CommissionLogSourceUser", fields: [sourceUserId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "commission_logs_source_user_id_foreign")
+
+  @@index([recipientId], map: "commission_logs_recipient_id_foreign")
+  @@index([sourceUserId], map: "commission_logs_source_user_id_foreign")
+  @@index([reference], map: "commission_logs_reference_index")
+  @@index([status], map: "commission_logs_status_index")
+  @@map("commission_logs")
 }
 
 model CentralTreasuryLog {
@@ -1914,6 +1940,23 @@ enum WithdrawalRequestStatus {
 enum earningTransactionsType {
   credit
   debit
+}
+
+enum CommissionLogType {
+  direct_referral
+  indirect_referral
+  chain_referral
+  region_fallback
+  influencer
+  patron
+  super_admin
+  school_compensation
+}
+
+enum CommissionLogStatus {
+  success
+  failed
+  skipped
 }
 
 enum PatronGroupTransactionStatus {

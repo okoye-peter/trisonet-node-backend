@@ -2,13 +2,14 @@ import { prisma, WalletType } from "../config/prisma.js";
 import { ROLES } from "../config/constants.js";
 import { addFundReferralsJob } from "../queue/referral.queue";
 import { logger } from "../utils/logger";
+import { CommissionLogService } from "./commission_log.service.js";
 
 export class AccountActivationService {
     /**
      * Full activation payment flow: validates the request, updates DB in a transaction,
      * then runs the optimized per-user activation for the primary user and all teammates.
      */
-    static async processActivationPayment(reference: string, amountPaid: number): Promise<{ status: string }> {
+    static async processActivationPayment(reference: string, amountPaid: number, source: string = 'paga_webhook'): Promise<{ status: string }> {
         const activationRequest = await prisma.userActivationRequest.findUnique({
             where: { reference },
             include: {
@@ -62,7 +63,7 @@ export class AccountActivationService {
 
         // Run outside the transaction to avoid lock contention
         for (const recipientId of recipientIds) {
-            await AccountActivationService.activateUserAccountOptimized(recipientId);
+            await AccountActivationService.activateUserAccountOptimized(recipientId, { source, reference });
         }
 
         return { status: 'ok' };
@@ -73,8 +74,11 @@ export class AccountActivationService {
      */
     static async activateUserAccountOptimized(
         userId: bigint,
-        context: { commission?: number; superAdminId?: bigint; tx?: any } = {}
+        context: { commission?: number; superAdminId?: bigint; tx?: any; source?: string; reference?: string } = {}
     ) {
+        const source = context.source ?? 'unknown';
+        const reference = context.reference ?? null;
+        const processedVia = source;
         const client = context.tx || prisma;
         const user = await client.user.findUnique({
             where: { id: userId },
@@ -133,6 +137,28 @@ export class AccountActivationService {
                         where: { id: compensation.id },
                         data: { isPaid: true }
                     });
+
+                    await CommissionLogService.success({
+                        recipientId: user.schoolId,
+                        sourceUserId: user.id,
+                        type: 'school_compensation',
+                        amount: Number(compensation.amount),
+                        walletType: WalletType.direct,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else {
+                    await CommissionLogService.failed({
+                        recipientId: user.schoolId,
+                        sourceUserId: user.id,
+                        type: 'school_compensation',
+                        amount: Number(compensation.amount),
+                        reason: `School user ${user.schoolId} record not found`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
                 }
             }
         }
@@ -151,6 +177,18 @@ export class AccountActivationService {
             user.wallets.push(indirectWallet); // For subsequent logic
         }
 
+        if (user.activatedAt) {
+            await CommissionLogService.skipped({
+                recipientId: user.referralId ?? null,
+                sourceUserId: user.id,
+                type: 'direct_referral',
+                reason: `User ${user.id} was already activated at ${user.activatedAt.toISOString()} - no commission processed for this activation call (check for an earlier commission log using source_user_id=${user.id})`,
+                reference,
+                processedVia,
+                tx: context.tx,
+            });
+        }
+
         if (!user.activatedAt) {
             if (indirectWallet.amount < 1) {
                 await client.wallet.update({
@@ -166,12 +204,41 @@ export class AccountActivationService {
                     include: { wallets: true }
                 });
 
-                if (referral && !referral.blockedAt) {
+                if (!referral) {
+                    await CommissionLogService.failed({
+                        recipientId: user.referralId,
+                        sourceUserId: user.id,
+                        type: 'direct_referral',
+                        reason: `Referrer ${user.referralId} record not found (deleted or invalid referral_id)`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else if (referral.blockedAt) {
+                    await CommissionLogService.skipped({
+                        recipientId: referral.id,
+                        sourceUserId: user.id,
+                        type: 'direct_referral',
+                        reason: `Referrer account has been blocked since ${referral.blockedAt.toISOString()}`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else {
                     try {
-                        await addFundReferralsJob(user.id, referral.id);
+                        await addFundReferralsJob(user.id, referral.id, source, reference);
                         logger.info(`[AccountActivationService] FundReferralsJob added for user ${user.id} and referral ${referral.id}`);
                     } catch (e) {
                         logger.error('Adding FundReferralsJob failed:', e);
+                        await CommissionLogService.failed({
+                            recipientId: referral.id,
+                            sourceUserId: user.id,
+                            type: 'direct_referral',
+                            reason: `Failed to queue commission job: ${e instanceof Error ? e.message : String(e)}`,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
                     }
                 }
             } else {
@@ -184,7 +251,17 @@ export class AccountActivationService {
                     });
                 }
 
-                if (ref && !ref.blockedAt && ref.id !== user.id) {
+                if (ref && ref.blockedAt) {
+                    await CommissionLogService.skipped({
+                        recipientId: ref.id,
+                        sourceUserId: user.id,
+                        type: 'region_fallback',
+                        reason: `Fallback region referrer account has been blocked since ${ref.blockedAt.toISOString()}`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else if (ref && ref.id !== user.id) {
                     let amountValue = 1;
                     let typeValue: typeof WalletType[keyof typeof WalletType] = WalletType.direct;
 
@@ -211,6 +288,29 @@ export class AccountActivationService {
                             where: { id: targetWallet.id },
                             data: { amount: { increment: amountValue } }
                         });
+
+                        await CommissionLogService.success({
+                            recipientId: ref.id,
+                            sourceUserId: user.id,
+                            type: 'region_fallback',
+                            amount: amountValue,
+                            walletType: typeValue,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
+                    } else {
+                        await CommissionLogService.failed({
+                            recipientId: ref.id,
+                            sourceUserId: user.id,
+                            type: 'region_fallback',
+                            amount: amountValue,
+                            walletType: typeValue,
+                            reason: `No ${typeValue} wallet exists for this recipient to credit`,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
                     }
 
                     await client.user.update({
@@ -231,6 +331,19 @@ export class AccountActivationService {
                     where: { id: user.influencerId },
                     include: { wallets: true }
                 });
+
+                if (!influencer) {
+                    await CommissionLogService.failed({
+                        recipientId: user.influencerId,
+                        sourceUserId: user.id,
+                        type: 'influencer',
+                        amount: commission,
+                        reason: `Influencer ${user.influencerId} record not found`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                }
 
                 if (influencer) {
                     if (user.influencerPromoPeriodId) {
@@ -276,6 +389,29 @@ export class AccountActivationService {
                             where: { id: infWallet.id },
                             data: { amount: { increment: commission } }
                         });
+
+                        await CommissionLogService.success({
+                            recipientId: influencer.id,
+                            sourceUserId: user.id,
+                            type: 'influencer',
+                            amount: commission,
+                            walletType: WalletType.direct,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
+                    } else {
+                        await CommissionLogService.failed({
+                            recipientId: influencer.id,
+                            sourceUserId: user.id,
+                            type: 'influencer',
+                            amount: commission,
+                            walletType: WalletType.direct,
+                            reason: `No direct wallet exists for this influencer to credit`,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
                     }
                 }
             }
@@ -287,12 +423,57 @@ export class AccountActivationService {
                     include: { wallets: true }
                 });
 
-                if (patron && patron.patronId) {
+                if (!patron) {
+                    await CommissionLogService.failed({
+                        recipientId: user.patronId,
+                        sourceUserId: user.id,
+                        type: 'patron',
+                        amount: commission,
+                        reason: `Patron ${user.patronId} record not found`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else if (!patron.patronId) {
+                    await CommissionLogService.skipped({
+                        recipientId: patron.id,
+                        sourceUserId: user.id,
+                        type: 'patron',
+                        amount: commission,
+                        reason: `Patron has no upline patron set - commission not applicable`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else {
                     const patWallet = patron.wallets.find((w: any) => w.type === WalletType.direct);
                     if (patWallet) {
                         await client.wallet.update({
                             where: { id: patWallet.id },
                             data: { amount: { increment: commission } }
+                        });
+
+                        await CommissionLogService.success({
+                            recipientId: patron.id,
+                            sourceUserId: user.id,
+                            type: 'patron',
+                            amount: commission,
+                            walletType: WalletType.direct,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
+                    } else {
+                        await CommissionLogService.failed({
+                            recipientId: patron.id,
+                            sourceUserId: user.id,
+                            type: 'patron',
+                            amount: commission,
+                            walletType: WalletType.direct,
+                            reason: `No direct wallet exists for this patron to credit`,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
                         });
                     }
                 }
@@ -315,12 +496,45 @@ export class AccountActivationService {
                     include: { wallets: true }
                 });
 
-                if (superAdmin) {
+                if (!superAdmin) {
+                    await CommissionLogService.failed({
+                        recipientId: superAdminId,
+                        sourceUserId: user.id,
+                        type: 'super_admin',
+                        reason: `Super admin ${superAdminId} record not found`,
+                        reference,
+                        processedVia,
+                        tx: context.tx,
+                    });
+                } else {
                     const superDirect = superAdmin.wallets.find((w: any) => w.type === WalletType.direct);
                     if (superDirect) {
                         await client.wallet.update({
                             where: { id: superDirect.id },
                             data: { amount: { increment: commission } }
+                        });
+
+                        await CommissionLogService.success({
+                            recipientId: superAdmin.id,
+                            sourceUserId: user.id,
+                            type: 'super_admin',
+                            amount: commission,
+                            walletType: WalletType.direct,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
+                    } else {
+                        await CommissionLogService.failed({
+                            recipientId: superAdmin.id,
+                            sourceUserId: user.id,
+                            type: 'super_admin',
+                            amount: commission,
+                            walletType: WalletType.direct,
+                            reason: `No direct wallet exists for the super admin to credit`,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
                         });
                     }
 
@@ -329,6 +543,29 @@ export class AccountActivationService {
                         await client.wallet.update({
                             where: { id: superCentral.id },
                             data: { amount: { increment: 1 } }
+                        });
+
+                        await CommissionLogService.success({
+                            recipientId: superAdmin.id,
+                            sourceUserId: user.id,
+                            type: 'super_admin',
+                            amount: 1,
+                            walletType: WalletType.central_treasury,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
+                        });
+                    } else {
+                        await CommissionLogService.failed({
+                            recipientId: superAdmin.id,
+                            sourceUserId: user.id,
+                            type: 'super_admin',
+                            amount: 1,
+                            walletType: WalletType.central_treasury,
+                            reason: `No central treasury wallet exists for the super admin to credit`,
+                            reference,
+                            processedVia,
+                            tx: context.tx,
                         });
                     }
                 }

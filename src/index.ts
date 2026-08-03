@@ -33,6 +33,7 @@ import queueRouter from './routes/queue.route';
 import publicNoticeRouter from './routes/public_notice.route';
 import adminNoticeRouter from './routes/admin_notice.route';
 import auctionRouter from './routes/auction.route';
+import commissionLogRouter from './routes/commission_log.route';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSockets } from './sockets';
 
@@ -122,6 +123,7 @@ app.use('/api/queues', queueRouter);
 app.use('/api/public-notices', publicNoticeRouter);
 app.use('/api/admin-notices', adminNoticeRouter);
 app.use('/api/auctions', auctionRouter);
+app.use('/api/commission-logs', commissionLogRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);

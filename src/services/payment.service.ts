@@ -277,9 +277,9 @@ export class PaymentService {
         return { status: 'ok' };
     }
 
-    async processUserActivation(payload: any) {
+    async processUserActivation(payload: any, source: string = 'paga_webhook') {
         const { externalReferenceNumber, paymentAmount } = payload;
-        return await AccountActivationService.processActivationPayment(externalReferenceNumber, Number(paymentAmount || 0));
+        return await AccountActivationService.processActivationPayment(externalReferenceNumber, Number(paymentAmount || 0), source);
     }
 
     /**
@@ -873,7 +873,10 @@ export class PaymentService {
 
         // 2. Perform actual account activations outside the transaction to prevent lock competition deadlocks
         for (const id of userIdsToActivate) {
-            await AccountActivationService.activateUserAccountOptimized(id);
+            await AccountActivationService.activateUserAccountOptimized(id, {
+                source: 'activation_code',
+                reference: `activation_code:${card.code}`
+            });
         }
 
         return {
@@ -1075,7 +1078,7 @@ export class PaymentService {
             event: 'PAYMENT_COMPLETE',
             status: 'SUCCESSFUL',
             paymentAmount: amount
-        });
+        }, 'onepipe_webhook');
     }
 
     async processPagaCardWebhook(payload: any) {
@@ -1097,7 +1100,7 @@ export class PaymentService {
 
         // Route based on reference prefix
         if (reference.startsWith('ACTIVATION') && !reference.startsWith('ACTIVATIONCARD')) {
-            return await AccountActivationService.processActivationPayment(reference, amountPaid);
+            return await AccountActivationService.processActivationPayment(reference, amountPaid, 'paga_card_webhook');
         }
 
         if (reference.startsWith('AUCTIONCLAIM')) {
