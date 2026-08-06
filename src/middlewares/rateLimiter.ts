@@ -103,7 +103,7 @@ export const authLimiter = rateLimiter({
 // can't dodge the limit by just switching methods after a failed/rejected attempt.
 export const kycDailyLimiter = userRateLimiter({
     windowMs: 24 * 60 * 60 * 1000, // 24 hours
-    max: 1,
+    max: 2,
     message: "You can only attempt KYC verification once per day. Please try again tomorrow.",
     keyPrefix: "kyc-daily-limit"
 });
