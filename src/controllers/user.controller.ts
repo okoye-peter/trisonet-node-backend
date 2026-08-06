@@ -4,7 +4,7 @@ import { prisma } from "../config/prisma"
 import { sendSuccess } from '../utils/responseWrapper'
 import { NextFunction, Request, Response } from "express"
 import { paginate } from "../utils/pagination"
-import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, NEW_REFERRAL_SYSTEM, ROLES } from "../config/constants"
+import { GUARDIAN_MAX_WARDS, MAX_ASSET_DEPOT, MIGRATED_REFERRAL_TARGET, NEW_REFERRAL_SYSTEM, ROLES } from "../config/constants"
 import bcrypt from "bcryptjs"
 import { AppError } from "../utils/AppError"
 import { getOrSetCache } from '../utils/cache';
@@ -101,7 +101,9 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
 export const getUserDashboardStats = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const user = req.user;
 
-    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting, pendingActivation, migrationSales, isPendingLevel2Migration] = await Promise.all([
+    const isMigrated = (user.level ?? 0) >= 2 && user.migratedAt != null;
+
+    const [totalSales, wallets, region, regionTotalUsers, assetPriceSetting, pendingActivation, migrationSales, isPendingLevel2Migration, salesSinceMigration] = await Promise.all([
         prisma.user.count({
             where: {
                 referralId: user.id,
@@ -145,7 +147,18 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
         // Check if user is pending level 2 migration
         prisma.pending_level2_migrations.findFirst({
             where: { user_id: user.id }
-        }).then(m => !!m)
+        }).then(m => !!m),
+        // Count adult referrals since migration, for migrated (level >= 2) users
+        isMigrated
+            ? prisma.user.count({
+                where: {
+                    referralId: user.id,
+                    status: true,
+                    isInfant: false,
+                    createdAt: { gte: user.migratedAt },
+                },
+            })
+            : Promise.resolve(0)
     ])
 
     const activationPrice = Number(assetPriceSetting?.value) || 2500;
@@ -154,7 +167,12 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
     const activationCharge = pagaCharges * (1 + pagaVat);
     const infantFormFee = 30000;
 
-    const assetDepot = MAX_ASSET_DEPOT - (totalSales % MAX_ASSET_DEPOT);
+    // Migrated (level >= 2) users get a much bigger depot (2000 slots, counted from migratedAt)
+    // instead of the default 36-sale cycle.
+    const assetDepotTarget = isMigrated ? MIGRATED_REFERRAL_TARGET : MAX_ASSET_DEPOT;
+    const assetDepot = isMigrated
+        ? Math.max(assetDepotTarget - salesSinceMigration, 0)
+        : assetDepotTarget - (totalSales % assetDepotTarget);
 
     const baseTotal = activationPrice + (user.isInfant && !user.sponsorId ? infantFormFee : 0);
     const totalWithCharge = baseTotal * (1 + activationCharge);
@@ -167,6 +185,7 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
         region,
         regionTotalUsers,
         assetDepot,
+        assetDepotTarget,
         hasPendingActivation: pendingActivation !== null,
         activation: {
             price: activationPrice,
