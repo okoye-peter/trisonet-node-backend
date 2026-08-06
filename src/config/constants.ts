@@ -148,3 +148,7 @@ export const NEW_REFERRAL_SYSTEM = {
     start_date: new Date('2026-04-01'),
     target: 10,
 } as const;
+
+// Referrers who have migrated to level 2 get a much higher referral target,
+// counted from their own migratedAt date instead of the global start date.
+export const MIGRATED_REFERRAL_TARGET = 2000;

@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma, WalletType, User, Prisma } from "../config/prisma.js";
 import RegionService from "./region.service.js";
-import { ROLES, INFANT_FORM_FEE, NEW_REFERRAL_SYSTEM } from "../config/constants.js";
+import { ROLES, INFANT_FORM_FEE, NEW_REFERRAL_SYSTEM, MIGRATED_REFERRAL_TARGET } from "../config/constants.js";
 import { handleReferral } from "./referral.service.js";
 import WalletService from "./wallet.service.js";
 import { AccountActivationService } from "./account_activation.service.js";
@@ -68,19 +68,30 @@ export const createUser = async (data: UserRequestData) => {
         throw new AppError('Referral ID is invalid', 400);
     }
 
-    // Block registration if the referral link has reached its target since the new system start date
+    // Block registration if the referral link has reached its target since the new system start date.
+    // Referrers who have migrated to level 2 get a much higher target (2000), counted from
+    // their own migratedAt date instead of the global new-system start date.
     if (referral.referralId) {
+        const referrer = await prisma.user.findUnique({
+            where: { id: referral.referralId },
+            select: { level: true, migratedAt: true },
+        });
+
+        const isMigrated = (referrer?.level ?? 0) >= 2 && referrer?.migratedAt != null;
+        const target = isMigrated ? MIGRATED_REFERRAL_TARGET : NEW_REFERRAL_SYSTEM.target;
+        const startDate = isMigrated ? referrer!.migratedAt! : NEW_REFERRAL_SYSTEM.start_date;
+
         const salesSinceStart = await prisma.user.count({
             where: {
                 referralId: referral.referralId,
                 status: true,
                 isInfant: false,
-                createdAt: { gte: NEW_REFERRAL_SYSTEM.start_date },
+                createdAt: { gte: startDate },
             },
         });
-        if (salesSinceStart >= NEW_REFERRAL_SYSTEM.target) {
-            const startDate = NEW_REFERRAL_SYSTEM.start_date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-            throw new Error(`The partnership link used is exhausted and can't be used again as of ${startDate}`);
+        if (salesSinceStart >= target) {
+            const startDateStr = startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            throw new Error(`The partnership link used is exhausted and can't be used again as of ${startDateStr}`);
         }
     }
 
