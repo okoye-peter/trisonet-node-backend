@@ -154,11 +154,16 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
                 where: {
                     referralId: user.id,
                     status: true,
-                    isInfant: false,
                     createdAt: { gte: user.migratedAt },
                 },
             })
-            : Promise.resolve(0)
+            : prisma.user.count({
+                where: {
+                    referralId: user.id,
+                    status: true,
+                    createdAt: { gte: NEW_REFERRAL_SYSTEM.start_date }
+                }
+            })
     ])
 
     const activationPrice = Number(assetPriceSetting?.value) || 2500;
@@ -168,8 +173,8 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
     const infantFormFee = 30000;
 
     // Migrated (level >= 2) users get a much bigger depot (2000 slots, counted from migratedAt)
-    // instead of the default 36-sale cycle.
-    const assetDepotTarget = isMigrated ? MIGRATED_REFERRAL_TARGET : MAX_ASSET_DEPOT;
+    // instead of the default 10-sale cycle.
+    const assetDepotTarget = isMigrated ? MIGRATED_REFERRAL_TARGET : NEW_REFERRAL_SYSTEM.target;
     const assetDepot = isMigrated
         ? Math.max(assetDepotTarget - salesSinceMigration, 0)
         : assetDepotTarget - (totalSales % assetDepotTarget);

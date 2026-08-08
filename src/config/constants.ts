@@ -114,7 +114,7 @@ export const MAX_PATRONS_PER_GROUP = 10;
 
 export const INFANT_FORM_FEE = 30000;
 
-export const MAX_ASSET_DEPOT = 36;
+export const MAX_ASSET_DEPOT = 30;
 
 export const COMPANY_DETAILS = {
     NAME: 'Trisonet',
