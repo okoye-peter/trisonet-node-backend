@@ -5,10 +5,10 @@ import { sendSuccess } from "../utils/responseWrapper";
 import { AppError } from "../utils/AppError";
 
 export const testGenerateVirtualAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { amount, customerName, customerPhoneNumber, reference } = req.body;
+    const { amount, customerName, customerPhoneNumber, customerEmail, reference } = req.body;
 
     const pagaService = new PagaService();
-    
+
     // Generate a reference if not provided
     const ref = reference || pagaService.generateReference('TEST_VR');
 
@@ -16,7 +16,8 @@ export const testGenerateVirtualAccount = asyncHandler(async (req: Request, res:
         Number(amount),
         customerName,
         customerPhoneNumber,
-        ref
+        ref,
+        customerEmail
     );
 
     if (!response.success) {

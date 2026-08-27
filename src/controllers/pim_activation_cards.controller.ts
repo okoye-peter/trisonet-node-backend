@@ -237,7 +237,8 @@ export const generateVirtualAccountForCardPurchase = asyncHandler(async (req: Re
         totalWithoutCharges,
         user?.name as string,
         (user?.phone ?? user?.guardianUser?.phone ?? COMPANY_DETAILS.PHONE_NUMBER) as string,
-        ref
+        ref,
+        (user?.email ?? user?.guardianUser?.email) || undefined
     );
 
     if (!response.success) {

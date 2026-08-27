@@ -313,7 +313,8 @@ export class PaymentService {
             Number(gkwthAmount) * Number(priceSetting?.value),
             user?.name as string,
             user?.phone as string,
-            ref
+            ref,
+            user?.email
         );
 
         if (!response.success) {
@@ -362,7 +363,8 @@ export class PaymentService {
             Number(amount),
             user.name,
             user.phone,
-            ref
+            ref,
+            user.email
         );
 
         if (!response.success) {
@@ -422,7 +424,8 @@ export class PaymentService {
             Number(amount),
             user.name,
             user.phone,
-            ref
+            ref,
+            user.email
         );
 
         if (!response.success) {
@@ -550,7 +553,8 @@ export class PaymentService {
             rawAmount,
             user?.name as string,
             user?.phone as string,
-            ref
+            ref,
+            user?.email
         );
 
         if (!response.success) {
@@ -610,7 +614,8 @@ export class PaymentService {
             rawAmount,
             user?.name as string,
             user?.phone as string,
-            ref
+            ref,
+            user?.email
         );
 
         if (!response.success) {
@@ -1220,7 +1225,8 @@ export class PaymentService {
             baseAmount,
             user.name || 'User',
             user.phone || '08000000000',
-            ref
+            ref,
+            user.email
         );
 
         if (!response.success) {

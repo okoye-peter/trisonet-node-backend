@@ -96,6 +96,7 @@ export class PagaService {
         customerName: string,
         customerPhoneNumber: string,
         referenceNumber?: string,
+        customerEmail?: string,
         options: any = {}
     ): Promise<PagaResponse> {
         const refNumber = referenceNumber || this.generateReference('VR');
@@ -108,10 +109,21 @@ export class PagaService {
 
         const currency = "NGN";
 
+        // Non-Nigerian numbers can't be formatted into a valid Paga MSISDN — fall back to email
+        const formattedPhone = this.formatPhoneNumber(customerPhoneNumber || COMPANY_DETAILS.PHONE_NUMBER);
+        const fallbackEmail = options.payer?.email || customerEmail || '';
+
+        if (!formattedPhone && !fallbackEmail) {
+            return {
+                success: false,
+                error: 'A valid Nigerian phone number or an email address is required to generate payment details',
+                operation: 'generateVirtualAccount'
+            };
+        }
+
         const payer = {
             name: customerName,
-            phoneNumber: this.formatPhoneNumber(customerPhoneNumber || COMPANY_DETAILS.PHONE_NUMBER),
-            email: "",
+            ...(formattedPhone ? { phoneNumber: formattedPhone } : { email: fallbackEmail }),
             ...options.payer
         };
 
@@ -694,7 +706,8 @@ export class PagaService {
             return '234' + cleaned;
         }
 
-        return cleaned;
+        // Anything else (e.g. a foreign country code) isn't a valid Nigerian MSISDN
+        return '';
     }
 
     /**

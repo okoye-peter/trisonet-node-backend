@@ -49,16 +49,6 @@ export const VTU_NG = {
     PASSWORD: process.env.VTU_PASSWORD,
 } as const;
 
-export const TERMII = {
-    API_KEY: process.env.TERMII_API_KEY,
-    SENDER_ID: process.env.TERMII_SENDER_ID,
-    EMAIL_CONFIGURATION_ID: process.env.TERMII_EMAIL_CONFIG_ID,
-    // Every Termii "send-email" template gets its own env var + entry here.
-    // Add new templates by naming them here rather than reading process.env directly in services.
-    EMAIL_TEMPLATES: {
-        WELCOME: process.env.TERMII_WELCOME_TEMPLATE_ID,
-    },
-} as const;
 
 export const SCHOOL_FEES_PENALTY_CHARGE = 100000;
 

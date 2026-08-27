@@ -433,7 +433,8 @@ export const createGroup = asyncHandler(async (req: Request, res: Response, next
         totalAmount,
         name,
         user.phone || '',
-        reference
+        reference,
+        user.email
     );
 
     if (!result.success) {

@@ -777,7 +777,7 @@ export class AuctionService {
 
         const pagaService = new PagaService();
         const reference = pagaService.generateReference("AUCTIONCLAIM");
-        const response = await pagaService.generateVirtualAccount(winningBid.amount, user.name, user.phone, reference);
+        const response = await pagaService.generateVirtualAccount(winningBid.amount, user.name, user.phone, reference, user.email);
         if (!response.success) {
             throw new AppError(response.error || "Failed to generate payment details, please try again", 400);
         }

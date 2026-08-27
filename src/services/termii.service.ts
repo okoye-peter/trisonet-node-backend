@@ -1,11 +1,76 @@
 import { logger } from '../utils/logger.js';
 import { countries } from 'countries-list';
-import { TERMII } from '../config/constants';
 
 export class TermiiService {
     private static apiKey = process.env.TERMII_API_KEY;
-    private static emailConfigId = process.env.TERMII_EMAIL_CONFIG_ID;
     private static senderId = process.env.TERMII_SENDER_ID || 'N-Alert';
+    private static emailConfigurationId = process.env.TERMII_EMAIL_CONFIG_ID;
+    private static templateEmailConfigurationId = process.env.TERMII_TEMPLATE_EMAIL_CONFIG_ID;
+
+    public static async sendTemplateEmail(email: string, subject: string, variables: Record<string, string>, templateId?: string) {
+        if (!templateId) {
+            logger.error('termii template email error: missing template id', { email, subject });
+            return { status: false, error: "sorry can't mail at the moment", message: 'missing template id' };
+        }
+
+        try {
+            const response = await fetch('https://api.ng.termii.com/api/templates/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    api_key: this.apiKey,
+                    email_configuration_id: this.templateEmailConfigurationId,
+                    template_id: templateId,
+                    email,
+                    subject,
+                    variables
+                })
+            });
+
+            const data: any = await response.json();
+
+            if (response.ok && data?.code === 'ok') {
+                return { status: true, data };
+            }
+
+            logger.error('termii template email error', data);
+            return { status: false, error: "sorry can't mail at the moment", message: data };
+        } catch (error) {
+            logger.error('termii template email error', { error });
+            return { status: false, error: "sorry can't mail at the moment", message: error };
+        }
+    }
+
+    public static async sendEmailOtp(email: string, code: string) {
+        try {
+            const response = await fetch('https://api.ng.termii.com/api/email/otp/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    api_key: this.apiKey,
+                    email_configuration_id: this.emailConfigurationId,
+                    code,
+                    email_address: email
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                return { status: true, data };
+            }
+
+            logger.error('termii email error', data);
+            return { status: false, error: "sorry can't mail at the moment", message: data };
+        } catch (error) {
+            logger.error('termii email error', { error });
+            return { status: false, error: "sorry can't mail at the moment", message: error };
+        }
+    }
 
     public static async sendSms(phone: string, msg: string) {
         const { country, from, channel } = this.getCountry(phone);
@@ -84,94 +149,4 @@ export class TermiiService {
         };
     }
 
-    public static async sendMailWithTermii(email: string, code: string) {
-        try {
-            const response = await fetch('https://api.ng.termii.com/api/email/otp/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    api_key: this.apiKey,
-                    email_configuration_id: this.emailConfigId,
-                    code: code,
-                    email_address: email
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                return { status: true, data };
-            }
-
-            logger.error('termii mail error', { data });
-            return { status: false, error: "sorry can't mail at the moment", message: data };
-        } catch (error) {
-            logger.error('termii mail error', { error });
-            return { status: false, error: "sorry can't mail at the moment", message: error };
-        }
-    }
-
-    public static async sendTemplate(
-        email: string,
-        subject: string,
-        variables: Record<string, string>,
-        templateId: string = '6bd1e7d7-9271-4edd-bcca-4849a6cd6858',
-        emailConfigurationId: string = 'f4f54611-4cd3-4490-96ab-f9a764f4f869'
-    ): Promise<boolean> {
-        try {
-            const response = await fetch('https://api.ng.termii.com/api/templates/send-email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    api_key: this.apiKey,
-                    email_configuration_id: emailConfigurationId,
-                    template_id: templateId,
-                    email,
-                    subject,
-                    variables,
-                }),
-            });
-
-            const data = await response.json() as { code?: string };
-
-            if (!response.ok) {
-                logger.error('Termii sendTemplate error', {
-                    email,
-                    status: response.status,
-                    response: data,
-                });
-            } else {
-                logger.info('Termii sendTemplate success', {
-                    email,
-                    response: data,
-                });
-            }
-
-            return response.ok && data.code === 'ok';
-        } catch (error) {
-            logger.error('Termii sendTemplate exception', { email, error });
-            return false;
-        }
-    }
-
-    public static async sendWelcomeEmail(email: string, name: string, password: string, intro: string): Promise<boolean> {
-        const templateId = TERMII.EMAIL_TEMPLATES.WELCOME;
-
-        if (!templateId) {
-            logger.error('TERMII_WELCOME_TEMPLATE_ID is not configured, skipping welcome email', { email });
-            return false;
-        }
-
-        return this.sendTemplate(
-            email,
-            'Welcome to Trisonet',
-            { name, email, password, intro },
-            templateId,
-            this.emailConfigId
-        );
-    }
 }
