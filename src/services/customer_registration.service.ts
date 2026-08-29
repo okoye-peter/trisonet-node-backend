@@ -69,6 +69,7 @@ export const createUser = async (data: UserRequestData) => {
     }
 
     // Block registration if the referral link has reached its target since the new system start date.
+    // Slots are shared across infant and adult registrations under the same link.
     // Referrers who have migrated to level 2 get a much higher target (2000), counted from
     // their own migratedAt date instead of the global new-system start date.
     if (referral.referralId) {
@@ -85,7 +86,7 @@ export const createUser = async (data: UserRequestData) => {
             where: {
                 referralId: referral.referralId,
                 status: true,
-                isInfant: false,
+                role: ROLES.CUSTOMER,
                 createdAt: { gte: startDate },
             },
         });
