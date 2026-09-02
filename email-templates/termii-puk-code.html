@@ -1,0 +1,82 @@
+<!--
+  Trisonet - PUK code email (Termii template)
+
+  Paste this into the Termii dashboard as a new EMAIL template, then set the
+  resulting template id as TERMII_PUK_TEMPLATE_ID in the backend .env.
+  It is sent by EmailService.sendPukEmail() via TermiiService.sendTemplateEmail().
+
+  Variable used: {{code}}  - supplied as `variables: { code }` from the backend.
+  If Termii's editor expects a different placeholder syntax, keep the name `code`
+  and adjust only the braces.
+
+  Table-based layout with fully inline styles: required for Outlook/Gmail.
+  Do not add <style> blocks, external CSS, images, or web fonts.
+-->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#f4f5f7" style="margin:0; padding:0; background-color:#f4f5f7;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="480" style="width:480px; max-width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #e5e7eb;">
+
+        <!-- accent bar -->
+        <tr>
+          <td bgcolor="#0f766e" style="background-color:#0f766e; height:4px; line-height:4px; font-size:0;">&nbsp;</td>
+        </tr>
+
+        <tr>
+          <td style="padding:28px 28px 8px 28px; font-family:Arial,Helvetica,sans-serif;">
+
+            <!-- brand -->
+            <p style="margin:0 0 20px 0; font-size:20px; font-weight:bold; color:#0f766e;">Trisonet</p>
+
+            <!-- label -->
+            <p style="margin:0 0 16px 0; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; color:#6b7280;">Account Reactivation</p>
+
+            <p style="margin:0 0 4px 0; font-size:15px; line-height:22px; color:#1a1a1a;">
+              Your PUK code to reactivate your Trisonet account is:
+            </p>
+          </td>
+        </tr>
+
+        <!-- the code -->
+        <tr>
+          <td style="padding:8px 28px 8px 28px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#f0fdfa" style="background-color:#f0fdfa; border:1px solid #99f6e4; border-radius:8px;">
+              <tr>
+                <td align="center" style="padding:18px 12px; font-family:'Courier New',Courier,monospace; font-size:28px; font-weight:bold; letter-spacing:5px; color:#0f766e;">
+                  {{code}}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:8px 28px 24px 28px; font-family:Arial,Helvetica,sans-serif;">
+            <p style="margin:12px 0 0 0; font-size:14px; line-height:21px; color:#1a1a1a;">
+              Enter this code on the reactivation screen to unblock your account.
+              It stays valid until you use it.
+            </p>
+
+            <p style="margin:16px 0 0 0; font-size:14px; line-height:21px; color:#b91c1c;">
+              Do not share this code with anyone. Trisonet staff will never ask you for it.
+            </p>
+          </td>
+        </tr>
+
+        <!-- footer -->
+        <tr>
+          <td style="padding:16px 28px 24px 28px; border-top:1px solid #e5e7eb; font-family:Arial,Helvetica,sans-serif;">
+            <p style="margin:0; font-size:12px; line-height:18px; color:#6b7280;">
+              This is an automated message from Trisonet. If you did not request a PUK code,
+              please ignore this email or contact us at
+              <a href="mailto:info@trisonet.com" style="color:#0f766e; text-decoration:underline;">info@trisonet.com</a>.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>

@@ -5,7 +5,9 @@ export class TermiiService {
     private static apiKey = process.env.TERMII_API_KEY;
     private static senderId = process.env.TERMII_SENDER_ID || 'N-Alert';
     private static emailConfigurationId = process.env.TERMII_EMAIL_CONFIG_ID;
-    private static templateEmailConfigurationId = process.env.TERMII_TEMPLATE_EMAIL_CONFIG_ID;
+    // Termii's template endpoint takes the same email configuration as the OTP endpoint,
+    // so fall back to it rather than requiring the id to be set twice.
+    private static templateEmailConfigurationId = process.env.TERMII_TEMPLATE_EMAIL_CONFIG_ID || process.env.TERMII_EMAIL_CONFIG_ID;
 
     public static async sendTemplateEmail(email: string, subject: string, variables: Record<string, string>, templateId?: string) {
         if (!templateId) {
