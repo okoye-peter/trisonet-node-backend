@@ -18,3 +18,10 @@ export const addOtpEmailJob = async (email: string, code: string) => {
         code
     });
 };
+
+export const addPukEmailJob = async (email: string, code: string) => {
+    await mailQueue.add('sendPukEmail', {
+        email,
+        code
+    });
+};

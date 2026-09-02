@@ -15,6 +15,11 @@ export const mailWorker = new Worker(
             const { email, code } = job.data;
             await EmailService.sendOtpEmail(email, code);
         }
+
+        if (job.name === 'sendPukEmail') {
+            const { email, code } = job.data;
+            await EmailService.sendPukEmail(email, code);
+        }
     },
     { connection: redisConnection, concurrency: 5 } // Handling concurrency
 );

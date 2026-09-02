@@ -5,7 +5,7 @@ import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
 import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS } from "../config/constants.js";
-import { addSmsJob, addOtpEmailJob } from '../queue/index.js';
+import { addSmsJob, addPukEmailJob } from '../queue/index.js';
 import AuctionService from './auction.service.js';
 
 
@@ -950,7 +950,7 @@ export class PaymentService {
 
         if (user.email) {
             try {
-                await addOtpEmailJob(user.email, code);
+                await addPukEmailJob(user.email, code);
             } catch (mailError) {
                 pagaLogger.error(`Failed to send PUK email to ${user.email}:`, mailError);
             }

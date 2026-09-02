@@ -34,6 +34,12 @@ const otpEmailTemplate = (code: string) => wrapInLayout(`
     <p>This code will expire shortly. Do not share it with anyone.</p>
 `);
 
+const pukEmailTemplate = (code: string) => wrapInLayout(`
+    <p>Your PUK code to reactivate your ${COMPANY_DETAILS.NAME} account is:</p>
+    <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 16px 0;">${code}</p>
+    <p>Enter this code on the reactivation screen to unblock your account. It stays valid until you use it. Do not share it with anyone.</p>
+`);
+
 const welcomeEmailTemplate = (name: string, email: string, password: string, intro: string) => wrapInLayout(`
     <p>Hi ${name},</p>
     <p>${intro}</p>
@@ -61,6 +67,42 @@ export class EmailService {
             return true;
         } catch (error) {
             logger.error('zoho otp email error', { email, error });
+            return false;
+        }
+    }
+
+    // A PUK is not an OTP: it stays valid until it is used. Termii's shared OTP template
+    // hard-codes "verification code ... expires in 10 minutes", which is wrong on both
+    // counts, so prefer a PUK-specific template when one is configured.
+    public static async sendPukEmail(email: string, code: string): Promise<boolean> {
+        if (await getMailProvider() === 'termii') {
+            if (process.env.TERMII_PUK_TEMPLATE_ID) {
+                const result = await TermiiService.sendTemplateEmail(
+                    email,
+                    `Your ${COMPANY_DETAILS.NAME} PUK code`,
+                    { code },
+                    process.env.TERMII_PUK_TEMPLATE_ID
+                );
+                return result.status;
+            }
+
+            // No PUK template configured - fall back to the OTP path so the code still
+            // reaches the user, even though the wording will be the generic one.
+            logger.warn('TERMII_PUK_TEMPLATE_ID not set, falling back to generic OTP email template', { email });
+            const result = await TermiiService.sendEmailOtp(email, code);
+            return result.status;
+        }
+
+        try {
+            await transporter.sendMail({
+                from: `"${COMPANY_DETAILS.NAME}" <${process.env.ZOHO_EMAIL}>`,
+                to: email,
+                subject: `Your ${COMPANY_DETAILS.NAME} PUK code`,
+                html: pukEmailTemplate(code),
+            });
+            return true;
+        } catch (error) {
+            logger.error('zoho puk email error', { email, error });
             return false;
         }
     }
