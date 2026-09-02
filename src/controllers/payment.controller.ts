@@ -184,6 +184,12 @@ export const unblockWithPuk = asyncHandler(async (req: Request, res: Response, n
     return sendSuccess(res, 200, 'Account unblocked successfully', result);
 });
 
+export const checkPukPaymentStatus = asyncHandler(async (req: Request, res: Response) => {
+    const paymentService = new PaymentService();
+    const result = await paymentService.checkPukPaymentStatus(BigInt(req.user.id));
+    return sendSuccess(res, 200, 'Payment status checked', result);
+});
+
 export const verifyPaymentStatus = asyncHandler(async (req: Request, res: Response) => {
     const reference = req.params.reference as string;
     const pagaService = new PagaService();

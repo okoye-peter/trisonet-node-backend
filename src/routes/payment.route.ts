@@ -17,6 +17,7 @@ import {
     submitActivationProof,
     generatePukVirtualAccount,
     unblockWithPuk,
+    checkPukPaymentStatus,
     verifyPaymentStatus,
     verifyCardCharge
 } from "../controllers/payment.controller";
@@ -32,6 +33,7 @@ router.use(protect);
 // PUK unblocking routes bypass isBlocked — blocked users must be able to reach these
 router.post('/puk/generate-virtual-account', generatePukVirtualAccount);
 router.post('/puk/unblock-with-puk', unblockWithPuk);
+router.get('/puk/check-status', checkPukPaymentStatus);
 
 // All remaining payment routes enforce the blocked-account check
 router.use(isBlocked);

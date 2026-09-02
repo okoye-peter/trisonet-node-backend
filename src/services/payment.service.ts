@@ -1194,19 +1194,34 @@ export class PaymentService {
             throw new AppError('Your account is not blocked', 400);
         }
 
-        // Throttle check (10 minutes)
-        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        // Reuse an existing pending payment while it's still within Paga's ~30 minute
+        // validity window instead of deleting it and minting a new reference. Previously,
+        // re-clicking "Generate Account" (e.g. after a page refresh, which doesn't persist
+        // the shown account) deleted the still-live reference the user had already paid
+        // into, so Paga's webhook later arrived for a reference that no longer existed and
+        // the PUK code was never sent.
+        const validWindowAgo = new Date(Date.now() - 25 * 60 * 1000);
         const lastPending = await prisma.unblockingPayment.findFirst({
             where: {
                 userId,
                 status: false,
-                createdAt: { gte: tenMinutesAgo }
-            }
+                createdAt: { gte: validWindowAgo }
+            },
+            orderBy: { createdAt: 'desc' }
         });
 
         if (lastPending) {
-            const minutesLeft = Math.ceil((lastPending.createdAt!.getTime() + 10 * 60 * 1000 - Date.now()) / (60 * 1000));
-            throw new AppError(`Please wait ${minutesLeft} minute(s) before creating a new PUK request`, 400);
+            return {
+                status: true,
+                account_detail: {
+                    account_name: lastPending.accountName,
+                    bank_name: lastPending.bank,
+                    account_number: lastPending.accountNumber,
+                    expires_at: format(addMinutes(lastPending.createdAt!, 28), 'HH:mm'),
+                    amount: lastPending.amount,
+                    reference: lastPending.reference
+                }
+            };
         }
 
         // Get PUK price setting
@@ -1233,11 +1248,13 @@ export class PaymentService {
             throw new AppError(response.error || 'Failed to generate virtual account', 400);
         }
 
-        // Delete any old pending unblocking payments
+        // Clear out expired pending payments (a still-valid one would have been
+        // reused above, so anything left here is dead and safe to drop)
         await prisma.unblockingPayment.deleteMany({
             where: {
                 userId,
-                status: false
+                status: false,
+                createdAt: { lt: validWindowAgo }
             }
         });
 
@@ -1293,6 +1310,57 @@ export class PaymentService {
             status: true,
             message: 'Your account has been unblocked successfully!'
         };
+    }
+
+    // Self-serve fallback for when Paga's webhook is delayed or never arrives:
+    // actively asks Paga for the reference's status instead of only waiting on the callback.
+    async checkPukPaymentStatus(userId: bigint) {
+        const unblockingPayment = await prisma.unblockingPayment.findFirst({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (!unblockingPayment) {
+            throw new AppError('No PUK payment request found', 404);
+        }
+
+        if (unblockingPayment.status) {
+            return { status: 'already_processed', message: 'Your PUK code has already been generated and sent to your registered phone number.' };
+        }
+
+        if (!unblockingPayment.reference) {
+            throw new AppError('This payment record has no reference to verify', 400);
+        }
+
+        const pagaService = new PagaService();
+        const verification = await pagaService.verifyPayment(unblockingPayment.reference);
+
+        if (!verification.success) {
+            throw new AppError(verification.error || 'Unable to verify payment with Paga', 400);
+        }
+
+        if (!verification.is_paid) {
+            return { status: 'pending', message: 'Payment not received yet. Please try again in a moment.' };
+        }
+
+        const result = await this.processPukUnblocking({
+            externalReferenceNumber: unblockingPayment.reference,
+            paymentAmount: verification.amount
+        });
+
+        if (result.status === 'ok') {
+            return { status: 'ok', message: 'Payment confirmed! Your PUK code has been sent.' };
+        }
+
+        if (result.status === 'amount_mismatch') {
+            throw new AppError('The amount received does not match the expected amount', 400);
+        }
+
+        if (result.status === 'missing_phone') {
+            throw new AppError('No phone number on file to receive the PUK code', 400);
+        }
+
+        return result;
     }
 }
 
