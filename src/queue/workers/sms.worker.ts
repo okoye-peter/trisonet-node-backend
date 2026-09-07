@@ -8,7 +8,8 @@ export const smsWorker = new Worker(
     async (job: Job) => {
         if (job.name === 'sendSms') {
             const { phoneNumber, message } = job.data;
-            await TermiiService.sendSms(phoneNumber, message);
+            const result = await TermiiService.sendSms(phoneNumber, message);
+            if (!result.status) throw new Error(`sendSms failed for ${phoneNumber}`);
         }
     },
     { connection: redisConnection, concurrency: 5 } // Handling concurrency

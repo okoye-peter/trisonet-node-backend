@@ -6,6 +6,7 @@ import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
 import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS } from "../config/constants.js";
 import { addSmsJob, addPukEmailJob } from '../queue/index.js';
+import { TermiiService } from './termii.service.js';
 import AuctionService from './auction.service.js';
 
 
@@ -914,9 +915,14 @@ export class PaymentService {
 
         const user = unblockingPayment.user;
         const phone = user.phone || user.guardianUser?.phone;
+        const isNigerian = phone ? TermiiService.getCountry(phone).country === 'Nigeria' : false;
 
-        if (!phone) {
-            pagaLogger.error(`User ${user.id} does not have a valid phone number to receive PUK code`);
+        if (!phone && !user.email) {
+            pagaLogger.error(`User ${user.id} does not have a valid phone number or email to receive PUK code`);
+            return { status: 'missing_phone' };
+        }
+        if (!isNigerian && !user.email) {
+            pagaLogger.error(`User ${user.id} is outside Nigeria and has no email to receive PUK code`);
             return { status: 'missing_phone' };
         }
 
@@ -942,10 +948,12 @@ export class PaymentService {
         const isWard = !user.phone && user.guardianUser;
         const message = `Hello ${nameCapitalized} this is your ${isWard ? "ward's " + nameCapitalized + " PIM" : "PIM"} activation puk code: ${code}`;
 
-        try {
-            await addSmsJob(phone, message);
-        } catch (smsError) {
-            pagaLogger.error(`Failed to send PUK SMS to ${phone}:`, smsError);
+        if (isNigerian) {
+            try {
+                await addSmsJob(phone!, message);
+            } catch (smsError) {
+                pagaLogger.error(`Failed to send PUK SMS to ${phone}:`, smsError);
+            }
         }
 
         if (user.email) {
@@ -1357,7 +1365,7 @@ export class PaymentService {
         }
 
         if (result.status === 'missing_phone') {
-            throw new AppError('No phone number on file to receive the PUK code', 400);
+            throw new AppError('No valid phone number or email on file to receive the PUK code', 400);
         }
 
         return result;

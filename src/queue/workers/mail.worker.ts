@@ -8,17 +8,20 @@ export const mailWorker = new Worker(
     async (job: Job) => {
         if (job.name === 'sendWelcomeEmail') {
             const { email, name, password, intro } = job.data;
-            await EmailService.sendWelcomeEmail(email, name, password, intro);
+            const sent = await EmailService.sendWelcomeEmail(email, name, password, intro);
+            if (!sent) throw new Error(`sendWelcomeEmail failed for ${email}`);
         }
 
         if (job.name === 'sendOtpEmail') {
             const { email, code } = job.data;
-            await EmailService.sendOtpEmail(email, code);
+            const sent = await EmailService.sendOtpEmail(email, code);
+            if (!sent) throw new Error(`sendOtpEmail failed for ${email}`);
         }
 
         if (job.name === 'sendPukEmail') {
             const { email, code } = job.data;
-            await EmailService.sendPukEmail(email, code);
+            const sent = await EmailService.sendPukEmail(email, code);
+            if (!sent) throw new Error(`sendPukEmail failed for ${email}`);
         }
     },
     { connection: redisConnection, concurrency: 5 } // Handling concurrency
