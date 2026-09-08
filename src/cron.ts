@@ -136,6 +136,85 @@ async function verifyPendingActivationCards() {
     }
 }
 
+// ─── Job 2b: Pending Shop Order Payments ──────────────────────────────────────
+
+// Shop order virtual accounts expire after 30 minutes (see PagaService.getNigeriaExpiry),
+// so this job uses its own, much shorter window than the activation/card jobs above.
+const SHOP_ORDER_MIN_AGE_MINUTES = 2;
+const SHOP_ORDER_STALE_MINUTES = 35;
+
+async function verifyPendingShopOrders() {
+    const now = Date.now();
+    const window = {
+        gte: new Date(now - SHOP_ORDER_STALE_MINUTES * 60 * 1000),
+        lte: new Date(now - SHOP_ORDER_MIN_AGE_MINUTES * 60 * 1000),
+    };
+
+    const pending = await prisma.pendingShopOrder.findMany({
+        where: {
+            status: 'pending',
+            createdAt: window,
+        },
+        select: { paymentReference: true, amount: true },
+        take: BATCH_LIMIT,
+    });
+
+    if (pending.length === 0) return;
+
+    pagaLogger.info(`[cron] Checking ${pending.length} pending shop order(s)`);
+
+    for (const txn of pending) {
+        const reference = txn.paymentReference!;
+        try {
+            const verification = await pagaService.verifyPayment(reference);
+
+            const innerStatus = verification.full_response?.data?.statusMessage?.toLowerCase();
+            if (!verification.success || innerStatus !== 'success') {
+                pagaLogger.info(`[cron] Shop order ${reference}: status="${innerStatus ?? 'unknown'}" — skipping`);
+                continue;
+            }
+
+            pagaLogger.info(`[cron] Shop order ${reference}: payment confirmed — processing`);
+
+            const paidAmount = verification.full_response?.data?.totalPaymentAmount
+                ?? verification.full_response?.data?.requestAmount
+                ?? verification.amount
+                ?? Number(txn.amount);
+
+            const result = await paymentService.processShopOrderPayment({
+                externalReferenceNumber: reference,
+                event: 'PAYMENT_COMPLETE',
+                status: 'SUCCESSFUL',
+                paymentAmount: paidAmount,
+            });
+
+            pagaLogger.info(`[cron] Shop order ${reference}: result = ${JSON.stringify(result)}`);
+        } catch (err: any) {
+            pagaLogger.error(`[cron] Error verifying shop order ${reference}: ${err.message}`);
+        }
+    }
+}
+
+async function markStaleShopOrdersFailed() {
+    const expirationThreshold = new Date(Date.now() - SHOP_ORDER_STALE_MINUTES * 60 * 1000);
+
+    try {
+        const result = await prisma.pendingShopOrder.updateMany({
+            where: {
+                status: 'pending',
+                createdAt: { lt: expirationThreshold },
+            },
+            data: { status: 'failed' },
+        });
+
+        if (result.count > 0) {
+            pagaLogger.info(`[cron] Marked ${result.count} stale shop order payment(s) as failed`);
+        }
+    } catch (err: any) {
+        pagaLogger.error(`[cron] Error marking stale shop orders failed: ${err.message}`);
+    }
+}
+
 // ─── Job 3: Cleanup Stale Unpaid Records ─────────────────────────────────────
 
 async function cleanupStaleRecords() {
@@ -478,6 +557,8 @@ if (isPrimaryCluster) {
         try {
             // await verifyPendingActivationRequests();
             // await verifyPendingActivationCards();
+            await verifyPendingShopOrders();
+            await markStaleShopOrdersFailed();
             await cleanupStaleRecords();
             await backfillMissingTransferIds();
         } catch (err: any) {

@@ -70,6 +70,17 @@ export const ORDER_PAYMENT_METHODS = {
     CARD: 2,
 } as const;
 
+// Flat delivery fee for shop orders, matching the reference design.
+export const SHOP_DELIVERY_FEE = 1500;
+
+// Mirrors config('constant.product.status') on the PHP side exactly — PHP's admin
+// review workflow is the source of truth for these values, do not change here alone.
+export const PRODUCT_STATUS = {
+    PENDING: 0,
+    APPROVED: 1,
+    REJECTED: 2,
+} as const;
+
 export const UNBLOCKING_PAYMENT_STATUSES = {
     PENDING: 0,
     APPROVED: 1,

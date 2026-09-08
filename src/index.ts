@@ -34,6 +34,10 @@ import publicNoticeRouter from './routes/public_notice.route';
 import adminNoticeRouter from './routes/admin_notice.route';
 import auctionRouter from './routes/auction.route';
 import commissionLogRouter from './routes/commission_log.route';
+import productRouter from './routes/product.route';
+import categoryRouter from './routes/category.route';
+import shopOrderRouter from './routes/order.route';
+import reviewRouter from './routes/review.route';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSockets } from './sockets';
 
@@ -124,6 +128,10 @@ app.use('/api/public-notices', publicNoticeRouter);
 app.use('/api/admin-notices', adminNoticeRouter);
 app.use('/api/auctions', auctionRouter);
 app.use('/api/commission-logs', commissionLogRouter);
+app.use('/api/products', productRouter);
+app.use('/api/categories', categoryRouter);
+app.use('/api/orders', shopOrderRouter);
+app.use('/api/reviews', reviewRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);

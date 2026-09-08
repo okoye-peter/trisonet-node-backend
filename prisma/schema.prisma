@@ -133,6 +133,8 @@ model User {
   orderGroups                                                        OrderGroup[]
   patronGroupTransactions                                            PatronGroupTransaction[]
   patronGroupsOwned                                                  PatronGroup[]                    @relation("PGOwner")
+  pendingShopOrders                                                  PendingShopOrder[]
+  productReviews                                                     ProductReview[]
   pending_level2_migrations                                          pending_level2_migrations[]
   prizeUsers                                                         PrizeUser[]
   quizPhaseUsers                                                     QuizPhaseUser[]
@@ -774,23 +776,46 @@ model Category {
 }
 
 model Product {
-  id                 BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
-  name               String      @db.VarChar(255)
-  description        String      @db.Text
+  id                 BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  name               String          @db.VarChar(255)
+  description        String          @db.Text
   quantity           Int
-  price              String      @db.VarChar(255)
-  image              String      @db.VarChar(255)
-  cloudinaryPublicId String      @map("cloudinary_public_id") @db.VarChar(255)
-  categoryId         BigInt      @map("category_id") @db.UnsignedBigInt
-  createdAt          DateTime?   @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt          DateTime?   @updatedAt @map("updated_at") @db.Timestamp(0)
+  price              String          @db.VarChar(255)
+  image              String          @db.VarChar(255)
+  cloudinaryPublicId String          @map("cloudinary_public_id") @db.VarChar(255)
+  categoryId         BigInt          @map("category_id") @db.UnsignedBigInt
+  status             Int             @default(0) @db.TinyInt
+  isReturnable       Boolean         @default(true) @map("is_returnable")
+  reviewComment      String?         @map("review_comment") @db.Text
+  createdBy          BigInt?         @map("created_by") @db.UnsignedBigInt
+  reviewedBy         BigInt?         @map("reviewed_by") @db.UnsignedBigInt
+  reviewedAt         DateTime?       @map("reviewed_at") @db.Timestamp(0)
+  createdAt          DateTime?       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime?       @updatedAt @map("updated_at") @db.Timestamp(0)
   carts              Cart[]
   orderItems         OrderItem[]
-  category           Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "products_category_id_foreign")
+  category           Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "products_category_id_foreign")
   wishlists          Wishlist[]
+  images             ProductImage[]
+  reviews            ProductReview[]
 
   @@index([categoryId], map: "products_category_id_foreign")
   @@map("products")
+}
+
+model ProductImage {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  productId          BigInt    @map("product_id") @db.UnsignedBigInt
+  image              String    @db.VarChar(255)
+  cloudinaryPublicId String?   @map("cloudinary_public_id") @db.VarChar(255)
+  isDefault          Boolean   @default(false) @map("is_default")
+  sortOrder          Int       @default(0) @map("sort_order") @db.UnsignedInt
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
+  product            Product   @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "product_images_product_id_foreign")
+
+  @@index([productId], map: "product_images_product_id_foreign")
+  @@map("product_images")
 }
 
 model Cart {
@@ -825,7 +850,10 @@ model Wishlist {
 model OrderGroup {
   id                BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
   userId            BigInt?            @map("user_id") @db.UnsignedBigInt
-  status            Boolean            @default(true)
+  // 0=cancelled, 1=pending, 2=shipped, 3=delivered — see ORDER_GROUP_STATUSES.
+  // The PHP admin panel is the source of truth for progressing this; matches
+  // config('constant.order_groups.status') exactly, do not change here alone.
+  status            Int                @default(1) @db.TinyInt
   refNo             String             @unique(map: "order_groups_ref_no_unique") @map("ref_no") @db.VarChar(255)
   deliveredAt       DateTime?          @map("delivered_at") @db.Timestamp(0)
   stateId           BigInt?            @map("state_id") @db.UnsignedBigInt
@@ -838,6 +866,7 @@ model OrderGroup {
   user              User?              @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "order_groups_user_id_foreign")
   orderItems        OrderItem[]
   orderTransactions OrderTransaction[]
+  pendingShopOrder  PendingShopOrder?
 
   @@index([lgaId], map: "order_groups_lga_id_foreign")
   @@index([stateId], map: "order_groups_state_id_foreign")
@@ -846,35 +875,92 @@ model OrderGroup {
 }
 
 model OrderItem {
-  id           BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
-  orderGroupId BigInt     @map("order_group_id") @db.UnsignedBigInt
-  productId    BigInt     @map("product_id") @db.UnsignedBigInt
+  id           BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  orderGroupId BigInt         @map("order_group_id") @db.UnsignedBigInt
+  productId    BigInt         @map("product_id") @db.UnsignedBigInt
   quantity     Int
-  price        Decimal    @db.Decimal(10, 2)
-  createdAt    DateTime?  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime?  @updatedAt @map("updated_at") @db.Timestamp(0)
-  orderGroup   OrderGroup @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_order_group_id_foreign")
-  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_product_id_foreign")
+  price        Decimal        @db.Decimal(10, 2)
+  createdAt    DateTime?      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime?      @updatedAt @map("updated_at") @db.Timestamp(0)
+  orderGroup   OrderGroup     @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_order_group_id_foreign")
+  product      Product        @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_product_id_foreign")
+  review       ProductReview?
 
   @@index([orderGroupId], map: "order_items_order_group_id_foreign")
   @@index([productId], map: "order_items_product_id_foreign")
   @@map("order_items")
 }
 
+// A buyer may review a product once per delivered order item — see ReviewService.
+// Gated on OrderGroup.deliveredAt (set by the PHP admin panel) being non-null.
+model ProductReview {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  productId   BigInt    @map("product_id") @db.UnsignedBigInt
+  userId      BigInt    @map("user_id") @db.UnsignedBigInt
+  orderItemId BigInt    @unique(map: "product_reviews_order_item_id_unique") @map("order_item_id") @db.UnsignedBigInt
+  rating      Int       @db.TinyInt
+  comment     String?   @db.Text
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "product_reviews_product_id_foreign")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "product_reviews_user_id_foreign")
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "product_reviews_order_item_id_foreign")
+
+  @@index([productId], map: "product_reviews_product_id_foreign")
+  @@index([userId], map: "product_reviews_user_id_foreign")
+  @@map("product_reviews")
+}
+
 model OrderTransaction {
-  id            BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
-  walletId      BigInt?    @map("wallet_id") @db.UnsignedBigInt
-  orderGroupId  BigInt     @map("order_group_id") @db.UnsignedBigInt
-  paymentMethod Boolean    @map("payment_method")
-  amount        Decimal    @db.Decimal(10, 2)
-  createdAt     DateTime?  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt     DateTime?  @updatedAt @map("updated_at") @db.Timestamp(0)
-  orderGroup    OrderGroup @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_transactions_order_group_id_foreign")
-  wallet        Wallet?    @relation(fields: [walletId], references: [id], onUpdate: NoAction, map: "order_transactions_wallet_id_foreign")
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  walletId         BigInt?            @map("wallet_id") @db.UnsignedBigInt
+  orderGroupId     BigInt             @map("order_group_id") @db.UnsignedBigInt
+  paymentMethod    Boolean            @map("payment_method")
+  amount           Decimal            @db.Decimal(10, 2)
+  paymentReference String?            @unique @map("payment_reference") @db.VarChar(255)
+  paymentStatus    OrderPaymentStatus @default(pending) @map("payment_status")
+  paymentDetails   Json?              @map("payment_details")
+  confirmedAt      DateTime?          @map("confirmed_at") @db.Timestamp(0)
+  createdAt        DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
+  orderGroup       OrderGroup         @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_transactions_order_group_id_foreign")
+  wallet           Wallet?            @relation(fields: [walletId], references: [id], onUpdate: NoAction, map: "order_transactions_wallet_id_foreign")
 
   @@index([orderGroupId], map: "order_transactions_order_group_id_foreign")
   @@index([walletId], map: "order_transactions_wallet_id_foreign")
   @@map("order_transactions")
+}
+
+// Holds a shop checkout between "customer generated a virtual account" and
+// "payment confirmed". No OrderGroup/OrderItem/OrderTransaction exists for a
+// checkout until the webhook confirms payment — see PaymentService.processShopOrderPayment,
+// which reads this row, creates the real order rows, and marks this one paid.
+model PendingShopOrder {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  userId           BigInt             @map("user_id") @db.UnsignedBigInt
+  refNo            String             @unique(map: "pending_shop_orders_ref_no_unique") @map("ref_no") @db.VarChar(255)
+  paymentReference String             @unique(map: "pending_shop_orders_payment_reference_unique") @map("payment_reference") @db.VarChar(255)
+  amount           Decimal            @db.Decimal(10, 2)
+  items            Json
+  shipping         Json
+  paymentDetails   Json?              @map("payment_details")
+  status           OrderPaymentStatus @default(pending)
+  orderGroupId     BigInt?            @unique(map: "pending_shop_orders_order_group_id_unique") @map("order_group_id") @db.UnsignedBigInt
+  confirmedAt      DateTime?          @map("confirmed_at") @db.Timestamp(0)
+  createdAt        DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pending_shop_orders_user_id_foreign")
+  orderGroup       OrderGroup?        @relation(fields: [orderGroupId], references: [id], onUpdate: NoAction, map: "pending_shop_orders_order_group_id_foreign")
+
+  @@index([userId], map: "pending_shop_orders_user_id_foreign")
+  @@index([orderGroupId], map: "pending_shop_orders_order_group_id_foreign")
+  @@map("pending_shop_orders")
+}
+
+enum OrderPaymentStatus {
+  pending
+  paid
+  failed
 }
 
 model Loan {
@@ -1800,6 +1886,7 @@ enum WalletType {
   central_treasury
   patronage
   earning
+  shopping
 }
 
 enum AuctionStatus {

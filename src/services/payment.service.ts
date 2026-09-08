@@ -4,7 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
-import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS } from "../config/constants.js";
+import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, ORDER_GROUP_STATUSES } from "../config/constants.js";
 import { addSmsJob, addPukEmailJob } from '../queue/index.js';
 import { TermiiService } from './termii.service.js';
 import AuctionService from './auction.service.js';
@@ -44,6 +44,10 @@ export class PaymentService {
 
         if (externalReferenceNumber.startsWith('AUCTIONCLAIM')) {
             return await AuctionService.processClaimPayment(externalReferenceNumber, paymentAmount);
+        }
+
+        if (externalReferenceNumber.startsWith('ORDER')) {
+            return await this.processShopOrderPayment(payload);
         }
 
         // 1. Find the funding record
@@ -1057,6 +1061,105 @@ export class PaymentService {
         return { status: 'ok' };
     }
 
+    async processShopOrderPayment(payload: any) {
+        const { externalReferenceNumber, paymentAmount } = payload;
+
+        // No order_groups/order_items/order_transactions row exists for this checkout yet —
+        // see OrderService.createOrder. This is where the real order gets created, atomically
+        // with the stock decrement, now that payment is actually confirmed.
+        const pending = await prisma.pendingShopOrder.findFirst({
+            where: {
+                paymentReference: externalReferenceNumber,
+                status: 'pending'
+            },
+            include: { user: true }
+        });
+
+        if (!pending) {
+            pagaLogger.error(`Shop order transaction not found for ref: ${externalReferenceNumber}`);
+            return { status: 'not_found' };
+        }
+
+        if (paymentAmount && Number(pending.amount) > Number(paymentAmount)) {
+            pagaLogger.error(`Shop order amount mismatch. Expected: ${pending.amount}, Paid: ${paymentAmount}`);
+            return { status: 'amount_mismatch' };
+        }
+
+        const items = pending.items as unknown as Array<{ productId: string; quantity: number; price: number }>;
+        const user = pending.user;
+
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            const orderGroup = await tx.orderGroup.create({
+                data: {
+                    userId: pending.userId,
+                    status: ORDER_GROUP_STATUSES.PENDING,
+                    refNo: pending.refNo,
+                    address: JSON.stringify(pending.shipping),
+                }
+            });
+
+            for (const item of items) {
+                const updated = await tx.product.updateMany({
+                    where: { id: BigInt(item.productId), quantity: { gte: item.quantity } },
+                    data: { quantity: { decrement: item.quantity } }
+                });
+
+                if (updated.count === 0) {
+                    pagaLogger.error(`Shop order ${pending.refNo}: insufficient stock for product ${item.productId} at payment confirmation — needs manual review`);
+                }
+
+                await tx.orderItem.create({
+                    data: {
+                        orderGroupId: orderGroup.id,
+                        productId: BigInt(item.productId),
+                        quantity: item.quantity,
+                        price: item.price
+                    }
+                });
+            }
+
+            await tx.orderTransaction.create({
+                data: {
+                    orderGroupId: orderGroup.id,
+                    paymentMethod: false,
+                    amount: pending.amount,
+                    paymentReference: pending.paymentReference,
+                    paymentStatus: 'paid',
+                    paymentDetails: pending.paymentDetails ?? Prisma.JsonNull,
+                    confirmedAt: new Date()
+                }
+            });
+
+            await tx.pendingShopOrder.update({
+                where: { id: pending.id },
+                data: {
+                    status: 'paid',
+                    orderGroupId: orderGroup.id,
+                    confirmedAt: new Date()
+                }
+            });
+
+            if (user) {
+                const notification = await tx.notification.create({
+                    data: {
+                        title: 'Order payment confirmed',
+                        body: `Your payment for order #${pending.refNo} has been confirmed. It is now being processed.`
+                    }
+                });
+
+                await tx.notificationUser.create({
+                    data: {
+                        userId: user.id,
+                        notificationId: notification.id
+                    }
+                });
+            }
+        });
+
+        pagaLogger.info(`Shop order payment confirmed: ref=${externalReferenceNumber}, order=${pending.refNo}`);
+        return { status: 'ok' };
+    }
+
     async processOnePipeWebhook(payload: any) {
         const details = payload?.details;
         const meta = details?.meta;
@@ -1172,6 +1275,15 @@ export class PaymentService {
                 pagaLogger.error(`Paga card activation card not found for ref: ${reference}`);
                 return { status: 'not_found' };
             }
+        }
+
+        if (reference.startsWith('ORDER')) {
+            return await this.processShopOrderPayment({
+                externalReferenceNumber: reference,
+                event: 'PAYMENT_COMPLETE',
+                status: 'SUCCESSFUL',
+                paymentAmount: amountPaid
+            });
         }
 
         if (reference.startsWith('DIRECTWALLET') || reference.startsWith('INDIRECTWALLET') || reference.startsWith('WALLET')) {
