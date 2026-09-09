@@ -98,69 +98,84 @@ export const createUser = async (data: UserRequestData) => {
 
     const { referralId, influencerId, influencerPromoPeriodId } = referral;
 
-    const user = await prisma.$transaction(async (tx) => {
-        const createdUser = await tx.user.create({
-            data: {
-                name,
-                username,
-                email,
-                phone,
-                regionId: BigInt(region_id),
-                country,
-                password: hashedPassword,
-                referralId,
-                influencerId,
-                influencerPromoPeriodId,
-                pictureUrl: picture_url ?? null,
-            },
-            omit: {
-                withdrawalPinResetOtp: true,
-                withdrawalPinResetOtpSentAt: true,
-                emailVerificationCode: true,
-                emailVerificationCodeSentAt: true,
-                password: true,
-                passwordResetOtp: true,
-                passwordResetOtpSentAt: true,
-                referralActivateAt: true,
-                activatedAt: true,
-                lastSeen: true,
-                canWithdraw: true,
-                canUseVtu: true,
-                canEarn: true,
-                canOptOut: true,
-                canWithdrawGkwth: true,
-                sponsorshipAcceptedAt: true,
-                sponsorAgreement: true,
-                sponsorLoginOtp: true,
-                sponsorLoginOtpCreatedAt: true,
-                sponsorWithdrawalOtp: true,
-                sponsorWithdrawalOtpSentAt: true,
-                isDeactivated: true,
-                sponsorSlot: true,
-                loginYearlyCount: true,
-                schoolFeesPermittedAt: true,
-                withdrawalBypassAt: true,
-                isUnitLeader: true,
-                patronGroupId: true,
-                activationCardId: true,
-                blockedAt: true,
-            },
-            include: {
-                region: {
-                    select: {
-                        id: true,
-                        name: true
+    // The findFirst check above is a fast-path for a friendly error message only.
+    // It runs outside any lock, so two concurrent submissions (double-click, retried
+    // request) can both pass it before either INSERT commits. There is currently no
+    // unique constraint on users.email/username/phone to catch that race at the DB
+    // level (dropped from the schema in the PHP app back in 2023), so this Prisma
+    // P2002 catch is a no-op until that constraint is restored - do not remove it
+    // once it is, since it is what actually closes the race.
+    let user;
+    try {
+        user = await prisma.$transaction(async (tx) => {
+            const createdUser = await tx.user.create({
+                data: {
+                    name,
+                    username,
+                    email,
+                    phone,
+                    regionId: BigInt(region_id),
+                    country,
+                    password: hashedPassword,
+                    referralId,
+                    influencerId,
+                    influencerPromoPeriodId,
+                    pictureUrl: picture_url ?? null,
+                },
+                omit: {
+                    withdrawalPinResetOtp: true,
+                    withdrawalPinResetOtpSentAt: true,
+                    emailVerificationCode: true,
+                    emailVerificationCodeSentAt: true,
+                    password: true,
+                    passwordResetOtp: true,
+                    passwordResetOtpSentAt: true,
+                    referralActivateAt: true,
+                    activatedAt: true,
+                    lastSeen: true,
+                    canWithdraw: true,
+                    canUseVtu: true,
+                    canEarn: true,
+                    canOptOut: true,
+                    canWithdrawGkwth: true,
+                    sponsorshipAcceptedAt: true,
+                    sponsorAgreement: true,
+                    sponsorLoginOtp: true,
+                    sponsorLoginOtpCreatedAt: true,
+                    sponsorWithdrawalOtp: true,
+                    sponsorWithdrawalOtpSentAt: true,
+                    isDeactivated: true,
+                    sponsorSlot: true,
+                    loginYearlyCount: true,
+                    schoolFeesPermittedAt: true,
+                    withdrawalBypassAt: true,
+                    isUnitLeader: true,
+                    patronGroupId: true,
+                    activationCardId: true,
+                    blockedAt: true,
+                },
+                include: {
+                    region: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
                     }
                 }
-            }
+            });
+
+            await WalletService.createWallets(createdUser.id, ROLES.CUSTOMER, tx);
+            await handleAdultSponsorship(createdUser.id, referral_id, tx);
+            await handlePatron(referral_id, createdUser, tx);
+
+            return createdUser;
         });
-
-        await WalletService.createWallets(createdUser.id, ROLES.CUSTOMER, tx);
-        await handleAdultSponsorship(createdUser.id, referral_id, tx);
-        await handlePatron(referral_id, createdUser, tx);
-
-        return createdUser;
-    });
+    } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+            throw new Error('An account with this email, username, or phone number already exists');
+        }
+        throw err;
+    }
 
     return user;
 }

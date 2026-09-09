@@ -65,14 +65,16 @@ const normalizedPrisma = basePrisma.$extends({
 /**
  * Prisma Extension for Auditing
  */
+const AUDIT_LOGGING_ENABLED = process.env.AUDIT_LOGGING_ENABLED !== 'false';
+
 const extendedPrisma = normalizedPrisma.$extends({
     query: {
         $allModels: {
             async $allOperations({ model, operation, args, query }) {
                 const auditedModels = ['User', 'Wallet'];
-                
+
                 // If not an audited model or operation we don't track, just run query
-                if (!auditedModels.includes(model) || !['create', 'update', 'delete', 'upsert'].includes(operation)) {
+                if (!AUDIT_LOGGING_ENABLED || !auditedModels.includes(model) || !['create', 'update', 'delete', 'upsert'].includes(operation)) {
                     return query(args);
                 }
 
