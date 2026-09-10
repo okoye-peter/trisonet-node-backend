@@ -1153,6 +1153,11 @@ export class PaymentService {
                         notificationId: notification.id
                     }
                 });
+
+                // Store-invite commission is NOT credited here. It's paid later, once the
+                // order is delivered and the return window has closed with no refund - see
+                // StoreGuestService.processStoreInviteCommissionsForDeliveredOrders, run by
+                // the cron job in cron.ts. This order isn't even delivered yet at this point.
             }
         });
 

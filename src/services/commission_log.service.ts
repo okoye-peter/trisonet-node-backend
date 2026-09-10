@@ -9,7 +9,9 @@ export type CommissionLogType =
     | 'influencer'
     | 'patron'
     | 'super_admin'
-    | 'school_compensation';
+    | 'school_compensation'
+    | 'store_invite'
+    | 'order_refund';
 
 export type CommissionLogStatus = 'success' | 'failed' | 'skipped';
 

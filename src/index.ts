@@ -38,6 +38,7 @@ import productRouter from './routes/product.route';
 import categoryRouter from './routes/category.route';
 import shopOrderRouter from './routes/order.route';
 import reviewRouter from './routes/review.route';
+import storeGuestRouter from './routes/store_guest.route';
 import { Server as SocketIOServer } from 'socket.io';
 import { setupSockets } from './sockets';
 
@@ -132,6 +133,7 @@ app.use('/api/products', productRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/orders', shopOrderRouter);
 app.use('/api/reviews', reviewRouter);
+app.use('/api/store-guest', storeGuestRouter);
 app.get('/api/test', (req: Request, res: Response) => {
     const encryptedText = encryptText('Hello World');
     const decryptedText = decryptEncryptedText(encryptedText);

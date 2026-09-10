@@ -190,6 +190,27 @@ export class AccountActivationService {
         }
 
         if (!user.activatedAt) {
+            // Store-guest upgrade completion: wire the guest into the normal referral system
+            // (referralId = invitedById) *before* the referral-path logic below reads
+            // user.referralId, so the inviter gets the standard activation-triggered
+            // direct/indirect/chain referral payout exactly as for any normal referred
+            // signup, and keeps earning ordinary referral commissions on them going
+            // forward - on top of, not instead of, whatever store_invite commissions were
+            // already earned during the guest period (see StoreGuestService.creditInviterCommission).
+            if (Number(user.role) === ROLES.STORE_GUEST && user.invitedById && !user.referralId) {
+                await client.user.update({
+                    where: { id: user.id },
+                    data: { role: ROLES.CUSTOMER, referralId: user.invitedById },
+                });
+                user.role = ROLES.CUSTOMER;
+                user.referralId = user.invitedById;
+
+                await client.storeGuestUpgradeRequest.updateMany({
+                    where: { userId: user.id, status: 'pending' },
+                    data: { status: 'completed', completedAt: new Date() },
+                });
+            }
+
             if (indirectWallet.amount < 1) {
                 await client.wallet.update({
                     where: { id: indirectWallet.id },

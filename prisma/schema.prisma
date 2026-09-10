@@ -92,6 +92,8 @@ model User {
   isWorker                                                           Boolean                          @default(false) @map("is_worker")
   nin                                                                String?                          @db.VarChar(255)
   ninHash                                                            String?                          @unique(map: "users_nin_hash_unique") @map("nin_hash") @db.VarChar(255)
+  storeInviteCode                                                    String?                          @unique(map: "users_store_invite_code_unique") @map("store_invite_code") @db.VarChar(32)
+  invitedById                                                        BigInt?                          @map("invited_by_id") @db.UnsignedBigInt
   activationCardTransactions                                         ActivationCardTransaction[]
   activationCardsApproved                                            ActivationCard[]                 @relation("ACApprover")
   activationCardsOwned                                               ActivationCard[]                 @relation("ACOwner")
@@ -174,6 +176,9 @@ model User {
   wallets                                                            Wallet[]
   wishlists                                                          Wishlist[]
   withDrawals                                                        WithDrawal[]
+  inviter                                                            User?                            @relation("StoreInviteRecipient", fields: [invitedById], references: [id], onUpdate: NoAction, map: "users_invited_by_id_foreign")
+  storeGuestInvitees                                                 User[]                           @relation("StoreInviteRecipient")
+  storeGuestUpgradeRequests                                          StoreGuestUpgradeRequest[]
 
   @@index([role], map: "users_role_index")
   @@index([role, patronId], map: "users_role_patron_id_index")
@@ -183,6 +188,7 @@ model User {
   @@index([infantGroupId], map: "users_infant_group_id_foreign")
   @@index([influencerId], map: "users_influencer_id_foreign")
   @@index([influencerPromoPeriodId], map: "users_influencer_promo_period_id_foreign")
+  @@index([invitedById], map: "users_invited_by_id_foreign")
   @@index([patronGroupId], map: "users_patron_group_id_foreign")
   @@index([patronPlanId], map: "users_patron_plan_id_index")
   @@index([patronId], map: "users_patron_id_foreign")
@@ -249,6 +255,7 @@ model Wallet {
   user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "wallets_user_id_foreign")
   withdrawalRequests      WithdrawalRequest[]
 
+  @@unique([userId, type], map: "wallets_user_id_type_unique")
   @@index([userId], map: "wallets_user_id_foreign")
   @@map("wallets")
 }
@@ -867,11 +874,52 @@ model OrderGroup {
   orderItems        OrderItem[]
   orderTransactions OrderTransaction[]
   pendingShopOrder  PendingShopOrder?
+  returns           OrderReturn[]
 
   @@index([lgaId], map: "order_groups_lga_id_foreign")
   @@index([stateId], map: "order_groups_state_id_foreign")
   @@index([userId], map: "order_groups_user_id_foreign")
   @@map("order_groups")
+}
+
+// Owned by the PHP app (App\Models\OrderReturn / OrderReturnController) - customers file
+// these there, admins review them there. Node only reads this to decide store-invite
+// commission payouts (see StoreGuestService.processStoreInviteCommissionsForDeliveredOrders).
+// status: 0=pending, 1=approved, 2=rejected - matches config('constant.order_returns.status').
+model OrderReturn {
+  id               BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  orderGroupId     BigInt            @map("order_group_id") @db.UnsignedBigInt
+  userId           BigInt            @map("user_id") @db.UnsignedBigInt
+  reason           String            @db.Text
+  bankName         String?           @map("bank_name") @db.VarChar(255)
+  accountNumber    String?           @map("account_number") @db.VarChar(255)
+  status           Int               @default(0) @db.TinyInt
+  rejectionReason  String?           @map("rejection_reason") @db.Text
+  refundedAmount   Decimal?          @map("refunded_amount") @db.Decimal(10, 2)
+  reviewedBy       BigInt?           @map("reviewed_by") @db.UnsignedBigInt
+  reviewedAt       DateTime?         @map("reviewed_at") @db.Timestamp(0)
+  createdAt        DateTime?         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?         @updatedAt @map("updated_at") @db.Timestamp(0)
+  orderGroup       OrderGroup        @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_returns_order_group_id_foreign")
+  items            OrderReturnItem[]
+
+  @@index([orderGroupId], map: "order_returns_order_group_id_foreign")
+  @@index([userId], map: "order_returns_user_id_foreign")
+  @@map("order_returns")
+}
+
+model OrderReturnItem {
+  id            BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  orderReturnId BigInt      @map("order_return_id") @db.UnsignedBigInt
+  orderItemId   BigInt      @map("order_item_id") @db.UnsignedBigInt
+  quantity      Int
+  price         Decimal     @db.Decimal(10, 2)
+  createdAt     DateTime?   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime?   @updatedAt @map("updated_at") @db.Timestamp(0)
+  orderReturn   OrderReturn @relation(fields: [orderReturnId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_return_items_order_return_id_foreign")
+
+  @@index([orderReturnId], map: "order_return_items_order_return_id_foreign")
+  @@map("order_return_items")
 }
 
 model OrderItem {
@@ -1347,6 +1395,23 @@ model ActivationTeamMateUser {
   @@index([userActivationRequestId], map: "activation_team_mate_user_user_activation_request_id_foreign")
   @@index([userId], map: "activation_team_mate_user_user_id_foreign")
   @@map("activation_team_mate_user")
+}
+
+model StoreGuestUpgradeRequest {
+  id          BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  userId      BigInt                  @map("user_id") @db.UnsignedBigInt
+  status      StoreGuestUpgradeStatus @default(pending)
+  startedAt   DateTime                @default(now()) @map("started_at") @db.Timestamp(0)
+  deadlineAt  DateTime                @map("deadline_at") @db.Timestamp(0)
+  completedAt DateTime?               @map("completed_at") @db.Timestamp(0)
+  expiredAt   DateTime?               @map("expired_at") @db.Timestamp(0)
+  createdAt   DateTime?               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime?               @updatedAt @map("updated_at") @db.Timestamp(0)
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "store_guest_upgrade_requests_user_id_foreign")
+
+  @@index([userId], map: "store_guest_upgrade_requests_user_id_foreign")
+  @@index([status, deadlineAt], map: "store_guest_upgrade_requests_status_deadline_index")
+  @@map("store_guest_upgrade_requests")
 }
 
 model ActivationCard {
@@ -1958,6 +2023,13 @@ enum ActivationRequestStatus {
   pending
 }
 
+enum StoreGuestUpgradeStatus {
+  pending
+  completed
+  expired
+  cancelled
+}
+
 enum GuardianSlotType {
   limited
   unlimited
@@ -2038,6 +2110,8 @@ enum CommissionLogType {
   patron
   super_admin
   school_compensation
+  store_invite
+  order_refund
 }
 
 enum CommissionLogStatus {

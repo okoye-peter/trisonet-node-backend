@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { prisma, WalletType } from './config/prisma';
 import { PagaService } from './services/paga.service';
 import { PaymentService } from './services/payment.service';
+import { StoreGuestService } from './services/store_guest.service';
 import { ACTIVATION_CARD_STATUSES, ROLES } from './config/constants';
 import { activationCardFixLogger, pagaLogger } from './utils/logger';
 
@@ -245,6 +246,36 @@ async function cleanupStaleRecords() {
         }
     } catch (err: any) {
         pagaLogger.error(`[cron] Error running stale records cleanup: ${err.message}`);
+    }
+}
+
+// ─── Job 3b: Expire Lapsed Store-Guest Upgrade Requests ─────────────────────
+
+async function expireStoreGuestUpgrades() {
+    try {
+        const { softDeleted, hardDeleted } = await StoreGuestService.expireLapsedUpgrades();
+        if (softDeleted > 0 || hardDeleted > 0) {
+            pagaLogger.info(
+                `[cron] Store-guest upgrade expiry: soft-deleted ${softDeleted}, hard-deleted ${hardDeleted}.`
+            );
+        }
+    } catch (err: any) {
+        pagaLogger.error(`[cron] Error expiring store-guest upgrade requests: ${err.message}`);
+    }
+}
+
+// ─── Job 3c: Pay Store-Invite Commissions For Delivered, Return-Window-Closed Orders ──
+
+async function processStoreInviteCommissions() {
+    try {
+        const { processed, held } = await StoreGuestService.processStoreInviteCommissionsForDeliveredOrders();
+        if (processed > 0 || held > 0) {
+            pagaLogger.info(
+                `[cron] Store-invite commissions: processed ${processed} order(s), held ${held} pending a return decision.`
+            );
+        }
+    } catch (err: any) {
+        pagaLogger.error(`[cron] Error processing store-invite commissions: ${err.message}`);
     }
 }
 
@@ -560,6 +591,8 @@ if (isPrimaryCluster) {
             await verifyPendingShopOrders();
             await markStaleShopOrdersFailed();
             await cleanupStaleRecords();
+            await expireStoreGuestUpgrades();
+            await processStoreInviteCommissions();
             await backfillMissingTransferIds();
         } catch (err: any) {
             pagaLogger.error(`[cron] Critical unhandled pipeline error: ${err.message}`);

@@ -4,7 +4,7 @@ import { AppError } from '../utils/AppError';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from './asyncHandler';
 import { getSafeUserWallets } from '../utils/prismaUtils';
-import { ROLES } from '../config/constants';
+import { ROLES, STORE_GUEST_ALLOWED_PATH_PREFIXES } from '../config/constants';
 
 import { setAuditUser } from './auditContext';
 
@@ -62,6 +62,15 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
 
         // Attach user with wallets to request
         (req as any).user = { ...currentUser, wallets, patronActivated };
+
+        if (Number(currentUser.role) === ROLES.STORE_GUEST) {
+            const requestPath = req.originalUrl.split('?')[0] || req.originalUrl;
+            const allowed = STORE_GUEST_ALLOWED_PATH_PREFIXES.some((prefix) => requestPath.startsWith(prefix));
+            if (!allowed) {
+                return next(new AppError('Store guest accounts can only access the shop.', 403));
+            }
+        }
+
         next();
     } catch (error) {
         return next(new AppError('Invalid token or token expired.', 401));

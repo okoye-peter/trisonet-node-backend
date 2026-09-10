@@ -7,12 +7,30 @@ export const ROLES = {
     SPONSOR: 6,
     SCHOOL: 7,
     PATRON: 8,
+    STORE_GUEST: 9,
 } as const;
 
 export const ACCOUNT_STATES = {
     SUSPENDED: 0,
     ACTIVE: 1,
 } as const;
+
+// Store-guest accounts (ROLES.STORE_GUEST) may only reach shop-related endpoints -
+// everything else (wallet, VTU, dashboard data, etc.) is 403'd inside protect(). These
+// are matched against req.originalUrl (not just the router mount prefix), so entries can
+// be scoped to a specific sub-path within a broader router, e.g. '/api/payment/activation'
+// without opening up the rest of that router's (wallet funding, gkwth, etc.) endpoints.
+export const STORE_GUEST_ALLOWED_PATH_PREFIXES = [
+    '/api/orders',
+    '/api/products',
+    '/api/categories',
+    '/api/reviews',
+    '/api/users',
+    '/api/store-guest',
+    '/api/notifications',
+    '/api/uploads',
+    '/api/payment/activation',
+] as const;
 
 export const WITHDRAWAL_STATUSES = {
     FAILED: 0,
@@ -70,8 +88,18 @@ export const ORDER_PAYMENT_METHODS = {
     CARD: 2,
 } as const;
 
-// Flat delivery fee for shop orders, matching the reference design.
-export const SHOP_DELIVERY_FEE = 1500;
+export const ORDER_RETURN_STATUSES = {
+    PENDING: 0,
+    APPROVED: 1,
+    REJECTED: 2,
+} as const;
+
+// Mirrors config('constant.order_groups.return_window_days') on the PHP side exactly - a
+// delivered order can be requested for return within this many days of delivered_at, after
+// which OrderReturnController::store() refuses new requests. Store-invite commissions wait
+// until this window has fully closed before paying out, so a return can't slip in after
+// the commission is already credited. Do not change here alone.
+export const SHOP_RETURN_WINDOW_DAYS = 7;
 
 // Mirrors config('constant.product.status') on the PHP side exactly — PHP's admin
 // review workflow is the source of truth for these values, do not change here alone.

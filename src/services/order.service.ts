@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/AppError";
-import { SHOP_DELIVERY_FEE, PRODUCT_STATUS } from "../config/constants";
+import { PRODUCT_STATUS } from "../config/constants";
 import { PagaService } from "./paga.service";
 import { paginate } from "../utils/pagination";
 
@@ -45,7 +45,6 @@ const serializePendingOrder = (pending: any) => {
         refNo: pending.refNo,
         status: true,
         shipping,
-        deliveryFee: SHOP_DELIVERY_FEE,
         total: Number(pending.amount),
         createdAt: pending.createdAt,
         paymentStatus: pending.status,
@@ -92,7 +91,7 @@ export const createOrder = async (userId: bigint, payload: CreateOrderInput, use
         });
     }
 
-    const total = subtotal + SHOP_DELIVERY_FEE;
+    const total = subtotal;
     const refNo = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const paymentReference = pagaService.generateReference('ORDER');
 
