@@ -7,8 +7,11 @@ import { pagaLogger } from '../utils/logger';
 const paymentService = new PaymentService();
 const pagaService = new PagaService();
 
-function verifyPagaSignature(req: Request, referenceNumber: string): boolean {
-    const receivedHash = req.headers['hash'] as string | undefined;
+// Paga sends the hash as a `hash` HTTP header on some integrations, but on this
+// callback URL it's embedded in the JSON payload itself (payload.hash) instead -
+// check both so we don't reject genuine webhooks that never had a header to begin with.
+function verifyPagaSignature(payload: any, referenceNumber: string, req: Request): boolean {
+    const receivedHash = (req.headers['hash'] as string | undefined) ?? payload?.hash;
     if (!receivedHash) return false;
     const expectedHash = pagaService.generateHash([referenceNumber]);
     return receivedHash === expectedHash;
@@ -32,7 +35,7 @@ export const handlePagaWebhook = asyncHandler(async (req: Request, res: Response
         body: req.body,
     });
 
-    if (!verifyPagaSignature(req, externalReferenceNumber)) {
+    if (!verifyPagaSignature(req.body, externalReferenceNumber, req)) {
         pagaLogger.warn(`[webhook] Paga signature verification failed`, { reference: externalReferenceNumber });
         return res.status(401).json({ status: 'unauthorized' });
     }
@@ -56,7 +59,7 @@ export const handlePagaCardWebhook = asyncHandler(async (req: Request, res: Resp
         body: req.body,
     });
 
-    if (!verifyPagaSignature(req, paymentReference)) {
+    if (!verifyPagaSignature(cardPayload, paymentReference, req)) {
         pagaLogger.warn(`[webhook] Paga card signature verification failed`, { reference: paymentReference });
         return res.status(401).json({ status: 'unauthorized' });
     }
