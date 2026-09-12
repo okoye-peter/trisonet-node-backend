@@ -30,6 +30,7 @@ export const STORE_GUEST_ALLOWED_PATH_PREFIXES = [
     '/api/notifications',
     '/api/uploads',
     '/api/payment/activation',
+    '/api/banks',
 ] as const;
 
 export const WITHDRAWAL_STATUSES = {
