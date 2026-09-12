@@ -7,7 +7,7 @@ import { getSetting } from "./setting.service.js";
 import { CommissionLogService } from "./commission_log.service.js";
 
 const COMMISSION_PERCENTAGE_KEY = 'store_invite_commission_percentage';
-const UPGRADE_WINDOW_HOURS_KEY = 'store_invite_upgrade_window_hours';
+const UPGRADE_WINDOW_DAYS_KEY = 'store_invite_upgrade_window_days';
 const SETTINGS_TTL_MS = 3600 * 1000;
 const PROCESSED_VIA = 'cron:processStoreInviteCommissionsForDeliveredOrders';
 const STORE_INVITE_COMMISSION_BATCH_LIMIT = 50;
@@ -26,8 +26,8 @@ export class StoreGuestService {
         return value ? parseFloat(value) || 0 : 0;
     }
 
-    static async getUpgradeWindowHours(): Promise<number> {
-        const value = await getSetting(UPGRADE_WINDOW_HOURS_KEY, SETTINGS_TTL_MS);
+    static async getUpgradeWindowDays(): Promise<number> {
+        const value = await getSetting(UPGRADE_WINDOW_DAYS_KEY, SETTINGS_TTL_MS);
         return value ? parseFloat(value) || 0 : 0;
     }
 
@@ -296,8 +296,8 @@ export class StoreGuestService {
         });
         if (existing) return existing;
 
-        const hours = await this.getUpgradeWindowHours();
-        const deadlineAt = new Date(Date.now() + hours * 60 * 60 * 1000);
+        const days = await this.getUpgradeWindowDays();
+        const deadlineAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
         return prisma.storeGuestUpgradeRequest.create({
             data: { userId: guestUserId, deadlineAt },

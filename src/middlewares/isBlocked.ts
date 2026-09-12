@@ -17,6 +17,12 @@ import { ROLES } from '../config/constants';
 export const isBlocked = asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {
     const user = (req as any).user;
 
+    // Guest (unauthenticated) requests have no user to block/unblock — only relevant
+    // once `protect`/`optionalAuth` has attached one.
+    if (!user) {
+        return next();
+    }
+
     if (Number(user.role) !== ROLES.CUSTOMER || user.isInfant) {
         return next();
     }

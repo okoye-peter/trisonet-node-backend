@@ -50,6 +50,45 @@ const welcomeEmailTemplate = (name: string, email: string, password: string, int
     <p>We recommend changing your password after logging in.</p>
 `);
 
+export interface OrderConfirmationEmailVars {
+    name: string;
+    orderRef: string;
+    orderDate: string;
+    // Pre-rendered by the caller (Termii template variables must be flat strings,
+    // not nested structures) — see OrderConfirmationItem[] -> plain rows below.
+    itemsHtml: string;
+    total: string;
+    deliveryAddress: string;
+}
+
+const orderConfirmationEmailTemplate = (vars: OrderConfirmationEmailVars) => wrapInLayout(`
+    <p>Hi ${vars.name},</p>
+    <p>We've received your payment for order <strong>#${vars.orderRef}</strong> placed on ${vars.orderDate}. It's now being processed.</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        ${vars.itemsHtml}
+    </table>
+    <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #e5e7eb; margin-top: 8px;">
+        <tr><td style="padding: 8px 0; font-weight: bold;">Total Paid</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${vars.total}</td></tr>
+    </table>
+    <p style="margin-top: 16px; color: #6b7280;">Delivering to: ${vars.deliveryAddress}</p>
+`);
+
+export interface OrderConfirmationItem {
+    name: string;
+    quantity: number;
+    price: number;
+}
+
+// Shared by both the Termii template path and the Zoho fallback template above, so a
+// row here reaches the buyer identically either way.
+export const renderOrderItemsHtml = (items: OrderConfirmationItem[], formatAmount: (amount: number) => string): string =>
+    items.map((item) => `
+        <tr>
+            <td style="padding: 6px 0; color: #1a1a1a;">${item.name} &times; ${item.quantity}</td>
+            <td style="padding: 6px 0; text-align: right;">${formatAmount(item.price * item.quantity)}</td>
+        </tr>
+    `).join('');
+
 export class EmailService {
     public static async sendOtpEmail(email: string, code: string): Promise<boolean> {
         if (await getMailProvider() === 'termii') {
@@ -128,6 +167,37 @@ export class EmailService {
             return true;
         } catch (error) {
             logger.error('zoho welcome email error', { email, error });
+            return false;
+        }
+    }
+
+    public static async sendOrderConfirmationEmail(email: string, vars: OrderConfirmationEmailVars): Promise<boolean> {
+        const subject = `Payment confirmed for order #${vars.orderRef}`;
+
+        if (await getMailProvider() === 'termii') {
+            if (!process.env.TERMII_ORDER_CONFIRMATION_TEMPLATE_ID) {
+                logger.warn('TERMII_ORDER_CONFIRMATION_TEMPLATE_ID not set, skipping order confirmation email', { email, orderRef: vars.orderRef });
+                return false;
+            }
+            const result = await TermiiService.sendTemplateEmail(
+                email,
+                subject,
+                { ...vars },
+                process.env.TERMII_ORDER_CONFIRMATION_TEMPLATE_ID
+            );
+            return result.status;
+        }
+
+        try {
+            await transporter.sendMail({
+                from: `"${COMPANY_DETAILS.NAME}" <${process.env.ZOHO_EMAIL}>`,
+                to: email,
+                subject,
+                html: orderConfirmationEmailTemplate(vars),
+            });
+            return true;
+        } catch (error) {
+            logger.error('zoho order confirmation email error', { email, error });
             return false;
         }
     }

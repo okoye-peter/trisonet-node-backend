@@ -887,21 +887,21 @@ model OrderGroup {
 // commission payouts (see StoreGuestService.processStoreInviteCommissionsForDeliveredOrders).
 // status: 0=pending, 1=approved, 2=rejected - matches config('constant.order_returns.status').
 model OrderReturn {
-  id               BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
-  orderGroupId     BigInt            @map("order_group_id") @db.UnsignedBigInt
-  userId           BigInt            @map("user_id") @db.UnsignedBigInt
-  reason           String            @db.Text
-  bankName         String?           @map("bank_name") @db.VarChar(255)
-  accountNumber    String?           @map("account_number") @db.VarChar(255)
-  status           Int               @default(0) @db.TinyInt
-  rejectionReason  String?           @map("rejection_reason") @db.Text
-  refundedAmount   Decimal?          @map("refunded_amount") @db.Decimal(10, 2)
-  reviewedBy       BigInt?           @map("reviewed_by") @db.UnsignedBigInt
-  reviewedAt       DateTime?         @map("reviewed_at") @db.Timestamp(0)
-  createdAt        DateTime?         @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt        DateTime?         @updatedAt @map("updated_at") @db.Timestamp(0)
-  orderGroup       OrderGroup        @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_returns_order_group_id_foreign")
-  items            OrderReturnItem[]
+  id              BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  orderGroupId    BigInt            @map("order_group_id") @db.UnsignedBigInt
+  userId          BigInt            @map("user_id") @db.UnsignedBigInt
+  reason          String            @db.Text
+  bankName        String?           @map("bank_name") @db.VarChar(255)
+  accountNumber   String?           @map("account_number") @db.VarChar(255)
+  status          Int               @default(0) @db.TinyInt
+  rejectionReason String?           @map("rejection_reason") @db.Text
+  refundedAmount  Decimal?          @map("refunded_amount") @db.Decimal(10, 2)
+  reviewedBy      BigInt?           @map("reviewed_by") @db.UnsignedBigInt
+  reviewedAt      DateTime?         @map("reviewed_at") @db.Timestamp(0)
+  createdAt       DateTime?         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime?         @updatedAt @map("updated_at") @db.Timestamp(0)
+  orderGroup      OrderGroup        @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_returns_order_group_id_foreign")
+  items           OrderReturnItem[]
 
   @@index([orderGroupId], map: "order_returns_order_group_id_foreign")
   @@index([userId], map: "order_returns_user_id_foreign")
@@ -985,7 +985,12 @@ model OrderTransaction {
 // which reads this row, creates the real order rows, and marks this one paid.
 model PendingShopOrder {
   id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
-  userId           BigInt             @map("user_id") @db.UnsignedBigInt
+  // Nullable so a guest checkout (no account) can still place an order — see
+  // guestName/guestEmail/guestPhone below, populated only when userId is null.
+  userId           BigInt?            @map("user_id") @db.UnsignedBigInt
+  guestName        String?            @map("guest_name") @db.VarChar(255)
+  guestEmail       String?            @map("guest_email") @db.VarChar(255)
+  guestPhone       String?            @map("guest_phone") @db.VarChar(255)
   refNo            String             @unique(map: "pending_shop_orders_ref_no_unique") @map("ref_no") @db.VarChar(255)
   paymentReference String             @unique(map: "pending_shop_orders_payment_reference_unique") @map("payment_reference") @db.VarChar(255)
   amount           Decimal            @db.Decimal(10, 2)
@@ -997,7 +1002,7 @@ model PendingShopOrder {
   confirmedAt      DateTime?          @map("confirmed_at") @db.Timestamp(0)
   createdAt        DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pending_shop_orders_user_id_foreign")
+  user             User?              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pending_shop_orders_user_id_foreign")
   orderGroup       OrderGroup?        @relation(fields: [orderGroupId], references: [id], onUpdate: NoAction, map: "pending_shop_orders_order_group_id_foreign")
 
   @@index([userId], map: "pending_shop_orders_user_id_foreign")

@@ -55,18 +55,30 @@ const isWithinReturnWindow = (deliveredAt: Date): boolean => {
     return Date.now() <= deadline;
 };
 
+type ReturnItemStatus = 'requested' | 'returned';
+
 // A checkout only ever produces a PendingShopOrder row — see PaymentService.processShopOrderPayment
 // for where the real OrderGroup/OrderItem/OrderTransaction rows get created once payment is
 // confirmed. Every order the buyer can see, paid or not, is read back through this row.
 // Callers that need shippingStatus/canCancel to be accurate must include the `orderGroup` relation.
 // Callers that also need per-item return eligibility must include `orderGroup.orderItems.product`
-// and pass `activeReturnItemIds` (order_item ids already covered by a non-rejected OrderReturn).
-const serializePendingOrder = (pending: any, options: { activeReturnItemIds?: Set<string> | undefined } = {}) => {
+// and pass `returnItemStatuses` (order_item id -> 'requested' while the PHP admin's return review
+// is still pending, 'returned' once they've approved it — a rejected return item is left out
+// entirely, same as before).
+const serializePendingOrder = (pending: any, options: { returnItemStatuses?: Map<string, ReturnItemStatus> | undefined } = {}) => {
     const shipping = (pending.shipping ?? null) as (ShippingInput & { paymentMethod?: string }) | null;
     const orderGroupStatus: number | undefined = pending.orderGroup?.status;
     const shippingStatus = orderGroupStatus !== undefined ? ORDER_GROUP_STATUS_LABEL[orderGroupStatus] ?? null : null;
     const deliveredAt: Date | null = pending.orderGroup?.deliveredAt ?? null;
     const withinReturnWindow = shippingStatus === 'delivered' && deliveredAt ? isWithinReturnWindow(deliveredAt) : false;
+    // Rounded up so "expires in a few hours" still reads as "1 day left" rather than
+    // "0 days left" (which would look like the window already closed).
+    const daysLeftToReturn = withinReturnWindow && deliveredAt
+        ? Math.max(1, Math.ceil((deliveredAt.getTime() + SHOP_RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000)))
+        : null;
+    // True once the window has definitively closed (as opposed to never having
+    // opened, e.g. not delivered yet) - lets the buyer see why "Request Return" is gone.
+    const returnWindowExpired = shippingStatus === 'delivered' && !!deliveredAt && !withinReturnWindow;
 
     const realOrderItems = pending.orderGroup?.orderItems as
         | Array<{ id: bigint; productId: bigint; quantity: number; price: unknown; product: { name: string; image: string; isReturnable: boolean } }>
@@ -74,7 +86,8 @@ const serializePendingOrder = (pending: any, options: { activeReturnItemIds?: Se
 
     const items = realOrderItems && realOrderItems.length > 0
         ? realOrderItems.map((item) => {
-            const hasActiveReturn = options.activeReturnItemIds?.has(item.id.toString()) ?? false;
+            const returnStatus = options.returnItemStatuses?.get(item.id.toString());
+            const hasActiveReturn = returnStatus !== undefined;
             return {
                 id: item.id.toString(),
                 productId: item.productId.toString(),
@@ -83,6 +96,7 @@ const serializePendingOrder = (pending: any, options: { activeReturnItemIds?: Se
                 product: { id: item.productId.toString(), name: item.product.name, image: item.product.image },
                 isReturnable: item.product.isReturnable,
                 hasActiveReturn,
+                returnStatus: returnStatus ?? null,
                 canReturn: withinReturnWindow && item.product.isReturnable && !hasActiveReturn,
             };
         })
@@ -94,6 +108,7 @@ const serializePendingOrder = (pending: any, options: { activeReturnItemIds?: Se
             product: { id: item.productId, name: item.name, image: item.image },
             isReturnable: false,
             hasActiveReturn: false,
+            returnStatus: null,
             canReturn: false,
         }));
 
@@ -110,11 +125,23 @@ const serializePendingOrder = (pending: any, options: { activeReturnItemIds?: Se
         shippingStatus,
         canCancel: orderGroupStatus === ORDER_GROUP_STATUSES.PENDING,
         canReturn: items.some((item) => item.canReturn),
+        daysLeftToReturn,
+        returnWindowExpired,
         items,
     };
 };
 
-export const createOrder = async (userId: bigint, payload: CreateOrderInput, user: { name?: string | null; email?: string | null }) => {
+interface GuestContact {
+    name: string;
+    email: string;
+    phone: string;
+}
+
+const buildPendingOrder = async (
+    payload: CreateOrderInput,
+    contact: { name?: string | null; email?: string | null },
+    identity: { userId: bigint; guest?: undefined } | { userId?: undefined; guest: GuestContact }
+) => {
     const productIds = payload.items.map((i) => BigInt(i.productId));
 
     const products = await prisma.product.findMany({
@@ -151,10 +178,10 @@ export const createOrder = async (userId: bigint, payload: CreateOrderInput, use
 
     const virtualAccountResult = await pagaService.generateVirtualAccount(
         total,
-        payload.shipping.fullName || user.name || 'Customer',
+        payload.shipping.fullName || contact.name || 'Customer',
         payload.shipping.phone,
         paymentReference,
-        user.email || undefined
+        contact.email || undefined
     );
 
     if (!virtualAccountResult.success) {
@@ -174,7 +201,10 @@ export const createOrder = async (userId: bigint, payload: CreateOrderInput, use
     // pay against. Stock is validated again, and the real order is created, at confirmation.
     const pending = await prisma.pendingShopOrder.create({
         data: {
-            userId,
+            userId: identity.userId ?? null,
+            guestName: identity.guest?.name ?? null,
+            guestEmail: identity.guest?.email ?? null,
+            guestPhone: identity.guest?.phone ?? null,
             refNo,
             paymentReference,
             amount: total,
@@ -187,9 +217,15 @@ export const createOrder = async (userId: bigint, payload: CreateOrderInput, use
     return serializePendingOrder(pending);
 };
 
-export const getOrderByRefNo = async (refNo: string, userId: bigint) => {
+export const createOrder = (userId: bigint, payload: CreateOrderInput, user: { name?: string | null; email?: string | null }) =>
+    buildPendingOrder(payload, user, { userId });
+
+export const createGuestOrder = (payload: CreateOrderInput, guest: GuestContact) =>
+    buildPendingOrder(payload, { name: guest.name, email: guest.email }, { guest });
+
+const findPendingOrder = async (where: Prisma.PendingShopOrderWhereInput) => {
     const pending = await prisma.pendingShopOrder.findFirst({
-        where: { refNo, userId },
+        where,
         include: { orderGroup: { include: { orderItems: { include: { product: true } } } } },
     });
 
@@ -198,22 +234,33 @@ export const getOrderByRefNo = async (refNo: string, userId: bigint) => {
     }
 
     const orderItemIds = pending.orderGroup?.orderItems.map((item) => item.id) ?? [];
-    const activeReturnItemIds = orderItemIds.length
-        ? new Set(
-            (
-                await prisma.orderReturnItem.findMany({
-                    where: {
-                        orderItemId: { in: orderItemIds },
-                        orderReturn: { status: { not: ORDER_RETURN_STATUSES.REJECTED } },
-                    },
-                    select: { orderItemId: true },
-                })
-            ).map((r) => r.orderItemId.toString())
-        )
-        : undefined;
+    let returnItemStatuses: Map<string, ReturnItemStatus> | undefined;
+    if (orderItemIds.length) {
+        const activeReturnItems = await prisma.orderReturnItem.findMany({
+            where: {
+                orderItemId: { in: orderItemIds },
+                orderReturn: { status: { not: ORDER_RETURN_STATUSES.REJECTED } },
+            },
+            select: { orderItemId: true, orderReturn: { select: { status: true } } },
+        });
+        returnItemStatuses = new Map(
+            activeReturnItems.map((r) => [
+                r.orderItemId.toString(),
+                r.orderReturn.status === ORDER_RETURN_STATUSES.APPROVED ? 'returned' : 'requested',
+            ])
+        );
+    }
 
-    return serializePendingOrder(pending, { activeReturnItemIds });
+    return serializePendingOrder(pending, { returnItemStatuses });
 };
+
+export const getOrderByRefNo = (refNo: string, userId: bigint) =>
+    findPendingOrder({ refNo, userId });
+
+// Guests have no account to scope by, so the email supplied at checkout doubles as
+// the lookup credential — a stranger who only knows the refNo can't view the order.
+export const getGuestOrderByRefNo = (refNo: string, guestEmail: string) =>
+    findPendingOrder({ refNo, guestEmail, userId: null });
 
 interface CreateReturnInput {
     reason: string;
@@ -409,9 +456,9 @@ export const cancelOrder = async (refNo: string, userId: bigint, bankDetails: Ca
     return serializePendingOrder(updated);
 };
 
-export const getOrderStatus = async (refNo: string, userId: bigint) => {
+const findPendingOrderStatus = async (where: Prisma.PendingShopOrderWhereInput) => {
     const pending = await prisma.pendingShopOrder.findFirst({
-        where: { refNo, userId },
+        where,
         select: { status: true },
     });
 
@@ -421,6 +468,12 @@ export const getOrderStatus = async (refNo: string, userId: bigint) => {
 
     return { status: pending.status };
 };
+
+export const getOrderStatus = (refNo: string, userId: bigint) =>
+    findPendingOrderStatus({ refNo, userId });
+
+export const getGuestOrderStatus = (refNo: string, guestEmail: string) =>
+    findPendingOrderStatus({ refNo, guestEmail, userId: null });
 
 interface GetOrdersFilters {
     search?: string | undefined;

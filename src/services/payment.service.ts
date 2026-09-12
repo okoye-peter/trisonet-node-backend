@@ -5,7 +5,8 @@ import { PagaService } from "./paga.service.js";
 import { addMinutes, format } from "date-fns";
 import { AccountActivationService } from './account_activation.service.js';
 import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, ORDER_GROUP_STATUSES } from "../config/constants.js";
-import { addSmsJob, addPukEmailJob } from '../queue/index.js';
+import { addSmsJob, addPukEmailJob, addOrderConfirmationEmailJob } from '../queue/index.js';
+import { renderOrderItemsHtml } from './email.service.js';
 import { TermiiService } from './termii.service.js';
 import AuctionService from './auction.service.js';
 
@@ -1085,7 +1086,7 @@ export class PaymentService {
             return { status: 'amount_mismatch' };
         }
 
-        const items = pending.items as unknown as Array<{ productId: string; quantity: number; price: number }>;
+        const items = pending.items as unknown as Array<{ productId: string; quantity: number; price: number; name: string }>;
         const user = pending.user;
 
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -1160,6 +1161,24 @@ export class PaymentService {
                 // the cron job in cron.ts. This order isn't even delivered yet at this point.
             }
         });
+
+        // Outside the transaction: this is a best-effort notification, not something that
+        // should roll back an already-confirmed payment if the mail queue has a hiccup.
+        const recipientEmail = user?.email || pending.guestEmail;
+        const recipientName = user?.name || pending.guestName || 'Customer';
+        if (recipientEmail) {
+            const shipping = pending.shipping as unknown as { address?: string; city?: string; state?: string } | null;
+            const deliveryAddress = [shipping?.address, shipping?.city, shipping?.state].filter(Boolean).join(', ') || 'N/A';
+
+            await addOrderConfirmationEmailJob(recipientEmail, {
+                name: recipientName,
+                orderRef: pending.refNo,
+                orderDate: format(new Date(), 'MMMM d, yyyy'),
+                itemsHtml: renderOrderItemsHtml(items, (amount) => `₦${amount.toLocaleString()}`),
+                total: `₦${Number(pending.amount).toLocaleString()}`,
+                deliveryAddress,
+            }).catch((error) => pagaLogger.error('failed to queue order confirmation email', { ref: pending.refNo, error }));
+        }
 
         pagaLogger.info(`Shop order payment confirmed: ref=${externalReferenceNumber}, order=${pending.refNo}`);
         return { status: 'ok' };

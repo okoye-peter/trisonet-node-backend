@@ -23,6 +23,12 @@ export const mailWorker = new Worker(
             const sent = await EmailService.sendPukEmail(email, code);
             if (!sent) throw new Error(`sendPukEmail failed for ${email}`);
         }
+
+        if (job.name === 'sendOrderConfirmationEmail') {
+            const { email, vars } = job.data;
+            const sent = await EmailService.sendOrderConfirmationEmail(email, vars);
+            if (!sent) throw new Error(`sendOrderConfirmationEmail failed for ${email}`);
+        }
     },
     { connection: redisConnection, concurrency: 5 } // Handling concurrency
 );

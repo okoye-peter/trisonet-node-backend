@@ -1,30 +1,60 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { sendSuccess } from "../utils/responseWrapper";
+import { AppError } from "../utils/AppError";
+import { User } from "../config/prisma";
 import * as OrderService from "../services/order.service";
 
+// These two routes sit behind optionalAuth (not protect), so req.user may genuinely
+// be absent — a guest checking out or looking up their order.
+const optionalUser = (req: Request): User | undefined => req.user;
+
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user;
+    const user = optionalUser(req);
     const { items, shipping } = req.body;
 
-    const order = await OrderService.createOrder(user.id, { items, shipping }, { name: user.name, email: user.email });
+    if (user) {
+        const order = await OrderService.createOrder(user.id, { items, shipping }, { name: user.name, email: user.email });
+        return sendSuccess(res, 201, 'Order placed successfully', order);
+    }
+
+    if (!shipping.email) {
+        throw new AppError('An email address is required to check out as a guest', 400);
+    }
+
+    const order = await OrderService.createGuestOrder(
+        { items, shipping },
+        { name: shipping.fullName, email: shipping.email, phone: shipping.phone }
+    );
 
     sendSuccess(res, 201, 'Order placed successfully', order);
 });
 
 export const getOrder = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user;
-    const order = await OrderService.getOrderByRefNo(req.params.refNo as string, user.id);
+    const user = optionalUser(req);
+    const order = user
+        ? await OrderService.getOrderByRefNo(req.params.refNo as string, user.id)
+        : await OrderService.getGuestOrderByRefNo(req.params.refNo as string, requireGuestEmail(req));
 
     sendSuccess(res, 200, 'Order fetched successfully', order);
 });
 
 export const getOrderStatus = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user;
-    const status = await OrderService.getOrderStatus(req.params.refNo as string, user.id);
+    const user = optionalUser(req);
+    const status = user
+        ? await OrderService.getOrderStatus(req.params.refNo as string, user.id)
+        : await OrderService.getGuestOrderStatus(req.params.refNo as string, requireGuestEmail(req));
 
     sendSuccess(res, 200, 'Order status fetched', status);
 });
+
+function requireGuestEmail(req: Request): string {
+    const email = req.query.email as string | undefined;
+    if (!email) {
+        throw new AppError('An email address is required to look up a guest order', 400);
+    }
+    return email;
+}
 
 export const cancelOrder = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user;

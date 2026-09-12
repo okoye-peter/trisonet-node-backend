@@ -25,3 +25,17 @@ export const addPukEmailJob = async (email: string, code: string) => {
         code
     });
 };
+
+export const addOrderConfirmationEmailJob = async (email: string, vars: {
+    name: string;
+    orderRef: string;
+    orderDate: string;
+    itemsHtml: string;
+    total: string;
+    deliveryAddress: string;
+}) => {
+    await mailQueue.add('sendOrderConfirmationEmail', {
+        email,
+        vars
+    });
+};

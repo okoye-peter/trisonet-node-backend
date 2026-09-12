@@ -9,6 +9,10 @@ export const createOrderSchema = z.object({
         shipping: z.object({
             fullName: z.string().min(2, 'Full name is required'),
             phone: z.string().min(7, 'A valid phone number is required'),
+            // Only required for guest checkout (no logged-in user) — see
+            // OrderController.createOrder — but always accepted so an authenticated
+            // buyer can optionally send a different contact email too.
+            email: z.string().email('A valid email is required').optional(),
             address: z.string().min(5, 'Delivery address is required'),
             city: z.string().min(2, 'City is required'),
             state: z.string().min(2, 'State is required'),
@@ -20,6 +24,10 @@ export const getOrderSchema = z.object({
     params: z.object({
         refNo: z.string().min(1, 'Order reference is required'),
     }),
+    query: z.object({
+        // Required to look up a guest order (no account to scope by userId instead).
+        email: z.string().email('A valid email is required').optional(),
+    }).optional(),
 });
 
 export const cancelOrderSchema = z.object({
