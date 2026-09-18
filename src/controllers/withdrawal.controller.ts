@@ -37,9 +37,13 @@ export const initiateTransfer = asyncHandler(async (req: any, res: Response, nex
     const input = req.body as InitiateTransferInput;
 
     // 2. Call Service
-    await WithdrawalService.initiateTransfer(user, input, typeof type === 'string' ? type : undefined);
+    const result = await WithdrawalService.initiateTransfer(user, input, typeof type === 'string' ? type : undefined);
 
-    sendSuccess(res, 200, 'Withdrawal created successfully and under review');
+    const message = (result as any)?.status === 'processed'
+        ? 'Withdrawal processed successfully'
+        : 'Withdrawal created successfully and under review';
+
+    sendSuccess(res, 200, message, result);
 });
 
 export const approveWithdrawal = asyncHandler(async (req: any, res: Response, next: NextFunction) => {

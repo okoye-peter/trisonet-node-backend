@@ -1957,6 +1957,7 @@ enum WalletType {
   patronage
   earning
   shopping
+  commission
 }
 
 enum AuctionStatus {

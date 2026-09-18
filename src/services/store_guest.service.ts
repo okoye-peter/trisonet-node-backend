@@ -255,9 +255,9 @@ export class StoreGuestService {
                 }
 
                 await tx.wallet.upsert({
-                    where: { userId_type: { userId: inviter.id, type: WalletType.shopping } },
+                    where: { userId_type: { userId: inviter.id, type: WalletType.commission } },
                     update: { amount: { increment: amount } },
-                    create: { userId: inviter.id, type: WalletType.shopping, amount },
+                    create: { userId: inviter.id, type: WalletType.commission, amount },
                 });
 
                 await CommissionLogService.success({
@@ -265,7 +265,7 @@ export class StoreGuestService {
                     sourceUserId: buyer.id,
                     type: 'store_invite',
                     amount,
-                    walletType: WalletType.shopping,
+                    walletType: WalletType.commission,
                     reference: orderGroup.refNo,
                     processedVia: PROCESSED_VIA,
                     metadata: {

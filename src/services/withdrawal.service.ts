@@ -182,6 +182,13 @@ export class WithdrawalService {
             throw new AppError('The patronage wallet is restricted to sponsorship and member activations and cannot be withdrawn directly.', 400);
         }
 
+        // Restriction: shopping wallet is store credit only (from approved order
+        // returns) - it must never be withdrawable, only spendable at checkout.
+        // Ecommerce referral commission lives in the separate "commission" wallet.
+        if (wallet.type === 'shopping') {
+            throw new AppError('The shopping wallet is store credit only and cannot be withdrawn.', 400);
+        }
+
         // New Rule: Max 50% withdrawal limit
         if (wallet.type == 'earning') {
             if (input.amount > (wallet.amount * 0.5)) throw new AppError(`Note: You can only withdraw up to 50% of your total balance. Current maximum: ₦${(wallet.amount * 0.5).toLocaleString()}`, 400);
@@ -239,8 +246,10 @@ export class WithdrawalService {
             throw new AppError('You already have a pending withdrawal request that hasn\'t been resolved', 400);
         }
 
-        // 8. User Eligibility Check
-        if (user.role !== ROLES.PATRON && user.username != 'dev_user') {
+        // 8. User Eligibility Check - the commission wallet is exempt from the
+        // cooldown/eligibility rules that gate other wallets; referral commission
+        // is meant to be withdrawable anytime.
+        if (wallet.type !== 'commission' && user.role !== ROLES.PATRON && user.username != 'dev_user') {
             const eligibility = await this.checkUserStatusToWithdraw(user);
             if (!eligibility.status) {
                 throw new AppError(eligibility.error || 'Withdrawal restricted', 400);
@@ -277,6 +286,12 @@ export class WithdrawalService {
             // commission_price (an unrelated $-to-NGN FX rate) for non-Nigerian users, as before,
             // produced a wrong payout since it isn't a GKWTH price at all.
             amountCalculated = (priceValue ?? 0) * input.amount;
+        } else if (wallet.type === 'commission') {
+            // Ecommerce referral commission is plain NGN cash, priced the same way
+            // as the direct wallet (FX-converted for non-Nigerian users) - it just
+            // lives in its own wallet so it isn't subject to the direct wallet's
+            // lock/cooldown rules and can be cashed out instantly below.
+            amountCalculated = isNigerian ? input.amount : input.amount * commissionPrice;
         }
 
         // 10. Transaction
@@ -353,6 +368,13 @@ export class WithdrawalService {
             });
         });
 
+        // Commission wallet withdrawals skip admin approval entirely - process the
+        // Paga payout immediately instead of leaving the request pending.
+        if (wallet.type === 'commission') {
+            await this.executePayout(request.id, wallet);
+            return prisma.withdrawalRequest.findUnique({ where: { id: request.id } });
+        }
+
         // Trigger Notification
         try {
             await NotificationService.createNotification(
@@ -369,26 +391,14 @@ export class WithdrawalService {
     }
 
     /**
-     * Approve and process a withdrawal request
+     * Runs the actual Paga payout for a withdrawal request and finalizes its DB
+     * records. Shared by the admin-approval path (approveWithdrawal) and the
+     * commission wallet's instant, no-approval path in initiateTransfer.
      */
-    static async approveWithdrawal(requestId: bigint, adminUser: any) {
-        const request = await prisma.withdrawalRequest.findUnique({
-            where: { id: requestId },
-            include: { wallet: { include: { user: true } } }
-        });
-
+    private static async executePayout(requestId: bigint, wallet: { id: bigint; userId: bigint; type: string | null }) {
+        const request = await prisma.withdrawalRequest.findUnique({ where: { id: requestId } });
         if (!request) {
             throw new AppError('Withdrawal request not found', 404);
-        }
-
-        if (!request.wallet) {
-            throw new AppError('Wallet associated with this request not found', 404);
-        }
-
-        const wallet = request.wallet;
-
-        if (request.status !== 'pending') {
-            throw new AppError(`Request already ${request.status}`, 400);
         }
 
         const pagaService = new PagaService();
@@ -463,10 +473,9 @@ export class WithdrawalService {
                     'Withdrawal Successful',
                     `Your withdrawal of ₦${request.amountToTransfer.toLocaleString()} has been processed and sent to your bank account.`
                 );
-
-                return { success: true, reference: payoutResponse.reference };
-
             });
+
+            return { success: true, reference: payoutResponse.reference };
         } catch (error: any) {
             // If it's an AppError we threw, rethrow it
             if (error instanceof AppError) throw error;
@@ -478,5 +487,29 @@ export class WithdrawalService {
             });
             throw new AppError(error.message || 'An error occurred during payout', 500);
         }
+    }
+
+    /**
+     * Approve and process a withdrawal request
+     */
+    static async approveWithdrawal(requestId: bigint, adminUser: any) {
+        const request = await prisma.withdrawalRequest.findUnique({
+            where: { id: requestId },
+            include: { wallet: { include: { user: true } } }
+        });
+
+        if (!request) {
+            throw new AppError('Withdrawal request not found', 404);
+        }
+
+        if (!request.wallet) {
+            throw new AppError('Wallet associated with this request not found', 404);
+        }
+
+        if (request.status !== 'pending') {
+            throw new AppError(`Request already ${request.status}`, 400);
+        }
+
+        return this.executePayout(requestId, request.wallet);
     }
 }
