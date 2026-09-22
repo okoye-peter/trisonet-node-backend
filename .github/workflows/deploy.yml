@@ -30,5 +30,6 @@ jobs:
             git reset --hard origin/main
             npm install
             timeout 600 npm run build
-            su - apiuser -c "cd /var/www/api.trisonet.com && (pm2 restart express-api || pm2 start dist/index.js --name express-api) && pm2 save"
+            pm2 restart express-api || pm2 start dist/index.js --name express-api -i 2
+            pm2 save
 
