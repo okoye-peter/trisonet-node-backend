@@ -849,31 +849,36 @@ export class PaymentService {
     }
 
     async activateByCode(userId: bigint, code: string, teamMateIds: string[]) {
-        const card = await prisma.activationCard.findUnique({
-            where: { code },
-            include: { _count: { select: { usersWithCard: true } } }
-        });
-
-        if (!card) {
-            throw new AppError('Invalid activation code', 400);
-        }
-
-        if (card.status !== 1) {
-            throw new AppError('Activation code is not active or has not been approved', 400);
-        }
-
-        const maxUses = Math.round(card.amount / card.pricePerUser);
-        const usedCount = card._count.usersWithCard;
-        const requiredUses = 1 + teamMateIds.length;
-
-        if (usedCount + requiredUses > maxUses) {
-            throw new AppError(`This activation code only has ${maxUses - usedCount} uses left. You requested ${requiredUses}.`, 400);
-        }
-
         const userIdsToActivate = [userId, ...teamMateIds.map(id => BigInt(id))];
+        const requiredUses = userIdsToActivate.length;
 
-        // 1. Assign activation card reference within the transaction (very fast, short locks)
+        // 1. Lock the card row and re-check/consume slots atomically in one transaction,
+        // so concurrent requests against the same code can't all pass the availability
+        // check before any of them commits (was previously an unlocked read-then-write race).
         await prisma.$transaction(async (tx) => {
+            const rows = await tx.$queryRaw<{ id: bigint; amount: number; pricePerUser: number; status: number }[]>`
+                SELECT id, amount, price_per_user as pricePerUser, status
+                FROM activation_cards
+                WHERE code = ${code}
+                FOR UPDATE
+            `;
+            const card = rows[0];
+
+            if (!card) {
+                throw new AppError('Invalid activation code', 400);
+            }
+
+            if (card.status !== 1) {
+                throw new AppError('Activation code is not active or has not been approved', 400);
+            }
+
+            const maxUses = Math.round(card.amount / card.pricePerUser);
+            const usedCount = await tx.user.count({ where: { activationCardId: card.id } });
+
+            if (usedCount + requiredUses > maxUses) {
+                throw new AppError(`This activation code only has ${maxUses - usedCount} uses left. You requested ${requiredUses}.`, 400);
+            }
+
             for (const id of userIdsToActivate) {
                 await tx.user.update({
                     where: { id },
@@ -886,7 +891,7 @@ export class PaymentService {
         for (const id of userIdsToActivate) {
             await AccountActivationService.activateUserAccountOptimized(id, {
                 source: 'activation_code',
-                reference: `activation_code:${card.code}`
+                reference: `activation_code:${code}`
             });
         }
 
