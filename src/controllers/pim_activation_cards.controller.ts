@@ -88,7 +88,7 @@ export const getUserCardsSummary = asyncHandler(async (req: any, res: Response) 
     const basePrice = cardPrice ? Number(cardPrice.value) : 0;
     const price = basePrice ? basePrice + pagaService.calculateCharge(basePrice) : 0;
 
-    const availableSlots = Number(slotsResult[0]?.availableSlots ?? 0);
+    const availableSlots = Math.max(0, Number(slotsResult[0]?.availableSlots ?? 0));
     const usedSlots = Number(slotsResult[0]?.usedSlots ?? 0);
     const totalSlots = Number(slotsResult[0]?.totalSlots ?? 0);
     const activeCard = activeCardResult[0] ?? null;
@@ -177,8 +177,9 @@ export const getUserCards = asyncHandler(async (req: any, res: Response) => {
             };
         });
 
-        const amountLeft = Number(card.amount) - totalUsedAmount;
-        const slotsLeft = Math.floor(amountLeft / Number(card.pricePerUser));
+        const amountLeftRaw = Number(card.amount) - totalUsedAmount;
+        const amountLeft = Math.max(0, amountLeftRaw);
+        const slotsLeft = Math.max(0, Math.floor(amountLeftRaw / Number(card.pricePerUser)));
 
         return {
             ...card,
