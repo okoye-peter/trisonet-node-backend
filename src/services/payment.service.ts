@@ -850,11 +850,16 @@ export class PaymentService {
 
     async activateByCode(userId: bigint, code: string, teamMateIds: string[]) {
         const userIdsToActivate = [userId, ...teamMateIds.map(id => BigInt(id))];
-        const requiredUses = userIdsToActivate.length;
 
-        // 1. Lock the card row and re-check/consume slots atomically in one transaction,
+        const infantFeeSetting = await prisma.setting.findFirst({ where: { key: 'infant_form_fee' } });
+        const infantFormFee = Number(infantFeeSetting?.value || 30000);
+
+        // 1. Lock the card row and re-check/consume balance atomically in one transaction,
         // so concurrent requests against the same code can't all pass the availability
         // check before any of them commits (was previously an unlocked read-then-write race).
+        // The check is amount-based, not headcount-based: an independent infant registrant
+        // costs pricePerUser + infantFormFee, not a flat "1 slot", so a plain headcount vs
+        // maxUses comparison under-counts real usage once infants are involved.
         await prisma.$transaction(async (tx) => {
             const rows = await tx.$queryRaw<{ id: bigint; amount: number; pricePerUser: number; status: number }[]>`
                 SELECT id, amount, price_per_user as pricePerUser, status
@@ -872,11 +877,26 @@ export class PaymentService {
                 throw new AppError('Activation code is not active or has not been approved', 400);
             }
 
-            const maxUses = Math.round(card.amount / card.pricePerUser);
-            const usedCount = await tx.user.count({ where: { activationCardId: card.id } });
+            const [registrants, existingUsers] = await Promise.all([
+                tx.user.findMany({
+                    where: { id: { in: userIdsToActivate } },
+                    select: { id: true, isInfant: true, sponsorId: true }
+                }),
+                tx.user.findMany({
+                    where: { activationCardId: card.id },
+                    select: { isInfant: true, sponsorId: true }
+                })
+            ]);
 
-            if (usedCount + requiredUses > maxUses) {
-                throw new AppError(`This activation code only has ${maxUses - usedCount} uses left. You requested ${requiredUses}.`, 400);
+            const costOf = (u: { isInfant: boolean; sponsorId: bigint | null }) =>
+                card.pricePerUser + (u.isInfant && !u.sponsorId ? infantFormFee : 0);
+
+            const amountUsed = existingUsers.reduce((sum, u) => sum + costOf(u), 0);
+            const amountLeft = card.amount - amountUsed;
+            const requiredAmount = registrants.reduce((sum, u) => sum + costOf(u), 0);
+
+            if (requiredAmount > amountLeft) {
+                throw new AppError(`This activation code does not have enough balance left. Requires ${requiredAmount}, ${amountLeft} available.`, 400);
             }
 
             for (const id of userIdsToActivate) {
