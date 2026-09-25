@@ -1,5 +1,4 @@
 import { prisma } from "../config/prisma";
-import { canUseSellerFeatures } from "../utils/sellerAccess";
 import { paginate } from "../utils/pagination";
 import { AppError } from "../utils/AppError";
 import { PRODUCT_STATUS, SELLER_STORE_STATUS } from "../config/constants";
@@ -51,7 +50,7 @@ export const isBuyable = (p: { status: number; sellerStoreId: bigint | null; sel
     p.status === PRODUCT_STATUS.APPROVED &&
     (p.sellerStoreId === null || p.sellerStore?.status === SELLER_STORE_STATUS.APPROVED);
 
-const sellerStoreInclude = { select: { id: true, name: true, logo: true, status: true } };
+const sellerStoreInclude = { select: { id: true, name: true, logo: true, status: true, userId: true } };
 
 const productImagesInclude = {
     orderBy: [{ isDefault: 'desc' as const }, { sortOrder: 'asc' as const }],
@@ -66,10 +65,15 @@ interface ListProductsOptions {
     categoryId?: string | undefined;
 }
 
-export const listProducts = async ({ page, limit, search, categoryId }: ListProductsOptions, viewer?: { username?: string | null } | null) => {
+type Viewer = { id: bigint } | null | undefined;
+
+/** A partner never sees (or buys - see order.service.ts) their own store's products in the shop. */
+const isOwnProduct = (p: { sellerStore?: { userId: bigint } | null }, viewer: Viewer) =>
+    !!viewer && p.sellerStore?.userId === viewer.id;
+
+export const listProducts = async ({ page, limit, search, categoryId }: ListProductsOptions, viewer?: Viewer) => {
     const where: any = { ...buyableProductWhere };
-    // Partner products stay hidden outside the seller beta (utils/sellerAccess.ts).
-    if (!canUseSellerFeatures(viewer)) where.sellerStoreId = null;
+    if (viewer) where.AND = [{ OR: [{ sellerStoreId: null }, { sellerStore: { userId: { not: viewer.id } } }] }];
     if (search) where.name = { contains: search };
     if (categoryId) where.categoryId = BigInt(categoryId);
 
@@ -89,13 +93,13 @@ export const listProducts = async ({ page, limit, search, categoryId }: ListProd
     };
 };
 
-export const getProductById = async (id: string, viewer?: { username?: string | null } | null) => {
+export const getProductById = async (id: string, viewer?: Viewer) => {
     const product = await prisma.product.findUnique({
         where: { id: BigInt(id) },
         include: { category: true, images: productImagesInclude, reviews: productReviewRatingsInclude, sellerStore: sellerStoreInclude },
     });
 
-    if (!product || !isBuyable(product) || (product.sellerStoreId !== null && !canUseSellerFeatures(viewer))) {
+    if (!product || !isBuyable(product) || isOwnProduct(product, viewer)) {
         throw new AppError('Product not found', 404);
     }
 

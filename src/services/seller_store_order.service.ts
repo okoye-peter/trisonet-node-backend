@@ -21,13 +21,12 @@ const STATUS_BY_TEXT: Record<SellerOrderStatus, number> = {
 };
 
 /**
- * The only moves a seller can make, one step at a time. Cancelling stays with admins in
- * PHP (OrderGroupController@updateStatus) because it refunds the buyer, restocks and
- * cancels the payout.
+ * The only move a seller can make. Delivered is set by an admin in PHP
+ * (OrderGroupController@updateStatus) after calling the courier the seller named, and
+ * cancelling stays there too because it refunds the buyer, restocks and cancels the payout.
  */
 const NEXT_STATUS: Partial<Record<SellerOrderStatus, SellerOrderStatus>> = {
     pending: 'shipped',
-    shipped: 'delivered',
 };
 
 const orderInclude = {
@@ -97,6 +96,8 @@ const serializeOrder = (group: OrderWithRelations) => {
             phone: shipping.phone || group.user?.phone || group.checkout?.guestPhone || null,
         },
         deliveryAddress: [shipping.address, shipping.city, shipping.state].filter(Boolean).join(', ') || null,
+        courier: group.courierName ? { name: group.courierName, phone: group.courierPhone } : null,
+        shippedAt: group.shippedAt,
         deliveredAt: group.deliveredAt,
         ...deliveryDeadline(group.createdAt, group.status),
         createdAt: group.createdAt,
@@ -148,45 +149,39 @@ export class SellerStoreOrderService {
     }
 
     /**
-     * Moves an order one step forward (pending -> shipped -> delivered). Marking it
-     * delivered stamps delivered_at exactly like the PHP admin does, which starts the
-     * buyer's return window and unlocks product reviews.
+     * Marks a pending order shipped with the courier's contact details. Calling it again
+     * while the order is still shipped only corrects the courier details.
      */
-    static async updateStatus(user: any, refNo: string, next: SellerOrderStatus) {
+    static async markShipped(user: any, refNo: string, courier: { name: string; phone: string }) {
         const store = await this.getStore(user);
         const group = await this.getOwnOrder(store.id, refNo);
         const current = STATUS_TEXT[group.status] ?? 'pending';
 
-        if (NEXT_STATUS[current] !== next) {
-            throw new AppError(
-                current === 'cancelled'
-                    ? 'This order was cancelled'
-                    : current === 'delivered'
-                        ? 'This order is already delivered'
-                        : `A ${current} order can only be marked ${NEXT_STATUS[current]}`,
-                400,
-            );
+        if (current !== 'pending' && current !== 'shipped') {
+            throw new AppError(current === 'cancelled' ? 'This order was cancelled' : 'This order is already delivered', 400);
         }
 
         // Conditional on the status we read, so a concurrent admin change (e.g. a cancel) wins.
         const moved = await prisma.orderGroup.updateMany({
             where: { id: group.id, status: group.status },
             data: {
-                status: STATUS_BY_TEXT[next],
-                ...(next === 'delivered' && !group.deliveredAt ? { deliveredAt: new Date() } : {}),
+                status: ORDER_GROUP_STATUSES.SHIPPED,
+                courierName: courier.name,
+                courierPhone: courier.phone,
+                ...(current === 'pending' ? { shippedAt: new Date() } : {}),
             },
         });
         if (moved.count === 0) throw new AppError('This order was just updated. Refresh and try again.', 409);
 
-        await this.notifyBuyer(group);
+        if (current === 'pending') await this.notifyBuyer(group);
 
         return serializeOrder(await this.getOwnOrder(store.id, refNo));
     }
 
     /**
      * The buyer sees one combined order (see OrderService.serializePendingOrder), so they
-     * hear about it under the checkout's own refNo, and only when the combined status
-     * changes: when the first part leaves a seller, and when the last part arrives.
+     * hear about it under the checkout's own refNo, and only when the first part leaves a
+     * seller. The "delivered" notice is sent by the PHP admin when it marks the last part delivered.
      */
     private static async notifyBuyer(group: OrderWithRelations) {
         if (!group.userId || !group.pendingShopOrderId || !group.checkout) return;
@@ -198,16 +193,14 @@ export class SellerStoreOrderService {
         // `group` is the part as it was before this update.
         const before = combinedDelivery(parts.map((p) => (p.id === group.id ? { status: group.status, deliveredAt: group.deliveredAt } : p))).status;
         const after = combinedDelivery(parts).status;
-        if (before === after || (after !== 'shipped' && after !== 'delivered')) return;
+        if (before === after || after !== 'shipped') return;
 
         const ref = group.checkout.refNo;
         try {
             const notification = await prisma.notification.create({
                 data: {
                     title: `Order #${ref} ${after}`,
-                    body: after === 'shipped'
-                        ? `Your order #${ref} is on its way.`
-                        : `Your order #${ref} has been delivered. You can request a return within 7 days if something is wrong.`,
+                    body: `Your order #${ref} is on its way.`,
                 },
             });
             await prisma.notificationUser.create({ data: { userId: group.userId, notificationId: notification.id } });

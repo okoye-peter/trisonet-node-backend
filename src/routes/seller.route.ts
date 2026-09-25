@@ -2,7 +2,6 @@ import { Router } from "express";
 import { protect } from "../middlewares/auth";
 import { isBlocked } from "../middlewares/isBlocked";
 import { validate } from "../middlewares/validateRequest";
-import { requireSellerFeatures } from "../utils/sellerAccess";
 import {
     saveSellerStoreSchema,
     listSellerProductsSchema,
@@ -34,8 +33,6 @@ const router = Router();
 
 router.use(protect);
 router.use(isBlocked);
-// Closed beta - see utils/sellerAccess.ts.
-router.use(requireSellerFeatures);
 
 router.get('/store', getMyStore);
 router.put('/store', validate(saveSellerStoreSchema), saveMyStore);

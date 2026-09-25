@@ -6,7 +6,6 @@ import { PagaService } from "./paga.service";
 import { paginate } from "../utils/pagination";
 import { CommissionLogService } from "./commission_log.service";
 import { isBuyable } from "./product.service";
-import { canUseSellerFeatures } from "../utils/sellerAccess";
 
 const pagaService = new PagaService();
 
@@ -195,14 +194,14 @@ interface GuestContact {
 
 const buildPendingOrder = async (
     payload: CreateOrderInput,
-    contact: { name?: string | null; email?: string | null; username?: string | null },
+    contact: { name?: string | null; email?: string | null },
     identity: { userId: bigint; guest?: undefined } | { userId?: undefined; guest: GuestContact }
 ) => {
     const productIds = payload.items.map((i) => BigInt(i.productId));
 
     const products = await prisma.product.findMany({
         where: { id: { in: productIds } },
-        include: { sellerStore: { select: { status: true } } },
+        include: { sellerStore: { select: { status: true, userId: true } } },
     });
 
     const productMap = new Map(products.map((p) => [p.id.toString(), p]));
@@ -211,9 +210,11 @@ const buildPendingOrder = async (
     const items: OrderItemSnapshot[] = [];
     for (const item of payload.items) {
         const product = productMap.get(item.productId);
-        // Guests and anyone outside the seller beta can't buy partner products (utils/sellerAccess.ts).
-        if (!product || !isBuyable(product) || (product.sellerStoreId !== null && !canUseSellerFeatures(contact))) {
+        if (!product || !isBuyable(product)) {
             throw new AppError(`Product ${item.productId} not found`, 404);
+        }
+        if (identity.userId !== undefined && product.sellerStore?.userId === identity.userId) {
+            throw new AppError(`You can't buy ${product.name} - it's from your own store`, 400);
         }
         if (item.quantity > product.quantity) {
             throw new AppError(`Insufficient stock for ${product.name}`, 400);
@@ -275,7 +276,7 @@ const buildPendingOrder = async (
     return serializePendingOrder(pending);
 };
 
-export const createOrder = (userId: bigint, payload: CreateOrderInput, user: { name?: string | null; email?: string | null; username?: string | null }) =>
+export const createOrder = (userId: bigint, payload: CreateOrderInput, user: { name?: string | null; email?: string | null }) =>
     buildPendingOrder(payload, user, { userId });
 
 export const createGuestOrder = (payload: CreateOrderInput, guest: GuestContact) =>

@@ -107,7 +107,10 @@ export const getMyOrder = asyncHandler(
 export const updateMyOrderStatus = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
-        const order = await SellerStoreOrderService.updateStatus(user, req.params.refNo as string, req.body.status);
-        sendSuccess(res, 200, `Order marked as ${req.body.status}`, order);
+        const order = await SellerStoreOrderService.markShipped(user, req.params.refNo as string, {
+            name: req.body.courierName,
+            phone: req.body.courierPhone,
+        });
+        sendSuccess(res, 200, "Order marked as shipped", order);
     }
 );

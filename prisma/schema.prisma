@@ -875,6 +875,11 @@ model OrderGroup {
   // alter what an existing order pays out. Null on platform orders.
   commissionRate     Decimal?           @map("commission_rate") @db.Decimal(5, 2)
   refNo              String             @unique(map: "order_groups_ref_no_unique") @map("ref_no") @db.VarChar(255)
+  // Set by a partner when marking their part shipped, so an admin can call the courier
+  // to confirm delivery. Owned by the PHP migration that adds them.
+  courierName        String?            @map("courier_name") @db.VarChar(100)
+  courierPhone       String?            @map("courier_phone") @db.VarChar(20)
+  shippedAt          DateTime?          @map("shipped_at") @db.Timestamp(0)
   deliveredAt        DateTime?          @map("delivered_at") @db.Timestamp(0)
   buyerConfirmedAt   DateTime?          @map("buyer_confirmed_at") @db.Timestamp(0)
   stateId            BigInt?            @map("state_id") @db.UnsignedBigInt

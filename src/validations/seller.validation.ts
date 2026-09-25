@@ -70,10 +70,14 @@ export const sellerOrderRefSchema = z.object({
     params: orderRefParams,
 });
 
-// Sellers only move orders forward; cancelling (refund + restock) stays with admins.
+// Sellers can only mark an order shipped, naming the courier so an admin can call them to
+// confirm delivery. Delivered and cancelled are admin-only (PHP OrderGroupController@updateStatus).
 export const updateSellerOrderStatusSchema = z.object({
     params: orderRefParams,
     body: z.object({
-        status: z.enum(['shipped', 'delivered']),
+        status: z.literal('shipped'),
+        courierName: z.string({ error: 'courier name is required' }).trim().min(2, 'courier name is required').max(100),
+        courierPhone: z.string({ error: 'courier phone number is required' }).trim()
+            .regex(/^\+?[0-9][0-9\s-]{6,18}[0-9]$/, 'enter a valid courier phone number'),
     }),
 });
