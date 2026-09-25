@@ -1,10 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/AppError";
-import { PRODUCT_STATUS, ORDER_GROUP_STATUSES, WITHDRAWAL_STATUSES, ORDER_RETURN_STATUSES, SHOP_RETURN_WINDOW_DAYS } from "../config/constants";
+import { ORDER_GROUP_STATUSES, WITHDRAWAL_STATUSES, ORDER_RETURN_STATUSES, SHOP_RETURN_WINDOW_DAYS } from "../config/constants";
 import { PagaService } from "./paga.service";
 import { paginate } from "../utils/pagination";
 import { CommissionLogService } from "./commission_log.service";
+import { isBuyable } from "./product.service";
+import { canUseSellerFeatures } from "../utils/sellerAccess";
 
 const pagaService = new PagaService();
 
@@ -36,18 +38,20 @@ interface OrderItemSnapshot {
 
 type ShippingStatusLabel = 'cancelled' | 'pending' | 'shipped' | 'delivered';
 
-const ORDER_GROUP_STATUS_LABEL: Record<number, ShippingStatusLabel> = {
-    [ORDER_GROUP_STATUSES.CANCELLED]: 'cancelled',
-    [ORDER_GROUP_STATUSES.PENDING]: 'pending',
-    [ORDER_GROUP_STATUSES.SHIPPED]: 'shipped',
-    [ORDER_GROUP_STATUSES.DELIVERED]: 'delivered',
-};
+const { CANCELLED, PENDING, SHIPPED, DELIVERED } = ORDER_GROUP_STATUSES;
 
-const SHIPPING_STATUS_TO_ORDER_GROUP_STATUS: Record<ShippingStatusLabel, number> = {
-    cancelled: ORDER_GROUP_STATUSES.CANCELLED,
-    pending: ORDER_GROUP_STATUSES.PENDING,
-    shipped: ORDER_GROUP_STATUSES.SHIPPED,
-    delivered: ORDER_GROUP_STATUSES.DELIVERED,
+/** Matches checkouts whose combined status (see combinedDelivery) is the given one. */
+const combinedStatusWhere = (status: ShippingStatusLabel): Prisma.PendingShopOrderWhereInput => {
+    switch (status) {
+        case 'cancelled':
+            return { orderGroups: { some: {}, every: { status: CANCELLED } } };
+        case 'delivered':
+            return { orderGroups: { some: { status: DELIVERED }, none: { status: { in: [PENDING, SHIPPED] } } } };
+        case 'shipped':
+            return { AND: [{ orderGroups: { some: { status: { in: [SHIPPED, DELIVERED] } } } }, { orderGroups: { some: { status: { in: [PENDING, SHIPPED] } } } }] };
+        case 'pending':
+            return { orderGroups: { some: { status: PENDING }, none: { status: { in: [SHIPPED, DELIVERED] } } } };
+    }
 };
 
 const isWithinReturnWindow = (deliveredAt: Date): boolean => {
@@ -60,34 +64,71 @@ type ReturnItemStatus = 'requested' | 'returned';
 // A checkout only ever produces a PendingShopOrder row — see PaymentService.processShopOrderPayment
 // for where the real OrderGroup/OrderItem/OrderTransaction rows get created once payment is
 // confirmed. Every order the buyer can see, paid or not, is read back through this row.
-// Callers that need shippingStatus/canCancel to be accurate must include the `orderGroup` relation.
-// Callers that also need per-item return eligibility must include `orderGroup.orderItems.product`
-// and pass `returnItemStatuses` (order_item id -> 'requested' while the PHP admin's return review
-// is still pending, 'returned' once they've approved it — a rejected return item is left out
-// entirely, same as before).
-const serializePendingOrder = (pending: any, options: { returnItemStatuses?: Map<string, ReturnItemStatus> | undefined } = {}) => {
-    const shipping = (pending.shipping ?? null) as (ShippingInput & { paymentMethod?: string }) | null;
-    const orderGroupStatus: number | undefined = pending.orderGroup?.status;
-    const shippingStatus = orderGroupStatus !== undefined ? ORDER_GROUP_STATUS_LABEL[orderGroupStatus] ?? null : null;
-    const deliveredAt: Date | null = pending.orderGroup?.deliveredAt ?? null;
-    const withinReturnWindow = shippingStatus === 'delivered' && deliveredAt ? isWithinReturnWindow(deliveredAt) : false;
+//
+// A paid checkout has one order group per seller (see processShopOrderPayment) so each seller
+// ships and marks delivered their own part, but the buyer only ever sees ONE order: one item
+// list, one status and one return window. Nothing here exposes the per-seller refNos or
+// seller names. The order is:
+//   - delivered once every (non-cancelled) part is delivered - its delivery date is the last part's;
+//   - shipped once any part has left a seller;
+//   - pending until then.
+// The return window opens when the whole order is delivered, for every item at once.
+// Callers that need statuses must include `orderGroups` (checkouts from before the split only
+// link their single group through `orderGroup`, which is used as a fallback). Callers that also
+// need per-item return eligibility must include `orderGroups.orderItems.product` and pass
+// `returnItemStatuses` (order_item id -> 'requested' while the PHP admin's return review is
+// still pending, 'returned' once they've approved it; a rejected return item is left out).
+const checkoutGroups = (pending: any): any[] =>
+    pending.orderGroups?.length ? pending.orderGroups : pending.orderGroup ? [pending.orderGroup] : [];
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** The buyer-facing status and delivery date of a whole checkout, from its parts. */
+export const combinedDelivery = (groups: Array<{ status: number; deliveredAt: Date | null }>) => {
+    if (groups.length === 0) return { status: null as ShippingStatusLabel | null, deliveredAt: null as Date | null };
+    const active = groups.filter((g) => g.status !== ORDER_GROUP_STATUSES.CANCELLED);
+    if (active.length === 0) return { status: 'cancelled' as const, deliveredAt: null };
+
+    if (active.every((g) => g.status === ORDER_GROUP_STATUSES.DELIVERED)) {
+        // A part the PHP admin marked delivered always gets delivered_at, but fall back to
+        // "now" rather than leave a delivered order with no date (and no return window).
+        const deliveredAt = new Date(Math.max(...active.map((g) => (g.deliveredAt ?? new Date()).getTime())));
+        return { status: 'delivered' as const, deliveredAt };
+    }
+    const anyMoved = active.some((g) => g.status === ORDER_GROUP_STATUSES.SHIPPED || g.status === ORDER_GROUP_STATUSES.DELIVERED);
+    return { status: (anyMoved ? 'shipped' : 'pending') as ShippingStatusLabel, deliveredAt: null };
+};
+
+const returnWindowInfo = (deliveredAt: Date | null) => {
+    const withinReturnWindow = deliveredAt ? isWithinReturnWindow(deliveredAt) : false;
     // Rounded up so "expires in a few hours" still reads as "1 day left" rather than
     // "0 days left" (which would look like the window already closed).
     const daysLeftToReturn = withinReturnWindow && deliveredAt
-        ? Math.max(1, Math.ceil((deliveredAt.getTime() + SHOP_RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000)))
+        ? Math.max(1, Math.ceil((deliveredAt.getTime() + SHOP_RETURN_WINDOW_DAYS * DAY_MS - Date.now()) / DAY_MS))
         : null;
     // True once the window has definitively closed (as opposed to never having
     // opened, e.g. not delivered yet) - lets the buyer see why "Request Return" is gone.
-    const returnWindowExpired = shippingStatus === 'delivered' && !!deliveredAt && !withinReturnWindow;
+    const returnWindowExpired = !!deliveredAt && !withinReturnWindow;
+    return { withinReturnWindow, daysLeftToReturn, returnWindowExpired };
+};
 
-    const realOrderItems = pending.orderGroup?.orderItems as
-        | Array<{ id: bigint; productId: bigint; quantity: number; price: unknown; product: { name: string; image: string; isReturnable: boolean } }>
-        | undefined;
+const serializePendingOrder = (pending: any, options: { returnItemStatuses?: Map<string, ReturnItemStatus> | undefined } = {}) => {
+    const shipping = (pending.shipping ?? null) as (ShippingInput & { paymentMethod?: string }) | null;
+    const groups = checkoutGroups(pending);
+    const { status: shippingStatus, deliveredAt } = combinedDelivery(groups);
+    const { withinReturnWindow, daysLeftToReturn, returnWindowExpired } = returnWindowInfo(deliveredAt);
 
-    const items = realOrderItems && realOrderItems.length > 0
-        ? realOrderItems.map((item) => {
+    const realItems = groups.flatMap((g) =>
+        ((g.orderItems ?? []) as Array<{ id: bigint; productId: bigint; quantity: number; price: unknown; product: { name: string; image: string; isReturnable: boolean } }>)
+            .map((item) => ({ group: g, item })));
+
+    const items = realItems.length > 0
+        ? realItems.map(({ group, item }) => {
             const returnStatus = options.returnItemStatuses?.get(item.id.toString());
             const hasActiveReturn = returnStatus !== undefined;
+            // Only when an admin cancels one part of an order (e.g. a seller never delivered):
+            // those items were refunded and won't arrive.
+            const isCancelled = group.status === ORDER_GROUP_STATUSES.CANCELLED && shippingStatus !== 'cancelled';
             return {
                 id: item.id.toString(),
                 productId: item.productId.toString(),
@@ -95,9 +136,10 @@ const serializePendingOrder = (pending: any, options: { returnItemStatuses?: Map
                 price: Number(item.price),
                 product: { id: item.productId.toString(), name: item.product.name, image: item.product.image },
                 isReturnable: item.product.isReturnable,
+                isCancelled,
                 hasActiveReturn,
                 returnStatus: returnStatus ?? null,
-                canReturn: withinReturnWindow && item.product.isReturnable && !hasActiveReturn,
+                canReturn: withinReturnWindow && !isCancelled && item.product.isReturnable && !hasActiveReturn,
             };
         })
         : ((pending.items ?? []) as OrderItemSnapshot[]).map((item, index) => ({
@@ -107,6 +149,7 @@ const serializePendingOrder = (pending: any, options: { returnItemStatuses?: Map
             price: item.price,
             product: { id: item.productId, name: item.name, image: item.image },
             isReturnable: false,
+            isCancelled: false,
             hasActiveReturn: false,
             returnStatus: null,
             canReturn: false,
@@ -123,12 +166,25 @@ const serializePendingOrder = (pending: any, options: { returnItemStatuses?: Map
         paymentReference: pending.paymentReference,
         virtualAccount: pending.paymentDetails ?? undefined,
         shippingStatus,
-        canCancel: orderGroupStatus === ORDER_GROUP_STATUSES.PENDING,
+        deliveredAt,
+        // Cancelling refunds the whole checkout, so only while no seller has shipped yet.
+        canCancel: groups.length > 0 && groups.every((g) => g.status === ORDER_GROUP_STATUSES.PENDING),
         canReturn: items.some((item) => item.canReturn),
         daysLeftToReturn,
         returnWindowExpired,
         items,
     };
+};
+
+// The per-seller parts of a checkout. Seller details are deliberately not loaded - the buyer
+// sees one combined order (see serializePendingOrder).
+const partsInclude = {
+    orderBy: { id: 'asc' as const },
+};
+
+const partsWithItemsInclude = {
+    orderBy: { id: 'asc' as const },
+    include: { orderItems: { include: { product: true } } },
 };
 
 interface GuestContact {
@@ -139,13 +195,14 @@ interface GuestContact {
 
 const buildPendingOrder = async (
     payload: CreateOrderInput,
-    contact: { name?: string | null; email?: string | null },
+    contact: { name?: string | null; email?: string | null; username?: string | null },
     identity: { userId: bigint; guest?: undefined } | { userId?: undefined; guest: GuestContact }
 ) => {
     const productIds = payload.items.map((i) => BigInt(i.productId));
 
     const products = await prisma.product.findMany({
         where: { id: { in: productIds } },
+        include: { sellerStore: { select: { status: true } } },
     });
 
     const productMap = new Map(products.map((p) => [p.id.toString(), p]));
@@ -154,7 +211,8 @@ const buildPendingOrder = async (
     const items: OrderItemSnapshot[] = [];
     for (const item of payload.items) {
         const product = productMap.get(item.productId);
-        if (!product || product.status !== PRODUCT_STATUS.APPROVED) {
+        // Guests and anyone outside the seller beta can't buy partner products (utils/sellerAccess.ts).
+        if (!product || !isBuyable(product) || (product.sellerStoreId !== null && !canUseSellerFeatures(contact))) {
             throw new AppError(`Product ${item.productId} not found`, 404);
         }
         if (item.quantity > product.quantity) {
@@ -217,7 +275,7 @@ const buildPendingOrder = async (
     return serializePendingOrder(pending);
 };
 
-export const createOrder = (userId: bigint, payload: CreateOrderInput, user: { name?: string | null; email?: string | null }) =>
+export const createOrder = (userId: bigint, payload: CreateOrderInput, user: { name?: string | null; email?: string | null; username?: string | null }) =>
     buildPendingOrder(payload, user, { userId });
 
 export const createGuestOrder = (payload: CreateOrderInput, guest: GuestContact) =>
@@ -226,14 +284,17 @@ export const createGuestOrder = (payload: CreateOrderInput, guest: GuestContact)
 const findPendingOrder = async (where: Prisma.PendingShopOrderWhereInput) => {
     const pending = await prisma.pendingShopOrder.findFirst({
         where,
-        include: { orderGroup: { include: { orderItems: { include: { product: true } } } } },
+        include: {
+            orderGroup: { include: { orderItems: { include: { product: true } } } },
+            orderGroups: partsWithItemsInclude,
+        },
     });
 
     if (!pending) {
         throw new AppError('Order not found', 404);
     }
 
-    const orderItemIds = pending.orderGroup?.orderItems.map((item) => item.id) ?? [];
+    const orderItemIds = checkoutGroups(pending).flatMap((g: any) => g.orderItems.map((item: any) => item.id as bigint));
     let returnItemStatuses: Map<string, ReturnItemStatus> | undefined;
     if (orderItemIds.length) {
         const activeReturnItems = await prisma.orderReturnItem.findMany({
@@ -271,31 +332,37 @@ interface CreateReturnInput {
 }
 
 export const createReturn = async (refNo: string, userId: bigint, payload: CreateReturnInput) => {
-    const orderGroup = await prisma.orderGroup.findFirst({
+    const pending = await prisma.pendingShopOrder.findFirst({
         where: { refNo, userId },
-        include: { orderItems: { include: { product: true } } },
+        include: { orderGroups: { include: { orderItems: { include: { product: true } } } } },
     });
 
-    if (!orderGroup) {
+    if (!pending) {
         throw new AppError('Order not found', 404);
     }
 
-    if (orderGroup.status !== ORDER_GROUP_STATUSES.DELIVERED) {
+    // The buyer returns items from one combined order, and only once all of it has been
+    // delivered (the return window is the whole order's). Behind the scenes each seller's
+    // items are a separate order group, so a request that spans sellers becomes one
+    // OrderReturn per group - each seller's part is reviewed and refunded on its own in PHP.
+    const { status, deliveredAt } = combinedDelivery(pending.orderGroups);
+    if (status !== 'delivered' || !deliveredAt) {
         throw new AppError('Only delivered orders can be returned', 400);
     }
-
-    if (!orderGroup.deliveredAt || !isWithinReturnWindow(orderGroup.deliveredAt)) {
+    if (!isWithinReturnWindow(deliveredAt)) {
         throw new AppError(`The return window (${SHOP_RETURN_WINDOW_DAYS} days after delivery) for this order has passed`, 400);
     }
 
     const requestedItemIds = payload.orderItemIds.map((id) => BigInt(id));
-    const selectedItems = orderGroup.orderItems.filter((item) => requestedItemIds.some((id) => id === item.id));
+    const deliveredGroups = pending.orderGroups.filter((g) => g.status === ORDER_GROUP_STATUSES.DELIVERED);
+    const selected = deliveredGroups.flatMap((g) =>
+        g.orderItems.filter((item) => requestedItemIds.includes(item.id)).map((item) => ({ group: g, item })));
 
-    if (selectedItems.length !== requestedItemIds.length) {
+    if (selected.length !== requestedItemIds.length) {
         throw new AppError('One or more selected items do not belong to this order', 400);
     }
 
-    for (const item of selectedItems) {
+    for (const { item } of selected) {
         if (!item.product.isReturnable) {
             throw new AppError(`"${item.product.name}" is not returnable`, 400);
         }
@@ -316,39 +383,50 @@ export const createReturn = async (refNo: string, userId: bigint, payload: Creat
         throw new AppError(resolved.error || 'Could not verify the provided bank account. Please check the details and try again.', 400);
     }
 
-    const refundedAmount = selectedItems.reduce((sum, item) => sum + item.quantity * Number(item.price), 0);
+    const byGroup = new Map<string, { groupId: bigint; items: typeof selected }>();
+    for (const entry of selected) {
+        const key = entry.group.id.toString();
+        if (!byGroup.has(key)) byGroup.set(key, { groupId: entry.group.id, items: [] });
+        byGroup.get(key)!.items.push(entry);
+    }
 
-    const orderReturn = await prisma.$transaction(async (tx) => {
-        const created = await tx.orderReturn.create({
-            data: {
-                orderGroupId: orderGroup.id,
-                userId,
-                reason: payload.reason,
-                bankName: payload.bankName,
-                accountNumber: payload.accountNumber,
-                status: ORDER_RETURN_STATUSES.PENDING,
-                refundedAmount,
-            },
-        });
+    const returns = await prisma.$transaction(async (tx) => {
+        const created = [];
+        for (const { groupId, items } of byGroup.values()) {
+            const refundedAmount = items.reduce((sum, { item }) => sum + item.quantity * Number(item.price), 0);
+            const orderReturn = await tx.orderReturn.create({
+                data: {
+                    orderGroupId: groupId,
+                    userId,
+                    reason: payload.reason,
+                    bankName: payload.bankName,
+                    accountNumber: payload.accountNumber,
+                    status: ORDER_RETURN_STATUSES.PENDING,
+                    refundedAmount,
+                },
+            });
 
-        await tx.orderReturnItem.createMany({
-            data: selectedItems.map((item) => ({
-                orderReturnId: created.id,
-                orderItemId: item.id,
-                quantity: item.quantity,
-                price: item.price,
-            })),
-        });
-
+            await tx.orderReturnItem.createMany({
+                data: items.map(({ item }) => ({
+                    orderReturnId: orderReturn.id,
+                    orderItemId: item.id,
+                    quantity: item.quantity,
+                    price: item.price,
+                })),
+            });
+            created.push(orderReturn);
+        }
         return created;
     });
 
+    // One request as far as the buyer is concerned.
+    const [first] = returns;
     return {
-        id: orderReturn.id.toString(),
+        id: first!.id.toString(),
         status: 'pending',
-        refundedAmount: Number(orderReturn.refundedAmount),
-        reason: orderReturn.reason,
-        createdAt: orderReturn.createdAt,
+        refundedAmount: returns.reduce((sum, r) => sum + Number(r.refundedAmount), 0),
+        reason: first!.reason,
+        createdAt: first!.createdAt,
     };
 };
 
@@ -361,18 +439,19 @@ interface CancelOrderBankDetails {
 export const cancelOrder = async (refNo: string, userId: bigint, bankDetails: CancelOrderBankDetails) => {
     const pending = await prisma.pendingShopOrder.findFirst({
         where: { refNo, userId },
-        include: { orderGroup: true },
+        include: { orderGroups: true },
     });
 
     if (!pending) {
         throw new AppError('Order not found', 404);
     }
 
-    if (!pending.orderGroup) {
+    if (pending.orderGroups.length === 0) {
         throw new AppError('This order has not been confirmed yet and cannot be cancelled', 400);
     }
 
-    if (pending.orderGroup.status !== ORDER_GROUP_STATUSES.PENDING) {
+    // The refund covers the whole checkout, so every seller's part must still be unshipped.
+    if (pending.orderGroups.some((g) => g.status !== ORDER_GROUP_STATUSES.PENDING)) {
         throw new AppError('This order can no longer be cancelled', 400);
     }
 
@@ -399,9 +478,17 @@ export const cancelOrder = async (refNo: string, userId: bigint, bankDetails: Ca
     const items = (pending.items ?? []) as unknown as OrderItemSnapshot[];
 
     await prisma.$transaction(async (tx) => {
-        await tx.orderGroup.update({
-            where: { id: pending.orderGroup!.id },
+        const orderGroupIds = pending.orderGroups.map((g) => g.id);
+
+        await tx.orderGroup.updateMany({
+            where: { id: { in: orderGroupIds } },
             data: { status: ORDER_GROUP_STATUSES.CANCELLED },
+        });
+
+        // Nothing was sold, so no seller is owed anything for these orders.
+        await tx.sellerPayout.updateMany({
+            where: { orderGroupId: { in: orderGroupIds }, status: { in: ['pending', 'held'] } },
+            data: { status: 'cancelled', note: 'Order cancelled by the buyer before shipping' },
         });
 
         for (const item of items) {
@@ -450,7 +537,7 @@ export const cancelOrder = async (refNo: string, userId: bigint, bankDetails: Ca
 
     const updated = await prisma.pendingShopOrder.findUniqueOrThrow({
         where: { id: pending.id },
-        include: { orderGroup: true },
+        include: { orderGroups: partsInclude },
     });
 
     return serializePendingOrder(updated);
@@ -505,9 +592,9 @@ export const getOrdersForUser = async (userId: bigint, page?: number, limit?: nu
                 userId,
                 ...(search ? { refNo: { contains: search } } : {}),
                 ...(Object.keys(createdAt).length ? { createdAt } : {}),
-                ...(shippingStatus ? { orderGroup: { status: SHIPPING_STATUS_TO_ORDER_GROUP_STATUS[shippingStatus] } } : {}),
+                ...(shippingStatus ? combinedStatusWhere(shippingStatus) : {}),
             },
-            include: { orderGroup: true },
+            include: { orderGroups: partsInclude },
             orderBy: { createdAt: 'desc' },
         },
         { page, limit }

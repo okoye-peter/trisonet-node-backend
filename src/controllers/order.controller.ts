@@ -14,7 +14,7 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
     const { items, shipping } = req.body;
 
     if (user) {
-        const order = await OrderService.createOrder(user.id, { items, shipping }, { name: user.name, email: user.email });
+        const order = await OrderService.createOrder(user.id, { items, shipping }, { name: user.name, email: user.email, username: user.username });
         return sendSuccess(res, 201, 'Order placed successfully', order);
     }
 

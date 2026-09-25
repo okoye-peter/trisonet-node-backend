@@ -39,3 +39,20 @@ export const addOrderConfirmationEmailJob = async (email: string, vars: {
         vars
     });
 };
+
+export const addSellerNewOrderEmailJob = async (email: string, vars: {
+    name: string;
+    storeName: string;
+    orderRef: string;
+    itemsHtml: string;
+    total: string;
+    payout: string;
+    buyerName: string;
+    buyerPhone: string;
+    deliveryAddress: string;
+}) => {
+    await mailQueue.add('sendSellerNewOrderEmail', {
+        email,
+        vars
+    });
+};

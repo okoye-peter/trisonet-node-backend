@@ -1,4 +1,5 @@
 import { PagaService } from './../services/paga.service';
+import { canUseSellerFeatures } from "../utils/sellerAccess";
 import { asyncHandler } from "../middlewares/asyncHandler"
 import { prisma } from "../config/prisma"
 import { sendSuccess } from '../utils/responseWrapper'
@@ -93,7 +94,7 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         && !user.blockedAt;
 
     sendSuccess(res, 200, 'User fetched successfully', {
-        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration, canAccessAuction }
+        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration, canAccessAuction, canUseSellerStore: canUseSellerFeatures(user) }
     });
 });
 

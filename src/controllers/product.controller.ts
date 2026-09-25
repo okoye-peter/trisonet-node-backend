@@ -12,13 +12,13 @@ export const listProducts = asyncHandler(async (req: Request, res: Response) => 
         limit: limit ? Number(limit) : undefined,
         search: search as string | undefined,
         categoryId: categoryId as string | undefined,
-    });
+    }, (req as any).user);
 
     sendSuccess(res, 200, 'Products fetched successfully', result);
 });
 
 export const getProduct = asyncHandler(async (req: Request, res: Response) => {
-    const product = await ProductService.getProductById(req.params.id as string);
+    const product = await ProductService.getProductById(req.params.id as string, (req as any).user);
     sendSuccess(res, 200, 'Product fetched successfully', product);
 });
 

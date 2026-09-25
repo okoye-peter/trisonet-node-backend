@@ -1,7 +1,8 @@
 import { prisma } from "../config/prisma";
+import { canUseSellerFeatures } from "../utils/sellerAccess";
 import { paginate } from "../utils/pagination";
 import { AppError } from "../utils/AppError";
-import { PRODUCT_STATUS } from "../config/constants";
+import { PRODUCT_STATUS, SELLER_STORE_STATUS } from "../config/constants";
 
 const serializeProduct = (p: any) => {
     const ratings = (p.reviews ?? []).map((r: any) => r.rating);
@@ -31,8 +32,26 @@ const serializeProduct = (p: any) => {
             }
             : undefined,
         reviewSummary: { average, count: ratings.length },
+        // null = sold by Trisonet itself
+        seller: p.sellerStore
+            ? { id: p.sellerStore.id.toString(), name: p.sellerStore.name, logo: p.sellerStore.logo }
+            : null,
     };
 };
+
+// A product is buyable only while it's approved AND, for a partner's product, its store
+// is approved too - a suspended (or otherwise unapproved) store's products disappear.
+// Also used by order.service.ts at checkout.
+export const buyableProductWhere = {
+    status: PRODUCT_STATUS.APPROVED,
+    OR: [{ sellerStoreId: null }, { sellerStore: { status: SELLER_STORE_STATUS.APPROVED } }],
+};
+
+export const isBuyable = (p: { status: number; sellerStoreId: bigint | null; sellerStore?: { status: number } | null }) =>
+    p.status === PRODUCT_STATUS.APPROVED &&
+    (p.sellerStoreId === null || p.sellerStore?.status === SELLER_STORE_STATUS.APPROVED);
+
+const sellerStoreInclude = { select: { id: true, name: true, logo: true, status: true } };
 
 const productImagesInclude = {
     orderBy: [{ isDefault: 'desc' as const }, { sortOrder: 'asc' as const }],
@@ -47,8 +66,10 @@ interface ListProductsOptions {
     categoryId?: string | undefined;
 }
 
-export const listProducts = async ({ page, limit, search, categoryId }: ListProductsOptions) => {
-    const where: any = { status: PRODUCT_STATUS.APPROVED };
+export const listProducts = async ({ page, limit, search, categoryId }: ListProductsOptions, viewer?: { username?: string | null } | null) => {
+    const where: any = { ...buyableProductWhere };
+    // Partner products stay hidden outside the seller beta (utils/sellerAccess.ts).
+    if (!canUseSellerFeatures(viewer)) where.sellerStoreId = null;
     if (search) where.name = { contains: search };
     if (categoryId) where.categoryId = BigInt(categoryId);
 
@@ -56,7 +77,7 @@ export const listProducts = async ({ page, limit, search, categoryId }: ListProd
         prisma.product,
         {
             where,
-            include: { category: true, images: productImagesInclude, reviews: productReviewRatingsInclude },
+            include: { category: true, images: productImagesInclude, reviews: productReviewRatingsInclude, sellerStore: sellerStoreInclude },
             orderBy: { createdAt: 'desc' },
         },
         { page, limit },
@@ -68,13 +89,13 @@ export const listProducts = async ({ page, limit, search, categoryId }: ListProd
     };
 };
 
-export const getProductById = async (id: string) => {
+export const getProductById = async (id: string, viewer?: { username?: string | null } | null) => {
     const product = await prisma.product.findUnique({
         where: { id: BigInt(id) },
-        include: { category: true, images: productImagesInclude, reviews: productReviewRatingsInclude },
+        include: { category: true, images: productImagesInclude, reviews: productReviewRatingsInclude, sellerStore: sellerStoreInclude },
     });
 
-    if (!product || product.status !== PRODUCT_STATUS.APPROVED) {
+    if (!product || !isBuyable(product) || (product.sellerStoreId !== null && !canUseSellerFeatures(viewer))) {
         throw new AppError('Product not found', 404);
     }
 

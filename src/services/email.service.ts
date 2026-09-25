@@ -73,6 +73,32 @@ const orderConfirmationEmailTemplate = (vars: OrderConfirmationEmailVars) => wra
     <p style="margin-top: 16px; color: #6b7280;">Delivering to: ${vars.deliveryAddress}</p>
 `);
 
+export interface SellerNewOrderEmailVars {
+    name: string;
+    storeName: string;
+    orderRef: string;
+    itemsHtml: string;
+    total: string;
+    payout: string;
+    buyerName: string;
+    buyerPhone: string;
+    deliveryAddress: string;
+}
+
+const sellerNewOrderEmailTemplate = (vars: SellerNewOrderEmailVars) => wrapInLayout(`
+    <p>Hi ${vars.name},</p>
+    <p>You have a new paid order <strong>#${vars.orderRef}</strong> for your store <strong>${vars.storeName}</strong>. Please prepare it for delivery.</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        ${vars.itemsHtml}
+    </table>
+    <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #e5e7eb; margin-top: 8px;">
+        <tr><td style="padding: 8px 0; font-weight: bold;">Order total</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${vars.total}</td></tr>
+        <tr><td style="padding: 8px 0;">You will receive (after commission)</td><td style="padding: 8px 0; text-align: right;">${vars.payout}</td></tr>
+    </table>
+    <p style="margin-top: 16px;">Deliver to: <strong>${vars.buyerName}</strong>, ${vars.buyerPhone}<br>${vars.deliveryAddress}</p>
+    <p style="color: #6b7280;">Your payment is released to your Sales wallet 7 days after the order is marked delivered, if it is not returned.</p>
+`);
+
 export interface OrderConfirmationItem {
     name: string;
     quantity: number;
@@ -167,6 +193,35 @@ export class EmailService {
             return true;
         } catch (error) {
             logger.error('zoho welcome email error', { email, error });
+            return false;
+        }
+    }
+
+    public static async sendSellerNewOrderEmail(email: string, vars: SellerNewOrderEmailVars): Promise<boolean> {
+        const subject = `New order #${vars.orderRef} for ${vars.storeName}`;
+
+        // A seller must not miss a paid order just because the Termii template isn't set up
+        // yet, so without it this falls through to Zoho instead of being skipped.
+        if (await getMailProvider() === 'termii' && process.env.TERMII_SELLER_NEW_ORDER_TEMPLATE_ID) {
+            const result = await TermiiService.sendTemplateEmail(
+                email,
+                subject,
+                { ...vars },
+                process.env.TERMII_SELLER_NEW_ORDER_TEMPLATE_ID
+            );
+            return result.status;
+        }
+
+        try {
+            await transporter.sendMail({
+                from: `"${COMPANY_DETAILS.NAME}" <${process.env.ZOHO_EMAIL}>`,
+                to: email,
+                subject,
+                html: sellerNewOrderEmailTemplate(vars),
+            });
+            return true;
+        } catch (error) {
+            logger.error('zoho seller new order email error', { email, error });
             return false;
         }
     }

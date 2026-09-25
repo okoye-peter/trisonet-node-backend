@@ -24,6 +24,12 @@ export const mailWorker = new Worker(
             if (!sent) throw new Error(`sendPukEmail failed for ${email}`);
         }
 
+        if (job.name === 'sendSellerNewOrderEmail') {
+            const { email, vars } = job.data;
+            const sent = await EmailService.sendSellerNewOrderEmail(email, vars);
+            if (!sent) throw new Error(`sendSellerNewOrderEmail failed for ${email}`);
+        }
+
         if (job.name === 'sendOrderConfirmationEmail') {
             const { email, vars } = job.data;
             const sent = await EmailService.sendOrderConfirmationEmail(email, vars);

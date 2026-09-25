@@ -134,6 +134,23 @@ export class StoreGuestService {
             where: {
                 status: ORDER_GROUP_STATUSES.DELIVERED,
                 deliveredAt: { lte: cutoff },
+                // The return window belongs to the whole checkout and opens only when its last
+                // part is delivered, so every other part must be finished and past the window too.
+                OR: [
+                    { pendingShopOrderId: null },
+                    {
+                        checkout: {
+                            orderGroups: {
+                                none: {
+                                    OR: [
+                                        { status: { in: [ORDER_GROUP_STATUSES.PENDING, ORDER_GROUP_STATUSES.SHIPPED] } },
+                                        { deliveredAt: { gt: cutoff } },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ],
             },
             select: { id: true, refNo: true, userId: true, deliveredAt: true },
             orderBy: { deliveredAt: 'asc' },

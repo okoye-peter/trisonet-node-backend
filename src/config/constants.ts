@@ -102,6 +102,11 @@ export const ORDER_RETURN_STATUSES = {
 // the commission is already credited. Do not change here alone.
 export const SHOP_RETURN_WINDOW_DAYS = 7;
 
+// Mirrors config('constant.order_groups.delivery_days') on the PHP side. Every part of a
+// paid checkout (each seller's order group, and Trisonet's own) must be delivered within
+// this many days of payment; after that it is flagged overdue for admins to handle.
+export const ORDER_DELIVERY_DAYS = 14;
+
 // Mirrors config('constant.product.status') on the PHP side exactly — PHP's admin
 // review workflow is the source of truth for these values, do not change here alone.
 export const PRODUCT_STATUS = {
@@ -109,6 +114,19 @@ export const PRODUCT_STATUS = {
     APPROVED: 1,
     REJECTED: 2,
 } as const;
+
+// Mirrors config('constant.seller_stores.status') on the PHP side exactly — PHP's admin
+// review workflow is the source of truth for these values, do not change here alone.
+// seller_stores.pending_changes_status reuses PENDING/REJECTED for an approved store's
+// edit awaiting review.
+export const SELLER_STORE_STATUS = {
+    PENDING: 0,
+    APPROVED: 1,
+    REJECTED: 2,
+    SUSPENDED: 3,
+} as const;
+
+export const SELLER_COMMISSION_PERCENTAGE_KEY = 'seller_commission_percentage';
 
 export const UNBLOCKING_PAYMENT_STATUSES = {
     PENDING: 0,

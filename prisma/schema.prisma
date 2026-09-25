@@ -179,6 +179,8 @@ model User {
   inviter                                                            User?                            @relation("StoreInviteRecipient", fields: [invitedById], references: [id], onUpdate: NoAction, map: "users_invited_by_id_foreign")
   storeGuestInvitees                                                 User[]                           @relation("StoreInviteRecipient")
   storeGuestUpgradeRequests                                          StoreGuestUpgradeRequest[]
+  sellerStore                                                        SellerStore?
+  sellerPayouts                                                      SellerPayout[]
 
   @@index([role], map: "users_role_index")
   @@index([role, patronId], map: "users_role_patron_id_index")
@@ -212,12 +214,13 @@ model Region {
 }
 
 model State {
-  id          BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
-  name        String       @db.VarChar(255)
-  createdAt   DateTime?    @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime?    @updatedAt @map("updated_at") @db.Timestamp(0)
-  lgas        LGA[]
-  orderGroups OrderGroup[]
+  id           BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name         String        @db.VarChar(255)
+  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime?     @updatedAt @map("updated_at") @db.Timestamp(0)
+  lgas         LGA[]
+  orderGroups  OrderGroup[]
+  sellerStores SellerStore[]
 
   @@map("states")
 }
@@ -791,6 +794,8 @@ model Product {
   image              String          @db.VarChar(255)
   cloudinaryPublicId String          @map("cloudinary_public_id") @db.VarChar(255)
   categoryId         BigInt          @map("category_id") @db.UnsignedBigInt
+  // null = a platform product created by staff; set = a partner seller's product
+  sellerStoreId      BigInt?         @map("seller_store_id") @db.UnsignedBigInt
   status             Int             @default(0) @db.TinyInt
   isReturnable       Boolean         @default(true) @map("is_returnable")
   reviewComment      String?         @map("review_comment") @db.Text
@@ -802,11 +807,13 @@ model Product {
   carts              Cart[]
   orderItems         OrderItem[]
   category           Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "products_category_id_foreign")
+  sellerStore        SellerStore?    @relation(fields: [sellerStoreId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "products_seller_store_id_foreign")
   wishlists          Wishlist[]
   images             ProductImage[]
   reviews            ProductReview[]
 
   @@index([categoryId], map: "products_category_id_foreign")
+  @@index([sellerStoreId], map: "products_seller_store_id_foreign")
   @@map("products")
 }
 
@@ -855,30 +862,42 @@ model Wishlist {
 }
 
 model OrderGroup {
-  id                BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
-  userId            BigInt?            @map("user_id") @db.UnsignedBigInt
+  id                 BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  userId             BigInt?            @map("user_id") @db.UnsignedBigInt
+  // One checkout is split into one order group per seller; null = platform items.
+  sellerStoreId      BigInt?            @map("seller_store_id") @db.UnsignedBigInt
+  pendingShopOrderId BigInt?            @map("pending_shop_order_id") @db.UnsignedBigInt
   // 0=cancelled, 1=pending, 2=shipped, 3=delivered — see ORDER_GROUP_STATUSES.
   // The PHP admin panel is the source of truth for progressing this; matches
   // config('constant.order_groups.status') exactly, do not change here alone.
-  status            Int                @default(1) @db.TinyInt
-  refNo             String             @unique(map: "order_groups_ref_no_unique") @map("ref_no") @db.VarChar(255)
-  deliveredAt       DateTime?          @map("delivered_at") @db.Timestamp(0)
-  stateId           BigInt?            @map("state_id") @db.UnsignedBigInt
-  address           String             @db.Text
-  createdAt         DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt         DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
-  lgaId             BigInt?            @map("lga_id") @db.UnsignedBigInt
-  lga               LGA?               @relation(fields: [lgaId], references: [id], onUpdate: NoAction, map: "order_groups_lga_id_foreign")
-  state             State?             @relation(fields: [stateId], references: [id], onUpdate: NoAction, map: "order_groups_state_id_foreign")
-  user              User?              @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "order_groups_user_id_foreign")
-  orderItems        OrderItem[]
-  orderTransactions OrderTransaction[]
-  pendingShopOrder  PendingShopOrder?
-  returns           OrderReturn[]
+  status             Int                @default(1) @db.TinyInt
+  // Snapshot of seller_commission_percentage at checkout - later setting changes never
+  // alter what an existing order pays out. Null on platform orders.
+  commissionRate     Decimal?           @map("commission_rate") @db.Decimal(5, 2)
+  refNo              String             @unique(map: "order_groups_ref_no_unique") @map("ref_no") @db.VarChar(255)
+  deliveredAt        DateTime?          @map("delivered_at") @db.Timestamp(0)
+  buyerConfirmedAt   DateTime?          @map("buyer_confirmed_at") @db.Timestamp(0)
+  stateId            BigInt?            @map("state_id") @db.UnsignedBigInt
+  address            String             @db.Text
+  createdAt          DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
+  lgaId              BigInt?            @map("lga_id") @db.UnsignedBigInt
+  lga                LGA?               @relation(fields: [lgaId], references: [id], onUpdate: NoAction, map: "order_groups_lga_id_foreign")
+  state              State?             @relation(fields: [stateId], references: [id], onUpdate: NoAction, map: "order_groups_state_id_foreign")
+  user               User?              @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "order_groups_user_id_foreign")
+  orderItems         OrderItem[]
+  orderTransactions  OrderTransaction[]
+  pendingShopOrder   PendingShopOrder?  @relation("PendingShopOrderPrimaryGroup")
+  checkout           PendingShopOrder?  @relation("PendingShopOrderGroups", fields: [pendingShopOrderId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "order_groups_pending_shop_order_id_foreign")
+  sellerStore        SellerStore?       @relation(fields: [sellerStoreId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_groups_seller_store_id_foreign")
+  sellerPayout       SellerPayout?
+  returns            OrderReturn[]
 
   @@index([lgaId], map: "order_groups_lga_id_foreign")
   @@index([stateId], map: "order_groups_state_id_foreign")
   @@index([userId], map: "order_groups_user_id_foreign")
+  @@index([sellerStoreId], map: "order_groups_seller_store_id_foreign")
+  @@index([pendingShopOrderId], map: "order_groups_pending_shop_order_id_foreign")
   @@map("order_groups")
 }
 
@@ -1003,7 +1022,8 @@ model PendingShopOrder {
   createdAt        DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
   user             User?              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pending_shop_orders_user_id_foreign")
-  orderGroup       OrderGroup?        @relation(fields: [orderGroupId], references: [id], onUpdate: NoAction, map: "pending_shop_orders_order_group_id_foreign")
+  orderGroup       OrderGroup?        @relation("PendingShopOrderPrimaryGroup", fields: [orderGroupId], references: [id], onUpdate: NoAction, map: "pending_shop_orders_order_group_id_foreign")
+  orderGroups      OrderGroup[]       @relation("PendingShopOrderGroups")
 
   @@index([userId], map: "pending_shop_orders_user_id_foreign")
   @@index([orderGroupId], map: "pending_shop_orders_order_group_id_foreign")
@@ -1958,6 +1978,7 @@ enum WalletType {
   earning
   shopping
   commission
+  sales
 }
 
 enum AuctionStatus {
@@ -2118,6 +2139,8 @@ enum CommissionLogType {
   school_compensation
   store_invite
   order_refund
+  seller_sale
+  platform_commission
 }
 
 enum CommissionLogStatus {
@@ -2157,4 +2180,73 @@ enum infant_upgrade_supports_status {
 enum employees_status {
   active
   inactive
+}
+
+// A partner's (activated adult customer's) store. Owned by the Laravel migration
+// 2026_09_24_100000_add_partner_seller_marketplace - keep this in sync with it.
+model SellerStore {
+  id                   BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  userId               BigInt         @unique(map: "seller_stores_user_id_unique") @map("user_id") @db.UnsignedBigInt
+  name                 String         @db.VarChar(255)
+  description          String         @db.Text
+  logo                 String         @db.VarChar(255)
+  logoPublicId         String?        @map("logo_public_id") @db.VarChar(255)
+  phone                String         @db.VarChar(255)
+  address              String         @db.Text
+  stateId              BigInt?        @map("state_id") @db.UnsignedBigInt
+  // See SELLER_STORE_STATUS - mirrors config('constant.seller_stores.status').
+  status               Int            @default(0) @db.UnsignedTinyInt
+  // An approved store's edit awaiting review; the live columns keep showing until
+  // an admin approves it, so editing never takes a store offline.
+  pendingChanges       Json?          @map("pending_changes")
+  pendingChangesStatus Int?           @map("pending_changes_status") @db.UnsignedTinyInt
+  reviewComment        String?        @map("review_comment") @db.Text
+  reviewedBy           BigInt?        @map("reviewed_by") @db.UnsignedBigInt
+  reviewedAt           DateTime?      @map("reviewed_at") @db.Timestamp(0)
+  approvedAt           DateTime?      @map("approved_at") @db.Timestamp(0)
+  createdAt            DateTime?      @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime?      @updatedAt @map("updated_at") @db.Timestamp(0)
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "seller_stores_user_id_foreign")
+  state                State?         @relation(fields: [stateId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "seller_stores_state_id_foreign")
+  products             Product[]
+  orderGroups          OrderGroup[]
+  payouts              SellerPayout[]
+
+  @@index([stateId], map: "seller_stores_state_id_foreign")
+  @@index([status], map: "seller_stores_status_index")
+  @@map("seller_stores")
+}
+
+// One row per seller order group: what the seller is owed once the return window closes.
+model SellerPayout {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  orderGroupId     BigInt             @unique(map: "seller_payouts_order_group_id_unique") @map("order_group_id") @db.UnsignedBigInt
+  sellerStoreId    BigInt             @map("seller_store_id") @db.UnsignedBigInt
+  userId           BigInt             @map("user_id") @db.UnsignedBigInt
+  grossAmount      Decimal            @map("gross_amount") @db.Decimal(12, 2)
+  commissionRate   Decimal            @map("commission_rate") @db.Decimal(5, 2)
+  commissionAmount Decimal            @map("commission_amount") @db.Decimal(12, 2)
+  netAmount        Decimal            @map("net_amount") @db.Decimal(12, 2)
+  status           SellerPayoutStatus @default(pending)
+  reference        String             @unique(map: "seller_payouts_reference_unique") @db.VarChar(255)
+  note             String?            @db.VarChar(500)
+  paidAt           DateTime?          @map("paid_at") @db.Timestamp(0)
+  createdAt        DateTime?          @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamp(0)
+  orderGroup       OrderGroup         @relation(fields: [orderGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "seller_payouts_order_group_id_foreign")
+  sellerStore      SellerStore        @relation(fields: [sellerStoreId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seller_payouts_seller_store_id_foreign")
+  user             User               @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "seller_payouts_user_id_foreign")
+
+  @@index([sellerStoreId], map: "seller_payouts_seller_store_id_foreign")
+  @@index([userId], map: "seller_payouts_user_id_foreign")
+  @@index([status, sellerStoreId], map: "seller_payouts_status_seller_store_id_index")
+  @@map("seller_payouts")
+}
+
+enum SellerPayoutStatus {
+  pending
+  held
+  paid
+  refunded
+  cancelled
 }

@@ -8,6 +8,7 @@ import { ROLES, PAGA, ACTIVATION_CARD_STATUSES, COMPANY_DETAILS, ORDER_GROUP_STA
 import { addSmsJob, addPukEmailJob, addOrderConfirmationEmailJob } from '../queue/index.js';
 import { renderOrderItemsHtml } from './email.service.js';
 import { TermiiService } from './termii.service.js';
+import { computeSellerPayout, getSellerCommissionRate, notifySellersOfNewOrders } from './seller_order.service.js';
 import AuctionService from './auction.service.js';
 
 
@@ -1113,56 +1114,124 @@ export class PaymentService {
 
         const items = pending.items as unknown as Array<{ productId: string; quantity: number; price: number; name: string }>;
         const user = pending.user;
+        const commissionRate = await getSellerCommissionRate();
+        const sellerOrderGroupIds: bigint[] = [];
 
-        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            const orderGroup = await tx.orderGroup.create({
-                data: {
-                    userId: pending.userId,
-                    status: ORDER_GROUP_STATUSES.PENDING,
-                    refNo: pending.refNo,
-                    address: JSON.stringify(pending.shipping),
-                }
+        const claimed = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            // Claim the checkout first so a duplicate webhook/cron confirmation of the same
+            // payment can never create its orders twice.
+            const claim = await tx.pendingShopOrder.updateMany({
+                where: { id: pending.id, status: 'pending' },
+                data: { status: 'paid', confirmedAt: new Date() },
             });
+            if (claim.count === 0) return false;
 
+            // One order group per seller (platform items first, under sellerStoreId null), so
+            // each seller ships, is tracked, returned and paid out independently. A checkout
+            // with a single seller keeps the checkout's own refNo/paymentReference exactly as
+            // before; a split one numbers its groups <refNo>-1, <refNo>-2, ...
+            const products = await tx.product.findMany({
+                where: { id: { in: items.map((item) => BigInt(item.productId)) } },
+                select: { id: true, sellerStoreId: true },
+            });
+            const sellerOf = new Map(products.map((p) => [p.id.toString(), p.sellerStoreId?.toString() ?? '']));
+
+            const bySeller = new Map<string, typeof items>([['', []]]);
             for (const item of items) {
-                const updated = await tx.product.updateMany({
-                    where: { id: BigInt(item.productId), quantity: { gte: item.quantity } },
-                    data: { quantity: { decrement: item.quantity } }
-                });
+                const key = sellerOf.get(item.productId) ?? '';
+                bySeller.set(key, [...(bySeller.get(key) ?? []), item]);
+            }
+            if (bySeller.get('')!.length === 0) bySeller.delete('');
 
-                if (updated.count === 0) {
-                    pagaLogger.error(`Shop order ${pending.refNo}: insufficient stock for product ${item.productId} at payment confirmation — needs manual review`);
-                }
+            const storeIds = [...bySeller.keys()].filter(Boolean).map((id) => BigInt(id));
+            const stores = await tx.sellerStore.findMany({ where: { id: { in: storeIds } }, select: { id: true, userId: true } });
+            const storeOwner = new Map(stores.map((st) => [st.id.toString(), st.userId]));
 
-                await tx.orderItem.create({
+            const split = bySeller.size > 1;
+            let primaryOrderGroupId: bigint | null = null;
+            let n = 0;
+
+            for (const [sellerKey, groupItems] of bySeller) {
+                n++;
+                const refNo = split ? `${pending.refNo}-${n}` : pending.refNo;
+                const sellerStoreId = sellerKey ? BigInt(sellerKey) : null;
+                const subtotal = Math.round(groupItems.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100) / 100;
+
+                const orderGroup = await tx.orderGroup.create({
                     data: {
-                        orderGroupId: orderGroup.id,
-                        productId: BigInt(item.productId),
-                        quantity: item.quantity,
-                        price: item.price
+                        userId: pending.userId,
+                        status: ORDER_GROUP_STATUSES.PENDING,
+                        refNo,
+                        address: JSON.stringify(pending.shipping),
+                        sellerStoreId,
+                        pendingShopOrderId: pending.id,
+                        commissionRate: sellerStoreId ? commissionRate : null,
                     }
                 });
-            }
+                primaryOrderGroupId ??= orderGroup.id;
 
-            await tx.orderTransaction.create({
-                data: {
-                    orderGroupId: orderGroup.id,
-                    paymentMethod: false,
-                    amount: pending.amount,
-                    paymentReference: pending.paymentReference,
-                    paymentStatus: 'paid',
-                    paymentDetails: pending.paymentDetails ?? Prisma.JsonNull,
-                    confirmedAt: new Date()
+                for (const item of groupItems) {
+                    const updated = await tx.product.updateMany({
+                        where: { id: BigInt(item.productId), quantity: { gte: item.quantity } },
+                        data: { quantity: { decrement: item.quantity } }
+                    });
+
+                    if (updated.count === 0) {
+                        pagaLogger.error(`Shop order ${refNo}: insufficient stock for product ${item.productId} at payment confirmation — needs manual review`);
+                    }
+
+                    await tx.orderItem.create({
+                        data: {
+                            orderGroupId: orderGroup.id,
+                            productId: BigInt(item.productId),
+                            quantity: item.quantity,
+                            price: item.price
+                        }
+                    });
                 }
-            });
+
+                // Per group, so the store-invite commission job (which reads each group's
+                // own transaction amount) and admin reports see each seller's share.
+                await tx.orderTransaction.create({
+                    data: {
+                        orderGroupId: orderGroup.id,
+                        paymentMethod: false,
+                        amount: subtotal,
+                        paymentReference: split ? `${pending.paymentReference}-${n}` : pending.paymentReference,
+                        paymentStatus: 'paid',
+                        paymentDetails: pending.paymentDetails ?? Prisma.JsonNull,
+                        confirmedAt: new Date()
+                    }
+                });
+
+                if (sellerStoreId) {
+                    const sellerUserId = storeOwner.get(sellerKey);
+                    if (!sellerUserId) throw new Error(`Seller store ${sellerKey} not found for order ${refNo}`);
+
+                    // Released to the seller's Sales wallet by the payout job once the order has
+                    // been delivered and the return window has closed.
+                    const payout = computeSellerPayout(subtotal, commissionRate);
+                    await tx.sellerPayout.create({
+                        data: {
+                            orderGroupId: orderGroup.id,
+                            sellerStoreId,
+                            userId: sellerUserId,
+                            grossAmount: payout.gross,
+                            commissionRate,
+                            commissionAmount: payout.commission,
+                            netAmount: payout.net,
+                            status: 'pending',
+                            reference: `PAYOUT-${refNo}`,
+                            createdAt: new Date(),
+                        }
+                    });
+                    sellerOrderGroupIds.push(orderGroup.id);
+                }
+            }
 
             await tx.pendingShopOrder.update({
                 where: { id: pending.id },
-                data: {
-                    status: 'paid',
-                    orderGroupId: orderGroup.id,
-                    confirmedAt: new Date()
-                }
+                data: { orderGroupId: primaryOrderGroupId }
             });
 
             if (user) {
@@ -1185,7 +1254,17 @@ export class PaymentService {
                 // StoreGuestService.processStoreInviteCommissionsForDeliveredOrders, run by
                 // the cron job in cron.ts. This order isn't even delivered yet at this point.
             }
+
+            return true;
         });
+
+        if (!claimed) {
+            pagaLogger.info(`Shop order ${pending.refNo} was already confirmed by another request — skipping`);
+            return { status: 'ok' };
+        }
+
+        await notifySellersOfNewOrders(sellerOrderGroupIds)
+            .catch((error) => pagaLogger.error('failed to notify sellers of new order', { ref: pending.refNo, error }));
 
         // Outside the transaction: this is a best-effort notification, not something that
         // should roll back an already-confirmed payment if the mail queue has a hiccup.
