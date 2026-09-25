@@ -22,7 +22,7 @@ jobs:
             ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
                 -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
             set -e
-            pkill -f "api.trisonet.com/node_modules/.bin/tsc" || true
+            pkill -f "[a]pi.trisonet.com/node_modules/.bin/tsc" || true
             git config --global --add safe.directory /var/www/api.trisonet.com
             cd /var/www/api.trisonet.com
             git fetch origin main
