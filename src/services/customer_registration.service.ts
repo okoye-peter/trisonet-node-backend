@@ -6,6 +6,7 @@ import { handleReferral } from "./referral.service.js";
 import WalletService from "./wallet.service.js";
 import { AccountActivationService } from "./account_activation.service.js";
 import { AppError } from "../utils/AppError.js";
+import StateMigrationService from "./state_migration.service.js";
 
 interface UserRequestData {
     name: string;
@@ -14,6 +15,7 @@ interface UserRequestData {
     phone: string;
     region_id: string;
     country: string;
+    state_id?: string | null;
     password: string;
     confirm_password: string;
     referral_id: string;
@@ -22,14 +24,16 @@ interface UserRequestData {
 }
 
 export const createUser = async (data: UserRequestData) => {
-    const { name, email, phone, region_id, country, password, confirm_password, referral_id, activation_code, picture_url } = data;
+    const { name, email, phone, region_id, country, state_id, password, confirm_password, referral_id, activation_code, picture_url } = data;
     const username = data.username?.toLowerCase();
     if (name.split(' ').length == 1) {
         throw new Error('Please provide your full name');
     }
 
     // Run all independent checks in parallel
-    const [existingUser, activationCard, regionLimitReached, referral, hashedPassword] = await Promise.all([
+    const countryId = await StateMigrationService.resolveCountryId(country);
+
+    const [existingUser, activationCard, regionLimitReached, referral, hashedPassword, stateId] = await Promise.all([
         prisma.user.findFirst({
             where: { OR: [{ email }, { username }, { phone }] },
             select: { email: true, username: true, phone: true },
@@ -43,6 +47,8 @@ export const createUser = async (data: UserRequestData) => {
         RegionService.isRegionLimitReached(BigInt(region_id), ROLES.CUSTOMER),
         handleReferral(referral_id, region_id, undefined, ROLES.CUSTOMER),
         bcrypt.hash(password, 12),
+        // The new user counts toward this state's weekly migration target, regardless of the referrer's state.
+        StateMigrationService.resolveRegistrationState(state_id, countryId),
     ]);
 
     if (existingUser) {
@@ -116,6 +122,8 @@ export const createUser = async (data: UserRequestData) => {
                     phone,
                     regionId: BigInt(region_id),
                     country,
+                    countryId,
+                    stateId,
                     password: hashedPassword,
                     referralId,
                     influencerId,

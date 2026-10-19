@@ -11,6 +11,7 @@ import { getOrSetCache } from '../utils/cache';
 import { getSafeUserWallets } from "../utils/prismaUtils";
 import { bankAccountNameMatches } from "../utils/nameMatcher";
 import { addSmsJob, addOtpEmailJob } from '../queue';
+import StateMigrationService from '../services/state_migration.service';
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -86,6 +87,11 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         where: { user_id: user.id }
     }).then(m => !!m);
 
+    const state = user.stateId
+        ? await prisma.state.findUnique({ where: { id: user.stateId }, select: { id: true, name: true, country: { select: { name: true } } } })
+            .then(s => s && { id: s.id, name: s.name, country: s.country?.name ?? null })
+        : null;
+
     const canAccessAuction = Number(user.role) === ROLES.CUSTOMER
         && !user.isInfant
         && user.level >= 2
@@ -93,7 +99,7 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         && !user.blockedAt;
 
     sendSuccess(res, 200, 'User fetched successfully', {
-        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration, canAccessAuction }
+        user: { ...user, wallets, patronPlan, patronActivated, isPendingLevel2Migration, canAccessAuction, state }
     });
 });
 
@@ -261,6 +267,11 @@ export const updateProfile = asyncHandler(async (req: any, res: Response, next: 
     const { password, ...userResponse } = updatedUser;
 
     sendSuccess(res, 200, 'User profile updated successfully', userResponse);
+})
+
+export const getStateMigrationProgress = asyncHandler(async (req: any, res: Response) => {
+    const progress = await StateMigrationService.getProgressForUser(req.user);
+    sendSuccess(res, 200, 'State migration progress fetched successfully', progress);
 })
 
 export const updateBankDetails = asyncHandler(async (req: any, res: Response, next: NextFunction) => {

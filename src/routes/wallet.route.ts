@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { protect } from "../middlewares/auth";
 import { isBlocked } from "../middlewares/isBlocked";
-import { getAuthUserWallets, getWalletTransfers, transferFunds, getGkwthPrices, getWalletHistory } from "../controllers/wallet.controller";
+import { getAuthUserWallets, getWalletTransfers, transferFunds, getGkwthPrices, getWalletHistory, getCommissionWalletHistory } from "../controllers/wallet.controller";
 import { validate } from "../middlewares/validateRequest";
 import { transferFundsSchema } from "../validations/wallet.validation";
 
@@ -14,6 +14,7 @@ router.use(isBlocked);
 
 router.get('/', getAuthUserWallets);
 router.get('/history', getWalletHistory);
+router.get('/commission/history', getCommissionWalletHistory);
 router.get('/transfers', getWalletTransfers);
 router.get('/gkwth/prices', getGkwthPrices);
 router.post('/transfer', validate(transferFundsSchema), transferFunds);

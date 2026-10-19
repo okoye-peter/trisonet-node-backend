@@ -17,9 +17,12 @@ model User {
   pictureUrl                                                         String?                          @map("picture_url") @db.VarChar(255)
   cloudinaryPublicId                                                 String?                          @map("cloudinary_public_id") @db.VarChar(255)
   regionId                                                           BigInt?                          @map("region_id") @db.UnsignedBigInt
+  stateId                                                            BigInt?                          @map("state_id") @db.UnsignedBigInt
   role                                                               Int                              @default(3)
   accountState                                                       Int                              @default(1) @map("account_state")
   country                                                            String?                          @db.VarChar(255)
+  // Linked from the country text above (PHP User saving hook / Node registration / CountrySeeder)
+  countryId                                                          BigInt?                          @map("country_id") @db.UnsignedBigInt
   referralId                                                         BigInt?                          @map("referral_id") @db.UnsignedBigInt
   emailVerificationCode                                              String?                          @map("email_verification_code") @db.VarChar(255)
   emailVerificationCodeSentAt                                        DateTime?                        @map("email_verification_code_sent_at") @db.Timestamp(0)
@@ -169,6 +172,10 @@ model User {
   referral                                                           User?                            @relation("ReferralToUser", fields: [referralId], references: [id], onUpdate: NoAction, map: "users_referral_id_foreign")
   referrals                                                          User[]                           @relation("ReferralToUser")
   region                                                             Region?                          @relation(fields: [regionId], references: [id], onUpdate: NoAction, map: "users_region_id_foreign")
+  state                                                              State?                           @relation("StateToUser", fields: [stateId], references: [id], onUpdate: NoAction, map: "users_state_id_foreign")
+  countryRecord                                                      Country?                         @relation(fields: [countryId], references: [id], onUpdate: NoAction, map: "users_country_id_foreign")
+  ledState                                                           State?                           @relation("StateLeader")
+  stateWeeklyResultsLed                                              StateWeeklyResult[]
   schoolUser                                                         User?                            @relation("SchoolToUser", fields: [schoolId], references: [id], onUpdate: NoAction, map: "users_school_id_foreign")
   schoolStudents                                                     User[]                           @relation("SchoolToUser")
   sponsorUser                                                        User?                            @relation("SponsorToUser", fields: [sponsorId], references: [id], onUpdate: NoAction, map: "users_sponsor_id_foreign")
@@ -196,6 +203,8 @@ model User {
   @@index([patronId], map: "users_patron_id_foreign")
   @@index([referralId], map: "users_referral_id_foreign")
   @@index([regionId], map: "users_region_id_foreign")
+  @@index([stateId], map: "users_state_id_foreign")
+  @@index([countryId], map: "users_country_id_foreign")
   @@index([schoolId], map: "users_school_id_foreign")
   @@index([sponsorId], map: "users_sponsor_id_foreign")
   @@map("users")
@@ -214,15 +223,62 @@ model Region {
 }
 
 model State {
-  id           BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  name         String        @db.VarChar(255)
-  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime?     @updatedAt @map("updated_at") @db.Timestamp(0)
-  lgas         LGA[]
-  orderGroups  OrderGroup[]
-  sellerStores SellerStore[]
+  id            BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  name          String              @db.VarChar(255)
+  // Weekly state migration (managed from the PHP admin): every state belongs to a country and
+  // has at most one leader. The weekly target is one shared setting (state_weekly_target).
+  countryId     BigInt?             @map("country_id") @db.UnsignedBigInt
+  leaderId      BigInt?             @unique(map: "states_leader_id_unique") @map("leader_id") @db.UnsignedBigInt
+  createdAt     DateTime?           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime?           @updatedAt @map("updated_at") @db.Timestamp(0)
+  lgas          LGA[]
+  orderGroups   OrderGroup[]
+  sellerStores  SellerStore[]
+  country       Country?            @relation(fields: [countryId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "states_country_id_foreign")
+  leader        User?               @relation("StateLeader", fields: [leaderId], references: [id], onUpdate: NoAction, map: "states_leader_id_foreign")
+  users         User[]              @relation("StateToUser")
+  weeklyResults StateWeeklyResult[]
 
+  @@index([countryId], map: "states_country_id_foreign")
   @@map("states")
+}
+
+// Seeded by the PHP CountrySeeder. `name` matches the countries-list package names used
+// by registration; altNames holds other spellings found in users.country.
+model Country {
+  id        BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name      String    @unique(map: "countries_name_unique") @db.VarChar(255)
+  code      String    @unique(map: "countries_code_unique") @db.Char(2)
+  altNames  Json?     @map("alt_names")
+  createdAt DateTime? @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(0)
+  states    State[]
+  users     User[]
+
+  @@map("countries")
+}
+
+// Closed weeks of the state migration, written by the PHP migrate:weekly-state-users schedule.
+model StateWeeklyResult {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  stateId          BigInt    @map("state_id") @db.UnsignedBigInt
+  weekStart        DateTime  @map("week_start") @db.DateTime(0)
+  weekEnd          DateTime  @map("week_end") @db.DateTime(0)
+  target           Int?      @db.UnsignedInt
+  registeredCount  Int       @default(0) @map("registered_count") @db.UnsignedInt
+  targetMet        Boolean   @default(false) @map("target_met")
+  leaderId         BigInt?   @map("leader_id") @db.UnsignedBigInt
+  commissionAmount Decimal?  @map("commission_amount") @db.Decimal(12, 2)
+  commissionPaidAt DateTime? @map("commission_paid_at") @db.Timestamp(0)
+  note             String?   @db.VarChar(500)
+  createdAt        DateTime? @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime? @map("updated_at") @db.Timestamp(0)
+  state            State     @relation(fields: [stateId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "state_weekly_results_state_id_foreign")
+  leader           User?     @relation(fields: [leaderId], references: [id], onUpdate: NoAction, map: "state_weekly_results_leader_id_foreign")
+
+  @@unique([stateId, weekStart], map: "state_weekly_results_state_id_week_start_unique")
+  @@index([leaderId], map: "state_weekly_results_leader_id_foreign")
+  @@map("state_weekly_results")
 }
 
 model LGA {
@@ -2146,6 +2202,7 @@ enum CommissionLogType {
   order_refund
   seller_sale
   platform_commission
+  state_leader
 }
 
 enum CommissionLogStatus {

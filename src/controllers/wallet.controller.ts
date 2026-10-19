@@ -1,6 +1,6 @@
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../config/prisma";
+import { prisma, Prisma } from "../config/prisma";
 import { paginate } from "../utils/pagination";
 import { sendSuccess } from "../utils/responseWrapper";
 import { AppError } from "../utils/AppError";
@@ -164,4 +164,71 @@ export const getWalletHistory = asyncHandler(async (req: Request, res: Response,
     };
 
     sendSuccess(res, 200, 'Wallet history fetched successfully', serialized);
+});
+const COMMISSION_SOURCE_LABELS: Record<string, string> = {
+    store_invite: 'Store invite commission',
+    state_leader: 'State leader commission',
+};
+
+/**
+ * Commission wallet ledger: credits are successful commission logs paid into the commission
+ * wallet (store invites from Node, state leader payouts from the PHP weekly job), debits are
+ * withdrawal requests made from it. Commission wallet writes from PHP are not in Node's audit
+ * log, so this reads the source records instead of audit history.
+ */
+export const getCommissionWalletHistory = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user;
+    const page = Math.max(1, parseInt(String(req.query.page ?? '1'), 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit ?? '10'), 10) || 10));
+
+    const wallet = await prisma.wallet.findUnique({
+        where: { userId_type: { userId: user.id, type: 'commission' } },
+        select: { id: true },
+    });
+    // -1 never matches a wallet, so users without a commission wallet still see their logs (if any)
+    const walletId = wallet?.id ?? BigInt(-1);
+
+    const ledger = Prisma.sql`
+        SELECT CONCAT('c', id) AS id, 'credit' AS direction, type AS source, amount, reason, reference,
+               NULL AS status, NULL AS bank_name, NULL AS account_number, created_at
+        FROM commission_logs
+        WHERE recipient_id = ${user.id} AND wallet_type = 'commission' AND status = 'success'
+        UNION ALL
+        SELECT CONCAT('w', id), 'debit', 'withdrawal', amount_requested, NULL, reference,
+               status, bank_name, account_number, created_at
+        FROM withdrawal_requests
+        WHERE wallet_id = ${walletId}
+    `;
+
+    const [rows, countRows] = await Promise.all([
+        prisma.$queryRaw<any[]>`SELECT * FROM (${ledger}) ledger ORDER BY created_at DESC, id DESC LIMIT ${limit} OFFSET ${(page - 1) * limit}`,
+        prisma.$queryRaw<{ total: bigint }[]>`SELECT COUNT(*) AS total FROM (${ledger}) ledger`,
+    ]);
+
+    const totalItems = Number(countRows[0]?.total ?? 0);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    sendSuccess(res, 200, 'Commission wallet history fetched successfully', {
+        data: rows.map((row) => ({
+            id: String(row.id),
+            direction: row.direction as 'credit' | 'debit',
+            source: row.source as string,
+            description: row.direction === 'debit'
+                ? `Withdrawal to ${row.bank_name}${row.account_number ? ` ••••${String(row.account_number).slice(-4)}` : ''}`
+                : COMMISSION_SOURCE_LABELS[row.source] ?? String(row.source).replace(/_/g, ' '),
+            details: row.direction === 'credit' && row.source === 'state_leader' ? row.reason : null,
+            amount: Number(row.amount ?? 0),
+            reference: row.reference ?? null,
+            status: row.status ?? 'success',
+            createdAt: row.created_at,
+        })),
+        meta: {
+            totalItems,
+            itemsPerPage: limit,
+            currentPage: page,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+        },
+    });
 });
