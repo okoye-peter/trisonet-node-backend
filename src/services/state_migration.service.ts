@@ -85,6 +85,34 @@ export default class StateMigrationService {
         return state.id;
     }
 
+    /** The user's country as a countries row - users.country_id, or resolved from the users.country text. */
+    static async userCountryId(user: UserCountryRef) {
+        return user.countryId ?? await this.resolveCountryId(user.country);
+    }
+
+    /**
+     * Lets an existing account without a state pick one, once. After that only the PHP
+     * admin can change it. The state must belong to the user's own country.
+     */
+    static async assignStateToExistingUser(user: UserCountryRef, stateId: string) {
+        if (user.stateId) throw new AppError("Your state has already been set. Contact support if it is wrong.", 400);
+
+        const countryId = await this.userCountryId(user);
+        const state = countryId
+            ? await prisma.state.findFirst({ where: { id: BigInt(stateId), countryId }, select: stateSelect })
+            : null;
+        if (!state) throw new AppError("The selected state does not belong to your country", 400);
+
+        // stateId: null guard so two parallel requests can't both set it
+        const { count } = await prisma.user.updateMany({
+            where: { id: user.id, stateId: null },
+            data: { stateId: state.id, countryId: user.countryId ?? countryId },
+        });
+        if (!count) throw new AppError("Your state has already been set. Contact support if it is wrong.", 400);
+
+        return toStateDto(state);
+    }
+
     /**
      * This week's progress for the state the user belongs to.
      */
@@ -95,9 +123,11 @@ export default class StateMigrationService {
             weekEndsAt: week.endsAt,
         };
 
-        // State is only chosen at registration; existing accounts without one see nothing.
+        // Existing accounts without a state may pick one (once) if their country has states.
         if (!user.stateId) {
-            return { ...base, state: null };
+            const countryId = await this.userCountryId(user);
+            const canSelectState = countryId ? (await prisma.state.count({ where: { countryId } })) > 0 : false;
+            return { ...base, state: null, canSelectState };
         }
 
         const [state, registeredCount, targetSetting, commissionSetting] = await Promise.all([

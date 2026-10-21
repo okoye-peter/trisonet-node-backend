@@ -14,6 +14,8 @@ model User {
   username                                                           String?                          @db.VarChar(255)
   email                                                              String?                          @db.VarChar(255)
   phone                                                              String?                          @db.VarChar(255)
+  nextOfKinName                                                      String?                          @map("next_of_kin_name") @db.VarChar(255)
+  nextOfKinPhone                                                     String?                          @map("next_of_kin_phone") @db.VarChar(20)
   pictureUrl                                                         String?                          @map("picture_url") @db.VarChar(255)
   cloudinaryPublicId                                                 String?                          @map("cloudinary_public_id") @db.VarChar(255)
   regionId                                                           BigInt?                          @map("region_id") @db.UnsignedBigInt

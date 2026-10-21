@@ -16,6 +16,8 @@ interface UserRequestData {
     region_id: string;
     country: string;
     state_id?: string | null;
+    next_of_kin_name: string;
+    next_of_kin_phone: string;
     password: string;
     confirm_password: string;
     referral_id: string;
@@ -24,7 +26,7 @@ interface UserRequestData {
 }
 
 export const createUser = async (data: UserRequestData) => {
-    const { name, email, phone, region_id, country, state_id, password, confirm_password, referral_id, activation_code, picture_url } = data;
+    const { name, email, phone, region_id, country, state_id, next_of_kin_name, next_of_kin_phone, password, confirm_password, referral_id, activation_code, picture_url } = data;
     const username = data.username?.toLowerCase();
     if (name.split(' ').length == 1) {
         throw new Error('Please provide your full name');
@@ -120,6 +122,8 @@ export const createUser = async (data: UserRequestData) => {
                     username,
                     email,
                     phone,
+                    nextOfKinName: next_of_kin_name.trim(),
+                    nextOfKinPhone: next_of_kin_phone.trim(),
                     regionId: BigInt(region_id),
                     country,
                     countryId,

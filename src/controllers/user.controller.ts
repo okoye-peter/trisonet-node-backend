@@ -253,6 +253,15 @@ export const updateProfile = asyncHandler(async (req: any, res: Response, next: 
     const user = req.user;
     const { name, phone } = req.body;
 
+    // Next of kin: optional, but name and phone go together. Lets existing accounts add it.
+    const nextOfKinName = typeof req.body.next_of_kin_name === 'string' ? req.body.next_of_kin_name.trim() : undefined;
+    const nextOfKinPhone = typeof req.body.next_of_kin_phone === 'string' ? req.body.next_of_kin_phone.trim() : undefined;
+    if (nextOfKinName !== undefined || nextOfKinPhone !== undefined) {
+        if (!nextOfKinName || nextOfKinName.length < 2) return next(new AppError('Next of kin name is required', 400));
+        if (nextOfKinName.length > 255) return next(new AppError('Next of kin name is too long', 400));
+        if (!nextOfKinPhone || !/^\+?\d{10,15}$/.test(nextOfKinPhone)) return next(new AppError('Next of kin phone must be 10 to 15 digits', 400));
+    }
+
     const updatedUser = await prisma.user.update({
         where: {
             id: user.id
@@ -260,6 +269,8 @@ export const updateProfile = asyncHandler(async (req: any, res: Response, next: 
         data: {
             name: name || undefined,
             phone: phone || undefined,
+            nextOfKinName,
+            nextOfKinPhone,
         }
     });
 
@@ -272,6 +283,15 @@ export const updateProfile = asyncHandler(async (req: any, res: Response, next: 
 export const getStateMigrationProgress = asyncHandler(async (req: any, res: Response) => {
     const progress = await StateMigrationService.getProgressForUser(req.user);
     sendSuccess(res, 200, 'State migration progress fetched successfully', progress);
+})
+
+export const selectState = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
+    const stateId = req.body?.state_id;
+    if (typeof stateId !== 'string' && typeof stateId !== 'number') return next(new AppError('Please select your state', 400));
+    if (!/^\d+$/.test(String(stateId))) return next(new AppError('Invalid state', 400));
+
+    const state = await StateMigrationService.assignStateToExistingUser(req.user, String(stateId));
+    sendSuccess(res, 200, 'State saved successfully', state);
 })
 
 export const updateBankDetails = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
