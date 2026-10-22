@@ -20,7 +20,9 @@ model User {
   cloudinaryPublicId                                                 String?                          @map("cloudinary_public_id") @db.VarChar(255)
   regionId                                                           BigInt?                          @map("region_id") @db.UnsignedBigInt
   stateId                                                            BigInt?                          @map("state_id") @db.UnsignedBigInt
-  role                                                               Int                              @default(3)
+  // When the user used their one self-service state change (PHP migration owns this column)
+  stateChangedAt                                                     DateTime?                        @map("state_changed_at") @db.Timestamp(0)
+  role                                                              Int                              @default(3)
   accountState                                                       Int                              @default(1) @map("account_state")
   country                                                            String?                          @db.VarChar(255)
   // Linked from the country text above (PHP User saving hook / Node registration / CountrySeeder)

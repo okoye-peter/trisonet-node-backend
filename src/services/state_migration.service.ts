@@ -30,7 +30,7 @@ export const migrationWeek = (at: Date = new Date()) => {
     };
 };
 
-type UserCountryRef = { id: bigint; stateId: bigint | null; country: string | null; countryId: bigint | null };
+type UserCountryRef = { id: bigint; stateId: bigint | null; stateChangedAt?: Date | null; country: string | null; countryId: bigint | null };
 
 const stateSelect = { id: true, name: true, country: { select: { name: true } } } as const;
 const toStateDto = (state: { id: bigint; name: string; country: { name: string } | null }) => ({
@@ -91,11 +91,14 @@ export default class StateMigrationService {
     }
 
     /**
-     * Lets an existing account without a state pick one, once. After that only the PHP
-     * admin can change it. The state must belong to the user's own country.
+     * Users without a state pick one; users with a state may change it themselves once
+     * (users.state_changed_at). After that only the PHP admin can change it.
+     * The state must belong to the user's own country.
      */
-    static async assignStateToExistingUser(user: UserCountryRef, stateId: string) {
-        if (user.stateId) throw new AppError("Your state has already been set. Contact support if it is wrong.", 400);
+    static async setStateForUser(user: UserCountryRef, stateId: string) {
+        const usedChangeMessage = "You have already changed your state once. Contact support if it is wrong.";
+        if (user.stateId && user.stateChangedAt) throw new AppError(usedChangeMessage, 400);
+        if (user.stateId && user.stateId === BigInt(stateId)) throw new AppError("This is already your state", 400);
 
         const countryId = await this.userCountryId(user);
         const state = countryId
@@ -103,12 +106,18 @@ export default class StateMigrationService {
             : null;
         if (!state) throw new AppError("The selected state does not belong to your country", 400);
 
-        // stateId: null guard so two parallel requests can't both set it
+        // Guard on the values read above so two parallel requests can't both use the one change
         const { count } = await prisma.user.updateMany({
-            where: { id: user.id, stateId: null },
-            data: { stateId: state.id, countryId: user.countryId ?? countryId },
+            where: user.stateId
+                ? { id: user.id, stateId: user.stateId, stateChangedAt: null }
+                : { id: user.id, stateId: null },
+            data: {
+                stateId: state.id,
+                countryId: user.countryId ?? countryId,
+                ...(user.stateId ? { stateChangedAt: new Date() } : {}),
+            },
         });
-        if (!count) throw new AppError("Your state has already been set. Contact support if it is wrong.", 400);
+        if (!count) throw new AppError(user.stateId ? usedChangeMessage : "Your state has already been set. Refresh the page to change it.", 400);
 
         return toStateDto(state);
     }

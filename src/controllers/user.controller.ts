@@ -290,7 +290,7 @@ export const selectState = asyncHandler(async (req: any, res: Response, next: Ne
     if (typeof stateId !== 'string' && typeof stateId !== 'number') return next(new AppError('Please select your state', 400));
     if (!/^\d+$/.test(String(stateId))) return next(new AppError('Invalid state', 400));
 
-    const state = await StateMigrationService.assignStateToExistingUser(req.user, String(stateId));
+    const state = await StateMigrationService.setStateForUser(req.user, String(stateId));
     sendSuccess(res, 200, 'State saved successfully', state);
 })
 
