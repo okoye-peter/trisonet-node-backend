@@ -183,7 +183,7 @@ export const getUserDashboardStats = asyncHandler(async (req: any, res: Response
     const assetDepotTarget = isMigrated ? MIGRATED_REFERRAL_TARGET : NEW_REFERRAL_SYSTEM.target;
     const assetDepot = isMigrated
         ? Math.max(assetDepotTarget - salesSinceMigration, 0)
-        : assetDepotTarget - (totalSales % assetDepotTarget);
+        : assetDepotTarget - (migrationSales % assetDepotTarget);
 
     const baseTotal = activationPrice + (user.isInfant && !user.sponsorId ? infantFormFee : 0);
     const totalWithCharge = baseTotal * (1 + activationCharge);
