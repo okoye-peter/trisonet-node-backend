@@ -7,6 +7,7 @@ import { getSafeUserWallets } from '../utils/prismaUtils';
 import { ROLES, STORE_GUEST_ALLOWED_PATH_PREFIXES } from '../config/constants';
 
 import { setAuditUser } from './auditContext';
+import { PatronAdminLinkService } from '../services/patron_admin_link.service';
 
 interface JwtPayload {
     id: string;
@@ -49,9 +50,11 @@ const resolveUserFromToken = async (token: string) => {
         });
         const payment = activationPivot?.patronActivationPayment;
         const minAmount = currentUser.patronPlan?.minAmount;
-        patronActivated = !!minAmount &&
+        patronActivated = (!!minAmount &&
             payment?.status === 1 &&
-            Number(payment.amount) >= Number(minAmount);
+            Number(payment.amount) >= Number(minAmount)) ||
+            // The admin member account never pays a patron plan; it works through its patron links.
+            (await PatronAdminLinkService.isAdminMember(currentUser.id));
     }
 
     return { ...currentUser, wallets, patronActivated };

@@ -85,6 +85,14 @@ export const otpLimiter = rateLimiter({
     keyPrefix: "otp-limit"
 });
 
+// Guessing step of forgot password; each code is also capped at 5 wrong tries.
+export const passwordResetLimiter = rateLimiter({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 10,
+    message: "Too many password reset attempts. Please try again after 10 minutes.",
+    keyPrefix: "password-reset-limit"
+});
+
 export const withdrawalPinOtpLimiter = rateLimiter({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 5,

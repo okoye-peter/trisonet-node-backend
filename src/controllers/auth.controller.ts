@@ -9,9 +9,14 @@ import { sendSuccess } from "../utils/responseWrapper";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import { createUser } from "../services/customer_registration.service";
 import { prisma } from "../config/prisma";
-import { ROLES } from "../config/constants";
+import { ROLES, PHP_HOSTED_ROLES } from "../config/constants";
 import { getSafeUserWallets } from "../utils/prismaUtils";
 import WalletService from "../services/wallet.service";
+import { toPhpWallClock } from "../utils/phpClock";
+import { PatronAdminLinkService } from "../services/patron_admin_link.service";
+
+const PHP_HOSTED_LOGIN_MESSAGE =
+  "Influencer (coordinator) and sponsor accounts log in on app.trisonet.com, not here.";
 
 export const register = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -201,6 +206,10 @@ export const login = asyncHandler(
       return next(new AppError("Incorrect email or password", 401));
     }
 
+    if (PHP_HOSTED_ROLES.includes(Number(user.role))) {
+      return next(new AppError(PHP_HOSTED_LOGIN_MESSAGE, 403));
+    }
+
     const wallets = await getSafeUserWallets(user.id);
 
     // Allow Patrons, Admins, and Super Admins to bypass the level 2 requirement
@@ -246,9 +255,11 @@ export const login = asyncHandler(
       const minAmount = plan?.minAmount;
 
       patronActivated =
-        !!minAmount &&
-        payment?.status === 1 &&
-        Number(payment.amount) >= Number(minAmount);
+        (!!minAmount &&
+          payment?.status === 1 &&
+          Number(payment.amount) >= Number(minAmount)) ||
+        // The admin member account never pays a patron plan; it works through its patron links.
+        (await PatronAdminLinkService.isAdminMember(user.id));
     }
 
     const { password: _, ...userWithoutPassword } = user as any;
@@ -273,7 +284,7 @@ export const getNewToken = asyncHandler(
         where: { id: BigInt(decoded.id) },
       });
 
-      if (!user || user.refreshToken !== refreshToken) {
+      if (!user || user.refreshToken !== refreshToken || PHP_HOSTED_ROLES.includes(Number(user.role))) {
         return next(new AppError("Invalid refresh token", 401));
       }
 
@@ -311,8 +322,9 @@ export const handleAuthHandoff = asyncHandler(
       where: {
         token: hashedToken,
         used: false,
+        // expires_at is written by PHP on its own clock (Africa/Lagos), so compare on that clock
         expiresAt: {
-          gt: new Date(),
+          gt: toPhpWallClock(),
         },
       },
     });
@@ -373,6 +385,10 @@ export const handleAuthHandoff = asyncHandler(
 
     if (!user) {
       return next(new AppError("User not found", 404));
+    }
+
+    if (PHP_HOSTED_ROLES.includes(Number(user.role))) {
+      return next(new AppError(PHP_HOSTED_LOGIN_MESSAGE, 403));
     }
 
     // Issue your normal JWT

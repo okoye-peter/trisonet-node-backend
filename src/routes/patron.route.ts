@@ -20,6 +20,8 @@ router.get('/group-members', patronController.getGroupMembers);
 router.get('/beneficiaries', patronController.getBeneficiaries);
 router.get('/transactions', patronController.getTransactionsHistory);
 router.get('/earnings', patronController.getEarningDashboard);
+router.get('/admin-links', patronController.getAdminLinks);
+router.get('/admin-member', patronController.getAdminMemberInfo);
 router.post('/convert-earnings', patronController.convertEarnings);
 
 router.post(

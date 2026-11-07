@@ -11,6 +11,7 @@ import WalletService from '../services/wallet.service';
 import { PaymentService } from '../services/payment.service';
 import { addWelcomeEmailJob, addOtpEmailJob } from '../queue/mail.queue';
 import { addSmsJob } from '../queue/sms.queue';
+import { PatronAdminLinkService } from '../services/patron_admin_link.service';
 
 const pagaService = new PagaService();
 
@@ -1045,5 +1046,65 @@ export const convertEarnings = asyncHandler(async (req: Request, res: Response, 
     return sendSuccess(res, 200, 'Assets converted to GKWTH successfully', {
         convertedAmount,
         conversionRate
+    });
+});
+
+/**
+ * Admin member account only: every patron leader/group registration link with its
+ * patronage balance, available slots, customers registered and commission earned.
+ */
+export const getAdminLinks = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+
+    if (!(await PatronAdminLinkService.isAdminMember(user.id))) {
+        return next(new AppError('Only the admin member account can view patron links', 403));
+    }
+
+    const report = await PatronAdminLinkService.report();
+    return sendSuccess(res, 200, 'Patron links retrieved successfully', report);
+});
+
+/**
+ * For the logged-in patron: whether they are the admin member account, and (for patron
+ * leaders) the read-only admin member row with the slots their patronage balance funds.
+ */
+export const getAdminMemberInfo = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+
+    if (await PatronAdminLinkService.isAdminMember(user.id)) {
+        return sendSuccess(res, 200, 'Admin member info retrieved successfully', { isAdminMember: true, adminMember: null });
+    }
+
+    if (user.patronId) {
+        return sendSuccess(res, 200, 'Admin member info retrieved successfully', { isAdminMember: false, adminMember: null });
+    }
+
+    let link = await PatronAdminLinkService.linkForPatron(user);
+    if (!link) {
+        await PatronAdminLinkService.sync();
+        link = await PatronAdminLinkService.linkForPatron(user);
+    }
+
+    if (!link || !link.status) {
+        return sendSuccess(res, 200, 'Admin member info retrieved successfully', { isAdminMember: false, adminMember: null });
+    }
+
+    const payerId = link.patronLeaderId ? link.leader?.id : link.patronGroup?.owner?.id;
+    const [balance, fee] = await Promise.all([
+        PatronAdminLinkService.patronageBalance(payerId),
+        PatronAdminLinkService.activationFee(),
+    ]);
+    const round = payerId ? await PatronAdminLinkService.roundState(link, payerId, balance, fee) : null;
+
+    return sendSuccess(res, 200, 'Admin member info retrieved successfully', {
+        isAdminMember: false,
+        adminMember: {
+            name: 'Trisonet (admin)',
+            patronageBalance: balance,
+            activationFee: fee,
+            availableSlots: round?.adminSlots ?? 0,
+            membersRemaining: round?.membersRemaining ?? 0,
+            roundStatus: round?.status ?? 'needs_funding',
+        },
     });
 });

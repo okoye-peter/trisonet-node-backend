@@ -142,6 +142,8 @@ model User {
   orderGroups                                                        OrderGroup[]
   patronGroupTransactions                                            PatronGroupTransaction[]
   patronGroupsOwned                                                  PatronGroup[]                    @relation("PGOwner")
+  patronAdminLink                                                    PatronAdminLink?                 @relation("PatronAdminLinkLeader")
+  linkedAccount                                                      LinkedAccount?
   pendingShopOrders                                                  PendingShopOrder[]
   productReviews                                                     ProductReview[]
   pending_level2_migrations                                          pending_level2_migrations[]
@@ -1593,10 +1595,48 @@ model PatronGroup {
   plan         PatronPlan?              @relation(fields: [planId], references: [id], onUpdate: NoAction, map: "patron_groups_plan_id_foreign")
   owner        User?                    @relation("PGOwner", fields: [userId], references: [id], onUpdate: NoAction, map: "patron_groups_user_id_foreign")
   users        User[]
+  adminLink    PatronAdminLink?
 
   @@index([userId], map: "patron_groups_user_id_foreign")
   @@index([planId], map: "patron_groups_plan_id_foreign")
   @@map("patron_groups")
+}
+
+/// One admin member registration link per patron leader or patron group (PHP owns the migration:
+/// 2026_11_04_100000_create_patron_admin_links_table). See services/patron_admin_link.service.ts.
+model PatronAdminLink {
+  id             BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  code           String       @unique(map: "patron_admin_links_code_unique") @db.VarChar(32)
+  patronLeaderId BigInt?      @unique(map: "patron_admin_links_patron_leader_id_unique") @map("patron_leader_id") @db.UnsignedBigInt
+  patronGroupId  BigInt?      @unique(map: "patron_admin_links_patron_group_id_unique") @map("patron_group_id") @db.UnsignedBigInt
+  status         Boolean      @default(true)
+  /// Admin may use half of a patron's slots per round (PHP migration 2026_11_07_100000)
+  roundSlots      Int?      @map("round_slots") @db.UnsignedInt
+  roundAdminQuota Int       @default(0) @map("round_admin_quota") @db.UnsignedInt
+  roundAdminUsed  Int       @default(0) @map("round_admin_used") @db.UnsignedInt
+  roundBaseCount  Int       @default(0) @map("round_base_count") @db.UnsignedInt
+  roundStartedAt  DateTime? @map("round_started_at") @db.Timestamp(0)
+  createdAt      DateTime?    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime?    @updatedAt @map("updated_at") @db.Timestamp(0)
+  leader         User?        @relation("PatronAdminLinkLeader", fields: [patronLeaderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "patron_admin_links_patron_leader_id_foreign")
+  patronGroup    PatronGroup? @relation(fields: [patronGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "patron_admin_links_patron_group_id_foreign")
+
+  @@map("patron_admin_links")
+}
+
+/// Account switching: users sharing a groupKey are owned by the same person and can switch between
+/// each other. PHP owns the migration: 2026_11_04_120000_create_linked_accounts_table.
+/// See services/linked_account.service.ts.
+model LinkedAccount {
+  id        BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  groupKey  String    @map("group_key") @db.VarChar(36)
+  userId    BigInt    @unique(map: "linked_accounts_user_id_unique") @map("user_id") @db.UnsignedBigInt
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "linked_accounts_user_id_foreign")
+
+  @@index([groupKey], map: "linked_accounts_group_key_index")
+  @@map("linked_accounts")
 }
 
 model PatronGroupTransaction {

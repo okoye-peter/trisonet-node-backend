@@ -3,11 +3,11 @@ import { resetCustomerPassword, sendCustomerPasswordResetOtp } from "../controll
 import { validate } from "../middlewares/validateRequest";
 import { resetCustomerPasswordSchema, sendCustomerPasswordResetOtpSchema } from "../validations/password_reset.validation";
 
-import { otpLimiter } from "../middlewares/rateLimiter";
+import { otpLimiter, passwordResetLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
 
 router.post('/customers/send-otp', otpLimiter, validate(sendCustomerPasswordResetOtpSchema), sendCustomerPasswordResetOtp);
-router.post('/customers/reset-password', validate(resetCustomerPasswordSchema), resetCustomerPassword);
+router.post('/customers/reset-password', passwordResetLimiter, validate(resetCustomerPasswordSchema), resetCustomerPassword);
 
 export default router;

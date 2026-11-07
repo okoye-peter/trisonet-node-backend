@@ -7,6 +7,7 @@ import WalletService from "./wallet.service.js";
 import { AccountActivationService } from "./account_activation.service.js";
 import { AppError } from "../utils/AppError.js";
 import StateMigrationService from "./state_migration.service.js";
+import { PatronAdminLinkService } from "./patron_admin_link.service.js";
 
 interface UserRequestData {
     name: string;
@@ -16,8 +17,8 @@ interface UserRequestData {
     region_id: string;
     country: string;
     state_id?: string | null;
-    next_of_kin_name: string;
-    next_of_kin_phone: string;
+    next_of_kin_name?: string | null;
+    next_of_kin_phone?: string | null;
     password: string;
     confirm_password: string;
     referral_id: string;
@@ -26,11 +27,17 @@ interface UserRequestData {
 }
 
 export const createUser = async (data: UserRequestData) => {
-    const { name, email, phone, region_id, country, state_id, next_of_kin_name, next_of_kin_phone, password, confirm_password, referral_id, activation_code, picture_url } = data;
+    const { name, email, phone, region_id, country, state_id, next_of_kin_name, next_of_kin_phone, password, confirm_password, referral_id, picture_url } = data;
+    let { activation_code } = data;
     const username = data.username?.toLowerCase();
     if (name.split(' ').length == 1) {
         throw new Error('Please provide your full name');
     }
+
+    // Admin member link (?ref=adm_...): the patron's patronage wallet pays for activation,
+    // so an activation code is never consumed alongside it. Throws if the link can't be used.
+    const adminLink = await PatronAdminLinkService.resolve(referral_id);
+    if (adminLink) activation_code = undefined;
 
     // Run all independent checks in parallel
     const countryId = await StateMigrationService.resolveCountryId(country);
@@ -47,7 +54,9 @@ export const createUser = async (data: UserRequestData) => {
             })
             : null,
         RegionService.isRegionLimitReached(BigInt(region_id), ROLES.CUSTOMER),
-        handleReferral(referral_id, region_id, undefined, ROLES.CUSTOMER),
+        adminLink
+            ? houseReferral()
+            : handleReferral(referral_id, region_id, undefined, ROLES.CUSTOMER),
         bcrypt.hash(password, 12),
         // The new user counts toward this state's weekly migration target, regardless of the referrer's state.
         StateMigrationService.resolveRegistrationState(state_id, countryId),
@@ -72,7 +81,7 @@ export const createUser = async (data: UserRequestData) => {
         throw new AppError('This region competition has ended, please select another region', 400);
     }
 
-    if (!referral.referralId && referral_id) {
+    if (!referral.referralId && referral_id && !adminLink) {
         throw new AppError('Referral ID is invalid', 400);
     }
 
@@ -80,7 +89,7 @@ export const createUser = async (data: UserRequestData) => {
     // Slots are shared across infant and adult registrations under the same link.
     // Referrers who have migrated to level 2 get a much higher target (2000), counted from
     // their own migratedAt date instead of the global new-system start date.
-    if (referral.referralId) {
+    if (referral.referralId && !adminLink) {
         const referrer = await prisma.user.findUnique({
             where: { id: referral.referralId },
             select: { level: true, migratedAt: true },
@@ -122,8 +131,8 @@ export const createUser = async (data: UserRequestData) => {
                     username,
                     email,
                     phone,
-                    nextOfKinName: next_of_kin_name.trim(),
-                    nextOfKinPhone: next_of_kin_phone.trim(),
+                    nextOfKinName: next_of_kin_name?.trim() || null,
+                    nextOfKinPhone: next_of_kin_phone?.trim() || null,
                     regionId: BigInt(region_id),
                     country,
                     countryId,
@@ -177,8 +186,12 @@ export const createUser = async (data: UserRequestData) => {
             });
 
             await WalletService.createWallets(createdUser.id, ROLES.CUSTOMER, tx);
-            await handleAdultSponsorship(createdUser.id, referral_id, tx);
-            await handlePatron(referral_id, createdUser, tx);
+            if (adminLink) {
+                await PatronAdminLinkService.completeRegistration(adminLink, createdUser.id, tx);
+            } else {
+                await handleAdultSponsorship(createdUser.id, referral_id, tx);
+                await handlePatron(referral_id, createdUser, tx);
+            }
 
             return createdUser;
         });
@@ -191,6 +204,15 @@ export const createUser = async (data: UserRequestData) => {
 
     return user;
 }
+
+/** Patron-referred signups use the house account as referrer, same as PHP. */
+const houseReferral = async () => {
+    const house = await prisma.user.findFirst({
+        where: { email: 'triunejobs@gmail.com', role: ROLES.CUSTOMER },
+        select: { id: true },
+    });
+    return { referralId: house?.id ?? null, influencerId: null, influencerPromoPeriodId: null };
+};
 
 const handleAdultSponsorship = async (userId: bigint, username: string, tx: Prisma.TransactionClient) => {
     username = username.trim();

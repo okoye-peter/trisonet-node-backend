@@ -12,6 +12,7 @@ import { getSafeUserWallets } from "../utils/prismaUtils";
 import { bankAccountNameMatches } from "../utils/nameMatcher";
 import { addSmsJob, addOtpEmailJob } from '../queue';
 import StateMigrationService from '../services/state_migration.service';
+import { PatronAdminLinkService } from '../services/patron_admin_link.service';
 
 export const getUserReferrals = asyncHandler(async (req: any, res: Response, next: NextFunction) => {
     const { page, limit, search } = req.query;
@@ -80,7 +81,9 @@ export const getAuthUser = asyncHandler(async (req: any, res: Response, next: Ne
         patronPlan = plan;
         const payment = activationPivot?.patronActivationPayment;
         const minAmount = plan?.minAmount;
-        patronActivated = !!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount);
+        patronActivated = (!!minAmount && payment?.status === 1 && Number(payment.amount) >= Number(minAmount)) ||
+            // The admin member account never pays a patron plan; it works through its patron links.
+            (await PatronAdminLinkService.isAdminMember(user.id));
     }
 
     const isPendingLevel2Migration = await prisma.pending_level2_migrations.findFirst({
@@ -317,7 +320,10 @@ export const updateBankDetails = asyncHandler(async (req: any, res: Response, ne
         return next(new AppError(resolved.error || 'Could not verify this bank account. Please check the details and try again.', 400));
     }
 
-    if (!bankAccountNameMatches(user.name, resolved.data.account_name)) {
+    // The admin member is a company-run account ("Trisonet Admin"), so its payout account can't carry
+    // its registered name; the account must still resolve as a real, valid account above.
+    const isAdminMember = await PatronAdminLinkService.isAdminMember(user.id);
+    if (!isAdminMember && !bankAccountNameMatches(user.name, resolved.data.account_name)) {
         return next(new AppError('The bank account name must match the name registered on your Trisonet account.', 400));
     }
 

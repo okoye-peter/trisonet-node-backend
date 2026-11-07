@@ -10,6 +10,10 @@ export const ROLES = {
     STORE_GUEST: 9,
 } as const;
 
+// Roles whose dashboard lives in the PHP app (app.trisonet.com). They can't hold a session in this
+// app: login/handoff/refresh refuse them, and account switching hands them over to PHP's /handoff.
+export const PHP_HOSTED_ROLES: number[] = [ROLES.SPONSOR, ROLES.INFLUENCER];
+
 export const ACCOUNT_STATES = {
     SUSPENDED: 0,
     ACTIVE: 1,

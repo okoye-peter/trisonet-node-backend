@@ -6,6 +6,7 @@ import { AppError } from "../utils/AppError";
 import bcrypt from "bcryptjs";
 import { InitiateTransferInput } from "../validations/withdrawal.validation";
 import { PagaService } from "./paga.service";
+import { PatronAdminLinkService } from "./patron_admin_link.service.js";
 
 export class WithdrawalService {
     /**
@@ -167,8 +168,13 @@ export class WithdrawalService {
             throw new AppError('Invalid wallet selected', 400);
         }
 
-        // Rule for Patrons: with patronId -> direct, without patronId -> indirect
-        if (user.role === ROLES.PATRON) {
+        // Rule for Patrons: with patronId -> direct, without patronId -> indirect.
+        // The admin member account has no patronId but earns member commission into direct.
+        const isAdminMember = user.role === ROLES.PATRON && await PatronAdminLinkService.isAdminMember(user.id);
+        if (isAdminMember && wallet.type !== 'direct') {
+            throw new AppError('The admin member account can only withdraw from its direct wallet.', 400);
+        }
+        if (user.role === ROLES.PATRON && !isAdminMember) {
             if (user.patronId !== null && wallet.type !== 'direct') {
                 throw new AppError('As a member patron, you can only withdraw from your direct wallet.', 400);
             }
@@ -256,7 +262,9 @@ export class WithdrawalService {
             }
         }
 
-        if(user.level < 2) {
+        // Level-2 migration is a customer concept; patrons are never migrated (all stay level 1),
+        // so applying it to them blocked every patron withdrawal.
+        if (user.role !== ROLES.PATRON && user.level < 2) {
             throw new AppError('only users that has migrated can withdraw', 400);
         }
 
