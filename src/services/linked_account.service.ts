@@ -14,6 +14,8 @@ import { toPhpWallClock } from "../utils/phpClock";
  * Account switching. Accounts owned by the same person share a `linked_accounts.group_key`;
  * any member can switch to any other member without re-entering credentials.
  *
+ * Only the main (adult customer) account (A) can start a link; other members can only switch.
+ * Any non-admin account can be linked; user-facing text calls them all "partner accounts".
  * Linking account B from a session on account A requires proof of owning B:
  *   - B's username/email + B's password, then a one-time code sent to B's phone and email; or
  *   - for sponsors (who log in with email + OTP in the PHP app and have no real password):
@@ -25,11 +27,29 @@ import { toPhpWallClock } from "../utils/phpClock";
  * App\Services\LinkedAccountService — keep the two in sync.
  */
 
-// Admin-type accounts are deliberately excluded so a compromised customer session can never
-// become a path into an admin account.
-export const LINKABLE_ROLES: number[] = [ROLES.CUSTOMER, ROLES.INFLUENCER, ROLES.SPONSOR, ROLES.PATRON];
+// Every account type except admins (super admin, admin, infant admin) can be linked as a "partner account".
+// Admins are excluded so a compromised session can never become a path into an admin account.
+// Store guests are throwaway shop-checkout accounts, not real partner accounts, so they're left out too.
+export const LINKABLE_ROLES: number[] = [ROLES.CUSTOMER, ROLES.INFLUENCER, ROLES.SPONSOR, ROLES.PATRON, ROLES.SCHOOL];
 
-// Switching to a PHP_HOSTED_ROLES account (sponsor, influencer) goes through a PHP handoff.
+// New links can only be started from the main (adult customer) account. Every other linked account can
+// still switch around the group (and back), but cannot add accounts to it.
+export const LINK_INITIATOR_ROLES: number[] = [ROLES.CUSTOMER];
+const ADULT_ONLY_MESSAGE = "Partner accounts can only be linked from your main partner account. Switch to it to link another partner account.";
+
+// Roles whose dashboard lives in the PHP app; switching to one goes through PHP's /handoff.
+const SWITCH_VIA_PHP_ROLES: number[] = [...PHP_HOSTED_ROLES, ROLES.SCHOOL];
+
+const assertCanInitiateLink = async (requesterId: bigint) => {
+    const requester = await prisma.user.findUnique({
+        where: { id: requesterId },
+        select: { role: true, isInfant: true, deletedAt: true },
+    });
+    if (!requester || requester.deletedAt || requester.isInfant || !LINK_INITIATOR_ROLES.includes(Number(requester.role))) {
+        throw new AppError(ADULT_ONLY_MESSAGE, 403);
+    }
+};
+
 const PHP_APP_URL = (process.env.PHP_APP_URL || "https://app.trisonet.com").replace(/\/+$/, "");
 const HANDOFF_TTL_MS = 2 * 60 * 1000;
 
@@ -43,10 +63,11 @@ const hashOtp = (otp: string) => crypto.createHash("sha256").update(otp).digest(
 type PendingLink = { targetId: string; otpHash: string; attempts: number };
 
 const ROLE_LABELS: Record<number, string> = {
-    [ROLES.CUSTOMER]: "Adult Customer",
-    [ROLES.INFLUENCER]: "Influencer",
+    [ROLES.CUSTOMER]: "Partner",
+    [ROLES.INFLUENCER]: "Coordinator",
     [ROLES.SPONSOR]: "Sponsor",
     [ROLES.PATRON]: "Patron",
+    [ROLES.SCHOOL]: "School",
 };
 
 const linkedUserSelect = {
@@ -105,9 +126,7 @@ export const listLinkedAccounts = async (userId: bigint) => {
 
 /** Step 1: check the target's credentials and send it an OTP. */
 export const requestLink = async (requester: { id: bigint; role: number }, identifier: string, password?: string) => {
-    if (!LINKABLE_ROLES.includes(Number(requester.role))) {
-        throw new AppError("This account type cannot use account switching.", 403);
-    }
+    await assertCanInitiateLink(requester.id);
 
     const trimmed = identifier.trim();
     // usernames are not unique (see users.username), so check the password against every match
@@ -128,7 +147,7 @@ export const requestLink = async (requester: { id: bigint; role: number }, ident
         }
     }
     if (matches.length > 1) {
-        throw new AppError("More than one account matches that username. Please use the account's email address instead.", 409);
+        throw new AppError("More than one account uses that username. Enter the partner account's email address instead.", 409);
     }
 
     let target = matches[0];
@@ -138,33 +157,33 @@ export const requestLink = async (requester: { id: bigint; role: number }, ident
         if (sponsors.length === 1) target = sponsors[0];
     }
     if (!target) {
-        throw new AppError("Incorrect username/email or password for the account you want to link. (Sponsors: enter the sponsor email.)", 401);
+        throw new AppError("Incorrect username/email or password for the partner account you want to link. For a sponsor account, enter the sponsor email and leave the password empty.", 401);
     }
 
     if (target.id === requester.id) {
-        throw new AppError("You are already logged in to this account.", 400);
+        throw new AppError("You are already logged in to this account. Enter the details of a different partner account.", 400);
     }
     if (!LINKABLE_ROLES.includes(Number(target.role))) {
-        throw new AppError("This account type cannot be linked.", 403);
+        throw new AppError("Admin and store guest accounts cannot be linked as partner accounts.", 403);
     }
 
     const [requesterGroup, targetGroup] = await Promise.all([getGroupKey(requester.id), getGroupKey(target.id)]);
     if (requesterGroup && requesterGroup === targetGroup) {
-        throw new AppError("This account is already linked to yours.", 400);
+        throw new AppError("This partner account is already linked to yours.", 400);
     }
     const [requesterCount, targetCount] = await Promise.all([
         requesterGroup ? prisma.linkedAccount.count({ where: { groupKey: requesterGroup } }) : 1,
         targetGroup ? prisma.linkedAccount.count({ where: { groupKey: targetGroup } }) : 1,
     ]);
     if (requesterCount + targetCount > MAX_GROUP_SIZE) {
-        throw new AppError(`You can link at most ${MAX_GROUP_SIZE} accounts together.`, 400);
+        throw new AppError(`You can link at most ${MAX_GROUP_SIZE} partner accounts together. Unlink one to add another.`, 400);
     }
 
     // Send to every contact the account has (like sponsor login) so one failed channel doesn't block linking.
     const phone = target.phone ?? "";
     const email = target.email ?? "";
     if (!phone && !email) {
-        throw new AppError("That account has no phone number or email to send a verification code to.", 400);
+        throw new AppError("That partner account has no phone number or email to send a verification code to. Add one to that account first, then try again.", 400);
     }
 
     const otp = crypto.randomInt(100000, 1000000).toString();
@@ -173,7 +192,7 @@ export const requestLink = async (requester: { id: bigint; role: number }, ident
 
     if (process.env.NODE_ENV === "production") {
         if (phone) {
-            await addSmsJob(phone, `Your TrisoNet code to link account ${target.username ?? target.name} is ${otp}. It expires in 10 minutes. Do not share it.`);
+            await addSmsJob(phone, `Your TrisoNet code to link partner account ${target.username ?? target.name} is ${otp}. It expires in 10 minutes. Do not share it.`);
         }
         if (email) {
             await addOtpEmailJob(email, otp);
@@ -194,10 +213,12 @@ export const requestLink = async (requester: { id: bigint; role: number }, ident
 
 /** Step 2: verify the OTP and put both accounts in the same group (merging groups if needed). */
 export const verifyLink = async (requesterId: bigint, otp: string) => {
+    await assertCanInitiateLink(requesterId);
+
     const key = otpKey(requesterId);
     const raw = await redis.get(key);
     if (!raw) {
-        throw new AppError("Verification code has expired. Please start again.", 400);
+        throw new AppError("The verification code has expired. Please start again to get a new code.", 400);
     }
 
     const pending = JSON.parse(raw) as PendingLink;
@@ -209,14 +230,14 @@ export const verifyLink = async (requesterId: bigint, otp: string) => {
         }
         const ttl = await redis.ttl(key);
         await redis.set(key, JSON.stringify(pending), "EX", ttl > 0 ? ttl : OTP_TTL_SECONDS);
-        throw new AppError("Invalid verification code.", 400);
+        throw new AppError("Incorrect verification code. Check the code sent to the partner account and try again.", 400);
     }
     await redis.del(key);
 
     const targetId = BigInt(pending.targetId);
     const target = await prisma.user.findUnique({ where: { id: targetId }, select: linkedUserSelect });
     if (!target || !isUsableAccount(target)) {
-        throw new AppError("That account can no longer be linked.", 400);
+        throw new AppError("That partner account can no longer be linked. Please start again.", 400);
     }
 
     await prisma.$transaction(async (tx) => {
@@ -255,7 +276,7 @@ export const verifyLink = async (requesterId: bigint, otp: string) => {
 export const unlinkAccount = async (requesterId: bigint, targetId: bigint) => {
     const groupKey = await getGroupKey(requesterId);
     if (!groupKey || (await getGroupKey(targetId)) !== groupKey) {
-        throw new AppError("That account is not linked to yours.", 404);
+        throw new AppError("That partner account is not linked to yours.", 404);
     }
 
     await prisma.$transaction(async (tx) => {
@@ -272,22 +293,22 @@ export const unlinkAccount = async (requesterId: bigint, targetId: bigint) => {
 /** Issue a fresh session for a linked account. */
 export const switchToAccount = async (requesterId: bigint, targetId: bigint) => {
     if (requesterId === targetId) {
-        throw new AppError("You are already using this account.", 400);
+        throw new AppError("You are already using this partner account.", 400);
     }
 
     const groupKey = await getGroupKey(requesterId);
     if (!groupKey || (await getGroupKey(targetId)) !== groupKey) {
-        throw new AppError("That account is not linked to yours.", 403);
+        throw new AppError("That partner account is not linked to yours.", 403);
     }
 
     const target = await prisma.user.findUnique({ where: { id: targetId }, select: linkedUserSelect });
     if (!target || !isUsableAccount(target)) {
-        throw new AppError("That account is no longer available.", 404);
+        throw new AppError("That partner account is no longer available.", 404);
     }
 
     logger.info(`[account-link] user ${requesterId} switched to linked account ${targetId}`);
 
-    if (PHP_HOSTED_ROLES.includes(Number(target.role))) {
+    if (SWITCH_VIA_PHP_ROLES.includes(Number(target.role))) {
         // Same token format as PHP's AuthHandoffService: random 64-hex token, stored sha256-hashed, 2 min TTL.
         // Timestamps are written on PHP's clock because PHP compares expires_at with its own now().
         const token = crypto.randomBytes(32).toString("hex");

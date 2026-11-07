@@ -18,7 +18,7 @@ const router = Router();
 const linkRequestLimiter = userRateLimiter({
     windowMs: 15 * 60 * 1000,
     max: 5,
-    message: "Too many link attempts. Please try again after 15 minutes.",
+    message: "Too many partner account link attempts. Please try again after 15 minutes.",
     keyPrefix: "account-link-request",
 });
 
