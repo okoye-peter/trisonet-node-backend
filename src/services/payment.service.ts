@@ -90,8 +90,19 @@ export class PaymentService {
     }
 
     private async processDirectFunding(fundingRecord: any, wallet: any, user: any) {
-        const amount = Number(fundingRecord.amount);
-        
+        let amount = Number(fundingRecord.amount);
+
+        // Patronage funding is billed as principal + service charge (see patron initiateFunding).
+        // Only the principal belongs in the wallet — otherwise the charge gets counted as slots.
+        if (wallet.type === 'patronage') {
+            const activationPayment = await (prisma as any).patronActivationPayment.findFirst({
+                where: { reference: fundingRecord.receipt },
+                select: { charges: true }
+            });
+            const charge = Number(activationPayment?.charges ?? 0);
+            amount = Math.max(0, amount - charge);
+        }
+
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Credit the wallet
             await tx.wallet.update({
@@ -101,7 +112,7 @@ export class PaymentService {
 
             // Notify user
             const type_str = wallet.type === 'indirect' ? 'gkwth wallet' : 'wallet';
-            const amount_str = wallet.type === 'indirect' ? `${fundingRecord.amount} gkwth` : `₦${fundingRecord.amount}`;
+            const amount_str = wallet.type === 'indirect' ? `${fundingRecord.amount} gkwth` : `₦${amount}`;
 
             const notification = await tx.notification.create({
                 data: {
